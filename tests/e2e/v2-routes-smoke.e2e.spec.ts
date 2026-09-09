@@ -20,7 +20,7 @@ const ROUTES: Array<{ route: string; heading: string; text?: string | RegExp }> 
   { route: "docs", heading: "Documentation" },
   { route: "identity", heading: "Identity Directory" },
   { route: "deployments", heading: "Deployments" },
-  { route: "projects", heading: "Workspaces & Repositories" },
+  { route: "projects", heading: "Factory Registry" },
   { route: "model-routing", heading: "Execution Routing" },
   { route: "operator-evals", heading: "Operator Evals" },
   { route: "harness-loops", heading: "Loop Engineering" },

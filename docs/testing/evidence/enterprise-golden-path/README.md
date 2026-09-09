@@ -7,8 +7,8 @@ This packet complements the existing Factory V2 qualification with authenticated
 ## Baseline
 
 - Baseline commit: `b7cd6890b5ac8ced093a4163dbff8d8ae103f8f9`
-- Qualified head before generated evidence: `b7cd6890b5ac8ced093a4163dbff8d8ae103f8f9`
-- Qualification date: `2026-09-09T17:03:09.431Z`
+- Qualified head before generated evidence: `449ae081368a80f3ec211e133e033709b096d0d2`
+- Qualification date: `2026-09-09T17:58:15.632Z`
 - Environment: darwin arm64; v24.18.1
 
 ## Authentication and tenancy
@@ -53,14 +53,13 @@ Unauthenticated access, cross-company read/write, stale lease, specification mis
 ## Browser evidence
 
 - Canonical shell smoke/accessibility suite: **PASS** (`pnpm run test:e2e:critical`, 9 tests).
-- Clerk fail-closed surface: [clerk-fail-closed.png](clerk-fail-closed.png).
+- Phase 2 convergence screenshots: [Factory Registry](../phase-2-convergence/factory-registry.png) and [Decision Center](../phase-2-convergence/decision-center.png).
 
 ## Full qualification classification
 
-- Build, lint, typecheck, unit, authorization, and golden-path qualification: **PASS**.
-- Integration: **BLOCKED — PRE-EXISTING** because the root command ignores package Vitest aliases/environments and collects Node executable test files as Vitest suites.
-- Factory qualification: **BLOCKED — PRE-EXISTING/EXTERNAL ADVISORY DATA** at the unchanged dependency gate; the Factory V2 system test passes.
-- Security: authorization, secret scan, service authentication, and fail-closed tenant checks pass; the final dependency audit is blocked by newly published advisories affecting the unchanged baseline lockfile.
+- Build, typecheck, unit, authorization, browser/accessibility, and golden-path qualification: **PASS**.
+- Integration: **BLOCKED — PRE-EXISTING** pending root integration-runner hardening; package and Factory integration suites pass.
+- Security: authorization, secret scan, service authentication, and fail-closed tenant checks pass. The registry-backed dependency audit fails on advisories affecting the unchanged baseline dependency graph and remains Phase 3 release-hardening work.
 
 ## Pre-existing blockers repaired
 
