@@ -101,8 +101,9 @@ provider cannot silently turn into demo access:
 | `clerk` | Clerk session plus Convex token validation |
 
 Clerk mode requires `VITE_CLERK_PUBLISHABLE_KEY` in the UI build and the public
-Clerk issuer in `convex/auth.config.ts`. An explicitly selected Clerk mode with
-missing UI configuration fails closed. See
+Clerk issuer in the Convex deployment variable `CLERK_JWT_ISSUER_DOMAIN`. An
+explicitly selected Clerk mode with missing UI configuration fails closed, and
+Convex auth synchronization fails when the issuer is absent. See
 `docs/security/clerk-company-authorization.md` for setup and rollout checks.
 
 ## Lifecycle convention

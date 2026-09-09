@@ -9,6 +9,12 @@
 
 The Mission Control Telegram bot serves as the **command bus** for operators and the **notification channel** for agents. All commands are project-scoped after you select a project with `/switch`.
 
+Approval commands are a supported single-operator channel. The bot requires a
+server-only `TELEGRAM_CONVEX_OPERATOR_AUTH_TOKEN` whose subject maps to the
+accountable Mission Control operator; Convex derives authority from that token,
+not from Telegram usernames, chat IDs, or callback data. Multi-operator use is
+not admitted until durable Telegram-user-to-operator linking exists.
+
 ---
 
 ## Setup
@@ -23,6 +29,7 @@ The Mission Control Telegram bot serves as the **command bus** for operators and
    # Add to .env
    TELEGRAM_BOT_TOKEN=your_token_here
    TELEGRAM_CHAT_ID=your_chat_id_or_group_id
+   TELEGRAM_CONVEX_OPERATOR_AUTH_TOKEN=your_server_only_convex_operator_jwt
    ```
 
 3. **Start Bot:**

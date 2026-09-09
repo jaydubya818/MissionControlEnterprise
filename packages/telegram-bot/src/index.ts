@@ -27,6 +27,10 @@ import {
   handleQuarantine,
 } from "./commands/squad.js";
 import { handleThreadReply } from "./threads.js";
+import {
+  requireTelegramOperatorAuthToken,
+  telegramApprovalDecision,
+} from "./approvalAuthority.js";
 
 dotenv.config();
 
@@ -60,11 +64,10 @@ interface BotContext extends Context {
 
 const bot = new Telegraf<BotContext>(BOT_TOKEN);
 const convex = new ConvexHttpClient(CONVEX_URL);
-const convexServiceAuthToken = process.env.CONVEX_SERVICE_AUTH_TOKEN?.trim();
-if (!convexServiceAuthToken) {
-  throw new Error("CONVEX_SERVICE_AUTH_TOKEN is required for Telegram workload operations");
-}
-convex.setAuth(convexServiceAuthToken);
+const telegramOperatorAuthToken = requireTelegramOperatorAuthToken(
+  process.env.TELEGRAM_CONVEX_OPERATOR_AUTH_TOKEN,
+);
+convex.setAuth(telegramOperatorAuthToken);
 
 // Attach convex client to context
 bot.use(async (ctx, next) => {
@@ -155,11 +158,10 @@ bot.on("callback_query", async (ctx) => {
   
   if (action === "approve") {
     try {
-      await convex.mutation(api.approvals.approve, {
-        approvalId: approvalId as any,
-        decidedByAgentId: undefined, // Human approval
-        reason: "Approved via Telegram",
-      });
+      await convex.mutation(
+        api.approvals.approve,
+        telegramApprovalDecision(approvalId as any, "Approved via Telegram"),
+      );
       
       await ctx.answerCbQuery("✅ Approved!");
       await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
@@ -177,49 +179,6 @@ bot.on("callback_query", async (ctx) => {
     );
   } else {
     await ctx.answerCbQuery("Unknown action");
-  }
-});
-
-// ============================================================================
-// INLINE BUTTON CALLBACKS
-// ============================================================================
-
-bot.on("callback_query", async (ctx) => {
-  const data = 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : undefined;
-  
-  if (!data) {
-    await ctx.answerCbQuery("No data received");
-    return;
-  }
-  
-  try {
-    // Parse callback data
-    const [action, approvalId] = data.split(":");
-    
-    if (action === "approve") {
-      await convex.mutation(api.approvals.approve, {
-        approvalId: approvalId as any,
-        decidedByUserId: ctx.from?.username || ctx.from?.id.toString() || "operator",
-        reason: "Approved via Telegram inline button",
-      });
-      
-      await ctx.answerCbQuery("✅ Approved!");
-      await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
-      await ctx.reply(`✅ Approval ${approvalId.slice(-6)} has been approved.`);
-    } else if (action === "deny") {
-      // For deny, we need a reason - prompt user
-      await ctx.answerCbQuery("Use /deny command with reason");
-      await ctx.reply(
-        `To deny this approval, use:\n\`/deny ${approvalId.slice(-6)} <your reason>\``,
-        { parse_mode: "Markdown" }
-      );
-    } else {
-      await ctx.answerCbQuery("Unknown action");
-    }
-  } catch (error) {
-    console.error("Error handling callback:", error);
-    await ctx.answerCbQuery("❌ Error");
-    await ctx.reply(`❌ Error: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 });
 

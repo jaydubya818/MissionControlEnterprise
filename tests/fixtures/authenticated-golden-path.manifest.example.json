@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "authenticated-golden-path/v1",
+  "companyA": {
+    "subjectId": "user_a_stable_clerk_subject",
+    "companyId": "company_a_stable_convex_id",
+    "projectSlug": "company-a-project-slug",
+    "workspaceId": "company_a_workspace_id",
+    "missionId": "company_a_mission_id",
+    "missionTitle": "Company A authenticated golden path",
+    "workOrderId": "company_a_work_order_id",
+    "taskId": "company_a_task_id",
+    "attemptId": "company_a_attempt_id",
+    "candidateId": "company_a_candidate_id",
+    "candidateSha": "company_a_candidate_commit_sha",
+    "verificationSubjectDigest": "company_a_verification_subject_digest",
+    "verificationPlanId": "company_a_verification_plan_id",
+    "approvalId": "company_a_approval_id",
+    "releaseId": "company_a_release_id"
+  },
+  "companyB": {
+    "subjectId": "user_b_stable_clerk_subject",
+    "companyId": "company_b_stable_convex_id",
+    "projectSlug": "company-b-project-slug",
+    "workspaceId": "company_b_workspace_id",
+    "missionId": "company_b_mission_id",
+    "missionTitle": "Company B authenticated golden path",
+    "workOrderId": "company_b_work_order_id",
+    "taskId": "company_b_task_id",
+    "attemptId": "company_b_attempt_id",
+    "candidateId": "company_b_candidate_id",
+    "candidateSha": "company_b_candidate_commit_sha",
+    "verificationSubjectDigest": "company_b_verification_subject_digest",
+    "verificationPlanId": "company_b_verification_plan_id",
+    "approvalId": "company_b_approval_id",
+    "releaseId": "company_b_release_id"
+  }
+}

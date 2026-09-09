@@ -19,13 +19,18 @@ of truth for company access.
 ## Configure a Clerk deployment
 
 1. In Clerk, create or select the Mission Control application and activate the
-   Convex integration/JWT template described by Clerk's Convex guide.
-2. Configure `convex/auth.config.ts` with the Clerk application's exact issuer
-   domain:
+   native Convex integration. Mission Control does not request a legacy Clerk
+   JWT template.
+2. Configure the Clerk application's public issuer on the target Convex
+   deployment. It is deployment configuration, never a source-code constant:
 
-   ```ts
-   const clerkIssuerDomain = "https://your-clerk-issuer.clerk.accounts.dev";
+   ```bash
+   pnpm exec convex env set CLERK_JWT_ISSUER_DOMAIN https://your-instance.clerk.accounts.dev
+   pnpm exec convex dev --once
    ```
+
+   Use `pnpm exec convex env --prod set ...` followed by `pnpm exec convex
+   deploy` for production.
 
 3. Build the UI with the Clerk publishable key and explicit Clerk mode:
 
@@ -42,11 +47,10 @@ The issuer must match the Clerk application that minted the browser token. A
 publishable key alone does not authorize access; Convex validates the token and
 Mission Control then resolves the exact `operators.authId` membership.
 
-The current issuer is a Clerk development instance used for internal release
-qualification. It is not the public-production identity boundary. Before a
-public launch, create the production Clerk instance and custom domain, rotate
-the browser to its `pk_live_...` publishable key, update the issuer, and repeat
-the complete governed staging and production verification path.
+No issuer is committed. Before a public launch, configure the production Clerk
+instance and custom domain, build the browser with its `pk_live_...`
+publishable key, configure the matching Convex issuer, and repeat the complete
+governed staging and production verification path.
 
 ## Bootstrap the first owner
 
@@ -90,6 +94,9 @@ Clerk user ID. Provisioning by email alone is deliberately unsupported.
 
 Rollback the UI build to `legacy` mode if Clerk session establishment fails.
 Do not enable anonymous company context as a rollback mechanism.
+
+The canonical two-company release qualification is documented in
+`docs/security/authenticated-golden-path-qualification.md`.
 
 ## Failure states
 

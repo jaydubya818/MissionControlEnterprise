@@ -8,6 +8,7 @@ import type { Context } from "telegraf";
 import { api } from "../../../../convex/_generated/api.js";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { userProjects } from "./basic.js";
+import { telegramApprovalDecision } from "../approvalAuthority.js";
 
 interface BotContext extends Context {
   convex: any;
@@ -100,11 +101,10 @@ export async function handleApprove(ctx: BotContext) {
       return;
     }
     
-    const result = await ctx.convex.mutation(api.approvals.approve, {
-      approvalId: approval._id,
-      decidedByUserId: ctx.from?.username || ctx.from?.id.toString() || "operator",
-      reason: "Approved via Telegram",
-    });
+    const result = await ctx.convex.mutation(
+      api.approvals.approve,
+      telegramApprovalDecision(approval._id, "Approved via Telegram"),
+    );
     
     if (result.success) {
       await ctx.reply(`✅ Approved: ${approval.actionSummary}`);
@@ -144,11 +144,10 @@ export async function handleDeny(ctx: BotContext) {
       return;
     }
     
-    const result = await ctx.convex.mutation(api.approvals.deny, {
-      approvalId: approval._id,
-      decidedByUserId: ctx.from?.username || ctx.from?.id.toString() || "operator",
-      reason,
-    });
+    const result = await ctx.convex.mutation(
+      api.approvals.deny,
+      telegramApprovalDecision(approval._id, reason),
+    );
     
     if (result.success) {
       await ctx.reply(`🚫 Denied: ${approval.actionSummary}\nReason: ${reason}`);

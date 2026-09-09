@@ -42,6 +42,7 @@ Create or update `/packages/telegram-bot/.env`:
 # Mission Control Bot
 TELEGRAM_BOT_TOKEN=your-mission-control-token-here
 TELEGRAM_CHAT_ID=your-telegram-user-id
+TELEGRAM_CONVEX_OPERATOR_AUTH_TOKEN=your-server-only-convex-operator-jwt
 
 # BJ Agent Bot
 BJ_BOT_TOKEN=your-bj-bot-token-here
@@ -50,6 +51,12 @@ BJ_CHAT_ID=your-telegram-user-id
 # Convex
 VITE_CONVEX_URL=https://your-deployment.convex.cloud
 ```
+
+`TELEGRAM_CONVEX_OPERATOR_AUTH_TOKEN` must authenticate one active Mission
+Control operator with access to the bot's workspaces. Approval commands require
+that operator to have `delivery.approve`. Do not reuse the orchestration service
+token, expose this token to a browser, or treat a Telegram username/chat ID as
+the approval actor.
 
 ## Step 4: Create BJ Agent in Mission Control
 
@@ -174,6 +181,7 @@ For production deployment, set environment variables in your hosting platform:
 ```bash
 TELEGRAM_BOT_TOKEN=...
 TELEGRAM_CHAT_ID=...
+TELEGRAM_CONVEX_OPERATOR_AUTH_TOKEN=...
 BJ_BOT_TOKEN=...
 BJ_CHAT_ID=...
 VITE_CONVEX_URL=...

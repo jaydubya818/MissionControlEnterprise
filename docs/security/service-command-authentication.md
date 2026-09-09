@@ -82,3 +82,20 @@ claims against the same Attempt.
 Additional scheduler, task-transition, approval-request, and handoff
 commands must be added as named capabilities before those callers can be treated
 as production service identities. Do not reuse one generic “system” capability.
+
+## Telegram operator approvals
+
+Telegram approval commands are a supported operator channel, not an autonomous
+service decision. The bot must start with
+`TELEGRAM_CONVEX_OPERATOR_AUTH_TOKEN` containing a valid Convex token whose
+subject maps to one active Mission Control operator. The generic orchestration
+service token is deliberately not accepted for this human decision boundary.
+That operator must have access to the selected workspace and
+`delivery.approve`. Convex derives the recorded approver from that authenticated
+operator; Telegram usernames, chat IDs, and callback payloads are never accepted
+as approval identity.
+
+If the token is absent, expired, unmapped, cross-company, or under-privileged,
+the bot or approval mutation fails closed. A future multi-operator Telegram bot
+must add durable Telegram-user-to-operator linking or a dedicated named command;
+it must not share one operator token while attributing decisions to chat input.

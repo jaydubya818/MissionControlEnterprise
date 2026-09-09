@@ -1,8 +1,13 @@
 import type { AuthConfig } from "convex/server";
+import { requireClerkJwtIssuerDomain } from "./lib/clerkAuthConfig";
 
-// Clerk issuer URLs are public deployment configuration. This must match the
-// Clerk application that provides VITE_CLERK_PUBLISHABLE_KEY to the browser.
-const clerkIssuerDomain = "https://dear-sunbird-98.clerk.accounts.dev";
+// This public issuer must be configured independently on every Convex
+// deployment and must match the Clerk instance that supplies the browser's
+// VITE_CLERK_PUBLISHABLE_KEY. Missing configuration intentionally prevents the
+// auth configuration from being synchronized.
+const clerkIssuerDomain = requireClerkJwtIssuerDomain(
+  process.env.CLERK_JWT_ISSUER_DOMAIN,
+);
 
 export default {
   providers: [
