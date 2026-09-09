@@ -57,12 +57,16 @@ describe("navConfig", () => {
     expect(missing).toEqual([]);
   });
 
-  it("keeps EOS administration and labs groups within six visible items each", async () => {
+  it("organizes EOS navigation around operator jobs", async () => {
     const { EOS_NAV_GROUPS } = await import("./eosNavConfig");
-    const administration = EOS_NAV_GROUPS.find((g) => g.id === "administration");
-    const labs = EOS_NAV_GROUPS.find((g) => g.id === "labs");
-    expect(administration?.items.length).toBeLessThanOrEqual(6);
-    expect(labs?.items.length).toBeLessThanOrEqual(6);
+    expect(EOS_NAV_GROUPS.map((group) => group.id)).toEqual([
+      "overview", "operate", "factory", "control", "observe", "build", "knowledge", "labs",
+    ]);
+    expect(EOS_NAV_GROUPS.find((group) => group.id === "operate")?.items.map((item) => item.label)).toEqual([
+      "Missions", "Work Orders", "Tasks & Attempts", "Approvals",
+    ]);
+    expect(EOS_NAV_GROUPS.flatMap((group) => group.items).find((item) => item.view === "audit")?.label).toBe("Audit Trail");
+    expect(EOS_NAV_GROUPS.flatMap((group) => group.items).filter((item) => item.view === "missions")).toHaveLength(1);
   });
 
   it("resolves group and item lookups", () => {
