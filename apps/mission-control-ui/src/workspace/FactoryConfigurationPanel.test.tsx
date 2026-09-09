@@ -197,7 +197,7 @@ describe("FactoryConfigurationPanel", () => {
     fireEvent.click(screen.getByLabelText("Independent review"));
     fireEvent.click(screen.getByLabelText("Application"));
     fireEvent.change(screen.getByLabelText(/Implementer · implementer/), { target: { value: "agent-version-1" } });
-    fireEvent.click(screen.getByRole("button", { name: "Create configuration version" }));
+    fireEvent.click(screen.getByRole("button", { name: "Create Factory Version" }));
 
     await waitFor(() => expect(mocks.createVersion).toHaveBeenCalledWith(expect.objectContaining({
       executor: { adapter: "codex", version: "v1" },
@@ -268,7 +268,7 @@ describe("FactoryConfigurationPanel", () => {
 
     fireEvent.click(screen.getByLabelText("Isolated Sandbox"));
     await waitFor(() => expect(screen.getByLabelText("Sandbox Profile")).toHaveValue("sandbox-profile-1"));
-    fireEvent.click(screen.getByRole("button", { name: "Create configuration version" }));
+    fireEvent.click(screen.getByRole("button", { name: "Create Factory Version" }));
 
     await waitFor(() => expect(mocks.createVersion).toHaveBeenCalledWith(expect.objectContaining({
       executionBackend: "remote-sandbox",

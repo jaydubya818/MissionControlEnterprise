@@ -24,7 +24,7 @@ export interface MissionDetailViewProps {
 
 const TABS: DetailTab[] = [
   { id: "overview", label: "Overview" }, { id: "specification", label: "Specification" }, { id: "plan", label: "Plan" }, { id: "execution", label: "Execution" }, { id: "work-orders", label: "Work Orders" },
-  { id: "evidence", label: "Validation" }, { id: "activity", label: "Activity" },
+  { id: "evidence", label: "Verification & Evidence" }, { id: "activity", label: "Activity" },
 ];
 
 export const MISSION_VALIDATION_COVERAGE_TEXT_CLASS = "mt-2 break-words [overflow-wrap:anywhere] text-[13px] leading-relaxed text-ink-secondary";
@@ -79,7 +79,7 @@ export function MissionDetailView({ projectId, onNavigate }: MissionDetailViewPr
     { label: "Data", value: <ProvenanceBadge provenance="convex" /> },
   ]} />;
   return <div className="relative flex-1 overflow-auto bg-app"><DetailLayout
-    breadcrumbs={[{ label: "Strategy" }, { label: "Missions", onClick: () => navigateSafely("missions") }, { label: mission.title, current: true }]}
+    breadcrumbs={[{ label: "Operate" }, { label: "Missions", onClick: () => navigateSafely("missions") }, { label: mission.title, current: true }]}
     title={mission.title} description={mission.objective}
     actions={<div className="flex items-center gap-2">{canReviewRelease && tab !== "execution" ? <Button onClick={() => setTab("execution")}>Open execution path</Button> : null}{canStart ? <Button onClick={() => act("start")} disabled={acting}>{acting ? "Starting…" : "Start Mission"}</Button> : null}{canAccept ? <Button onClick={() => act("accept")} disabled={acting}>{acting ? "Accepting…" : "Accept Mission"}</Button> : null}</div>}
     metrics={<MetricRow className="xl:grid-cols-4"><MetricBlock label="State" value={presentation.label} /><MetricBlock label="Work orders" value={workOrders.length} /><MetricBlock label="Assertions" value={`${assertions.filter((a) => a.status === "PASS" || a.status === "WAIVED").length}/${assertions.length}`} /><MetricBlock label="Corrective iterations" value={`${mission.correctiveIterations}/${mission.maxCorrectiveIterations}`} /></MetricRow>}

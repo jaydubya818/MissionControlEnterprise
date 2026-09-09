@@ -251,7 +251,7 @@ describe("CommandCenterView", () => {
     fireEvent.click(screen.getByRole("button", { name: /Approve checkout rollback waiver/ }));
     fireEvent.click(screen.getByRole("button", { name: /Unblock payment smoke test/ }));
 
-    expect(onNavigate).toHaveBeenCalledWith("audit");
+    expect(onNavigate).toHaveBeenCalledWith("control-approvals");
     expect(onNavigate).toHaveBeenCalledWith("tasks");
     expect(mocks.approveApproval).not.toHaveBeenCalled();
     expect(mocks.transitionTask).not.toHaveBeenCalled();

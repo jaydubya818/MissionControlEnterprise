@@ -44,10 +44,10 @@ export function FactoryConfigurationPanel({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div id="factory-configuration-title" className="flex items-center gap-2 text-[12.5px] font-medium text-ink-secondary">
-            <Factory size={14} aria-hidden /> Factory configuration
+            <Factory size={14} aria-hidden /> Factory Definition &amp; Versions
           </div>
           <div className="mt-1 text-[12px] text-ink-muted">
-            Freeze the repository, workflow, executor, policy, budget, verifiers, and recovery boundary before activation.
+            Define the Factory, then freeze its workflow, Execution Profile, policy, budget, verifiers, and recovery boundary into an immutable version.
           </div>
         </div>
         {!definition ? (
@@ -536,7 +536,7 @@ function FactoryVersionEditor({
   };
 
   const selectedSandboxProfile = (versionOptions.sandboxProfiles ?? []).find((profile) => profile._id === sandboxProfileId);
-  const saveButton = <Button size="sm" disabled={Boolean(pending)} onClick={save}>{pending === "save" ? "Saving…" : "Create configuration version"}</Button>;
+  const saveButton = <Button size="sm" disabled={Boolean(pending)} onClick={save}>{pending === "save" ? "Saving…" : "Create Factory Version"}</Button>;
 
   return (
     <div className="mt-3 space-y-3">
@@ -545,11 +545,11 @@ function FactoryVersionEditor({
           <div className="rounded-md border border-line bg-surface-1 p-2 text-ink-secondary"><Server size={16} aria-hidden /></div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2 text-[12.5px] font-medium text-ink">
-              Execution boundary
+              Execution Profile
               <StatusBadge tone="neutral">{experienceLevel}</StatusBadge>
               {executionBackend === "remote-sandbox" ? <StatusBadge tone="warning">Preview · Not Live Certified</StatusBadge> : null}
             </div>
-            <div className="mt-1 text-[11.5px] leading-relaxed text-ink-muted">The Factory experience level selected in the operator shell controls disclosure here. Acceptance, independent verification, publication, and merge authority stay outside the execution backend.</div>
+            <div className="mt-1 text-[11.5px] leading-relaxed text-ink-muted">This governed profile binds the execution backend and disclosure level used by the next immutable Factory Version. Acceptance, independent verification, publication, and merge authority stay outside the execution backend.</div>
           </div>
         </div>
         <ExecutionBackendSelector

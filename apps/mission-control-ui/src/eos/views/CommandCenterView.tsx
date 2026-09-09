@@ -552,9 +552,9 @@ export function CommandCenterView({
     needsApprovalTasks,
     failedTasks: failedTasksList,
     alerts: alertsList,
-    openApproval: () => onNavigate("audit"),
+    openApproval: () => onNavigate("control-approvals"),
     openTask,
-    openApprovalsModal: () => onNavigate("audit"),
+    openApprovalsModal: () => onNavigate("control-approvals"),
     openAlertRules: () => onNavigate("telemetry"),
   });
 
@@ -635,7 +635,7 @@ export function CommandCenterView({
             items={attentionItems}
             scannedAt={scannedAt}
             counts={exceptions}
-            onOpenApprovals={() => onNavigate("audit")}
+            onOpenApprovals={() => onNavigate("control-approvals")}
             onOpenTasks={() => onNavigate("tasks")}
             onOpenAlerts={() => onNavigate("telemetry")}
           />

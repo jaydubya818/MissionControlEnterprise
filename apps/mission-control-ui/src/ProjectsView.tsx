@@ -92,8 +92,8 @@ export function ProjectsView({ projectId, onProjectSelect, tenantId, companyCont
     return (
       <section className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-app">
         <PageHeader
-          title="Workspaces & Repositories"
-          description="Loading repository and execution boundaries."
+          title="Factory Registry"
+          description="Loading the workspace, repository, and governed Factory boundaries."
           icon={<FolderKanban size={16} strokeWidth={1.7} />}
         />
         <div
@@ -120,8 +120,8 @@ export function ProjectsView({ projectId, onProjectSelect, tenantId, companyCont
   return (
     <section className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-app">
       <PageHeader
-        title="Workspaces & Repositories"
-        description="Define the repository and execution boundary used by Work Orders, agents, runs, and context."
+        title="Factory Registry"
+        description="Select a workspace and repository, then qualify the Factory Version and Execution Profile that will govern its Work Orders."
         icon={<FolderKanban size={16} strokeWidth={1.7} />}
         status={
           <StatusBadge tone="neutral">{totals.total} workspaces</StatusBadge>
@@ -173,8 +173,8 @@ export function ProjectsView({ projectId, onProjectSelect, tenantId, companyCont
         <div className="grid gap-4 2xl:grid-cols-[380px_minmax(0,1fr)]">
           <Card className="overflow-hidden">
             <div className="border-b border-line px-5 py-4">
-              <div className="text-[12.5px] font-medium text-ink-secondary">Workspace registry</div>
-              <div className="mt-1 text-[15px] font-semibold text-ink">Choose where you want to operate</div>
+              <div className="text-[12.5px] font-medium text-ink-secondary">Operating boundaries</div>
+              <div className="mt-1 text-[15px] font-semibold text-ink">Choose a workspace and its Factory</div>
             </div>
             <div className="space-y-3 p-4">
               {projects.map((project) => (
@@ -396,10 +396,7 @@ function ProjectDetails({ project }: { project: Doc<"projects"> }) {
               {project.githubRepo ? "Edit repository" : "Connect repository"}
             </Button>
             {project.swarmConfig && (
-              <Button variant="outline" size="sm">
-                <Orbit className="h-3.5 w-3.5" />
-                Swarm live
-              </Button>
+              <StatusBadge tone="success">Swarm configured</StatusBadge>
             )}
           </div>
         </div>
