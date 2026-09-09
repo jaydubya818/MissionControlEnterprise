@@ -1,7 +1,7 @@
 {
   "schemaVersion": "system-factory-e2e-qualification/v2",
   "result": "SYSTEM QUALIFIED V2 WITH KNOWN LIMITATIONS",
-  "baseSha": "11a51cac1e446488cddf34781cc9663b922c7684",
+  "baseSha": "aa1e09e6844263a598a49a91995ab15539a939f5",
   "runtimeContractVersion": 28,
   "hardeningV1": {
     "decision": "HARDENING V1 PASSED",
@@ -37,12 +37,28 @@
   },
   "fixture": {
     "repository": "sellerfi/system-factory-qualification-fixture",
-    "baseSha": "920eb7f3de2759bfc96d5dcf7306e3a174a57bee",
-    "baseTreeSha": "60e1c7d797ecac6280eb995c95ef60c4371feceb",
-    "finalCandidateSha": "9ba871d9efad9b224b2f2cd432fbfb5cfbc9d461",
+    "baseSha": "db269b3352b134ce6789628748aa08ae52d26c9e",
+    "baseTreeSha": "139bb1c05d9f6ada8e583d422055b423a625a1ff",
+    "finalCandidateSha": "fa42e1cb35a8f76b294c06e5f6d53cfbd8fa159d",
     "definitionOfDone": "node scripts/verify.mjs exits zero in an independent checkout."
   },
   "lineage": {
+    "authenticatedUserId": "clerk-user-system-factory-e2e-v2-author",
+    "authenticatedApproverId": "clerk-user-system-factory-e2e-v2-approver",
+    "tenantId": "company-system-factory-e2e-v2",
+    "authentication": {
+      "mode": "TESTED_AUTHENTICATED_IDENTITY",
+      "provider": "Clerk-compatible Convex identity contract",
+      "productionEquivalent": false,
+      "userId": "clerk-user-system-factory-e2e-v2-author",
+      "tenantId": "company-system-factory-e2e-v2",
+      "projectId": "workspace-system-factory-e2e-v2",
+      "sameCompanyRead": "PASS",
+      "sameCompanyWrite": "PASS",
+      "unauthenticated": "DENIED",
+      "crossCompanyRead": "DENIED",
+      "crossCompanyWrite": "DENIED"
+    },
     "projectConstitutionRevisionId": "constitution-revision-system-factory-e2e-v2-r1",
     "projectConstitutionDigest": "sha256:95aa75c012aa1d9ee910d41f3cc5b652e519bddb21c71156fce88c04002e002c",
     "failedSpecRevisionId": "mission-spec-system-factory-e2e-v2-r1",
@@ -63,13 +79,20 @@
       "approvedBy": "operator-approver",
       "approvedRevision": 1
     },
-    "qualityContractDigest": "sha256:244de22b4a25143e45a8753ec7fbc291d660b5ec2e7e2c1c6baf76cc38f5151c",
+    "qualityContractDigest": "sha256:03a5f73f05fb94e3b0bcb14df83b9eaa891480f04ded621668fd483f6bfc5910",
     "workOrderId": "work-order-system-factory-e2e-v2",
     "workOrderRevision": 1,
     "recipe": "progressive-software-delivery",
+    "routingDecisionId": "routing-decision-system-factory-e2e-v2",
+    "routingDecisionDigest": "b65ab9de98b906956231815e31926e214b914e9c7896031aee3a855697545b91",
+    "factoryDefinitionId": "factory-definition-progressive-software",
     "factoryVersionId": "factory-version-progressive-software-v1",
+    "factoryConfigurationDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "executionProfileId": "fake-system-factory-v2:v1",
+    "executionProfileDigest": "sha256:055a41505bb4625045694453407fdbe5c2cbc1296131bc419e55118c8172bffd",
+    "workflowVersion": 1,
     "verificationFactoryVersionId": "factory-version-independent-verification-v1",
-    "contextPackageId": "d855eccfc7176fed31fe1ff4",
+    "contextPackageId": "1647fe3b1dbb0f4fe7088436",
     "worker": {
       "workerId": "worker-system-factory-v2",
       "sessionId": "worker-session-current",
@@ -83,23 +106,23 @@
       "attempt-source-repaired",
       "attempt-source-current-head"
     ],
-    "executionManifestDigest": "sha256:0474504988f48d311e58bb6eb5c58d5f3cfacf65a90e51cf0bd91fada319dd0e",
+    "executionManifestDigest": "sha256:ec8e22682248a52353f39df7c5f91e2fbeb97b0eafac061e47f43d9ad5893fb0",
     "executionBackend": "remote-sandbox",
     "candidateShas": [
-      "911cc67e464c075ddd7081ac5d72ceb2e9dc11bc",
-      "c0a4802fa86333248831375766e2393eaef37f80",
-      "4aec47c3d14f18b432ea5b14b9233e535104f567",
-      "b830028fb294f4b14cbdf1bc3b8505e843ff1fbf",
-      "9ba871d9efad9b224b2f2cd432fbfb5cfbc9d461"
+      "5e6c9bac719b464c7261ac8b156379350b4c70a6",
+      "03edb2734189f00d69012b0bee1e82b389c1275f",
+      "4ea916083630a4569b3a11d163feda692decff78",
+      "d018d81bb9aba9e56d04affddc941641ee6997f8",
+      "fa42e1cb35a8f76b294c06e5f6d53cfbd8fa159d"
     ],
     "verificationAttemptIds": [
       "attempt-verification-failed-3",
       "attempt-verification-repaired",
       "attempt-verification-current-head"
     ],
-    "verificationSubjectId": "verification-subject:3c09429b8a87ce4b3e748d185b1b1417cf1397e7a6e178c991d2e6c2bb40f4be",
-    "verificationPlanId": "verification-plan:b821ce55b9523c9f15f6cf7be550746853da86ca755557bd2a401d379638171f",
-    "verificationPlanDigest": "sha256:b821ce55b9523c9f15f6cf7be550746853da86ca755557bd2a401d379638171f",
+    "verificationSubjectId": "verification-subject:2f07456d492c0795086d7056a6643ece92875166d7248e6d45498a2636b2ba60",
+    "verificationPlanId": "verification-plan:3d86d408bb699c312cb7a6ae98721de6fc266615cbbc5b3a87799330cae256ab",
+    "verificationPlanDigest": "sha256:3d86d408bb699c312cb7a6ae98721de6fc266615cbbc5b3a87799330cae256ab",
     "verificationRunId": "verification-run:attempt-verification-current-head",
     "evidenceIds": [
       "evidence:attempt-verification-current-head:factory-negative-constraints",
@@ -111,7 +134,19 @@
     "qualityGateState": "ELIGIBLE",
     "providerPullRequestId": "provider-pr-system-factory-v2",
     "providerPullRequestUrl": "https://github.invalid/sellerfi/system-factory-qualification-fixture/pull/1",
-    "providerHeadSha": "9ba871d9efad9b224b2f2cd432fbfb5cfbc9d461",
+    "providerHeadSha": "fa42e1cb35a8f76b294c06e5f6d53cfbd8fa159d",
+    "candidateId": "candidate:fa42e1cb35a8f76b294c06e5f6d53cfbd8fa159d",
+    "candidateDigest": "fa0c505e238b0afcbdc79b22400833af29d943b5ab3adbea5eae75da3be01a57",
+    "approvalId": "approval-system-factory-e2e-v2",
+    "approvalAuthority": {
+      "requestedBy": "clerk-user-system-factory-e2e-v2-author",
+      "approvedBy": "clerk-user-system-factory-e2e-v2-approver",
+      "candidateRevision": "fa42e1cb35a8f76b294c06e5f6d53cfbd8fa159d",
+      "result": "APPROVED"
+    },
+    "releaseId": "release-system-factory-e2e-v2",
+    "releaseCandidateRevision": "fa42e1cb35a8f76b294c06e5f6d53cfbd8fa159d",
+    "releaseReadiness": "ELIGIBLE",
     "acceptanceEvent": "WORK_ORDER_ACCEPTED via workOrders.accept only",
     "acceptanceActor": "human operator"
   },
@@ -174,6 +209,11 @@
   },
   "failureInjection": {
     "staleLease": "PASS",
+    "unauthenticatedRequestBlocked": "PASS",
+    "crossCompanyReadBlocked": "PASS",
+    "crossCompanyWriteBlocked": "PASS",
+    "insufficientApprovalAuthorityBlocked": "PASS",
+    "differentReleaseCandidateBlocked": "PASS",
     "incompleteSpecRevisionBlocked": "PASS",
     "specRepositoryScopeMismatchBlocked": "PASS",
     "newerSpecRevisionDidNotRebindApprovedPlanOrWorkOrder": "PASS",
@@ -232,9 +272,9 @@
     "sandboxHasGithubAuthority": false
   },
   "performance": {
-    "durationMs": 8883,
-    "sourceGateDurationMs": 3404,
-    "verificationDurationMs": 4991,
+    "durationMs": 7332,
+    "sourceGateDurationMs": 2831,
+    "verificationDurationMs": 4054,
     "sandboxProviderRuntimeMs": 1,
     "deterministicGateRuns": 7,
     "sourceAttempts": 5,

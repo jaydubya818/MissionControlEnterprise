@@ -1,7 +1,7 @@
 ---
 title: Mission Control Feature Matrix
 status: active
-baseline: 5f1e232bb5c1130a718c5289ba5ff0b2eccbe748
+baseline: aa1e09e6844263a598a49a91995ab15539a939f5
 updated: 2026-09-09
 ---
 
@@ -54,4 +54,4 @@ This matrix records product truth. Backend-qualified means a persisted, authoriz
 
 ## Release-hardening boundary
 
-Production Clerk qualification, two-company authenticated browser isolation, 184 non-Live read-only authorization functions, dependency advisories, root integration-runner cleanup, load/soak/failure injection and provider capacity qualification remain outside this convergence checkpoint.
+The production Clerk harness and deterministic two-company server qualification are ready. Live production execution remains blocked only by external Clerk credentials, deployment configuration, and two authenticated company fixtures. The 184 non-Live read-only authorization functions, dependency advisories, root integration-runner cleanup, load/soak/failure injection, and provider capacity qualification remain outside this convergence checkpoint.

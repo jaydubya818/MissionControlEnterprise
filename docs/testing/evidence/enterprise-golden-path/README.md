@@ -7,8 +7,8 @@ This packet complements the existing Factory V2 qualification with authenticated
 ## Baseline
 
 - Baseline commit: `b7cd6890b5ac8ced093a4163dbff8d8ae103f8f9`
-- Qualified head before generated evidence: `449ae081368a80f3ec211e133e033709b096d0d2`
-- Qualification date: `2026-09-09T17:58:15.632Z`
+- Qualified head before generated evidence: `ee2e7715a4b91894f341675fd4d102e72c10b67e`
+- Qualification date: `2026-09-09T18:32:51.740Z`
 - Environment: darwin arm64; v24.18.1
 
 ## Authentication and tenancy
@@ -50,16 +50,15 @@ Unauthenticated access, cross-company read/write, stale lease, specification mis
 1. Production Clerk mode and credentials were not available in the qualification environment.
 2. No production-equivalent second Clerk company identity was available for browser isolation.
 
-## Browser evidence
+## Phase 2 reconciliation evidence
 
+- Canonical Step C reconciliation baseline: `aa1e09e6844263a598a49a91995ab15539a939f5`.
 - Canonical shell smoke/accessibility suite: **PASS** (`pnpm run test:e2e:critical`, 9 tests).
+- Factory V2 qualification against the canonical baseline: **PASS**.
+- Authorization ratchet: **PASS** (`917 total / 733 authorized / 184 non-Live read-only / 0 Live unauthorized`).
 - Phase 2 convergence screenshots: [Factory Registry](../phase-2-convergence/factory-registry.png) and [Decision Center](../phase-2-convergence/decision-center.png).
 
-## Full qualification classification
-
-- Build, typecheck, unit, authorization, browser/accessibility, and golden-path qualification: **PASS**.
-- Integration: **BLOCKED — PRE-EXISTING** pending root integration-runner hardening; package and Factory integration suites pass.
-- Security: authorization, secret scan, service authentication, and fail-closed tenant checks pass. The registry-backed dependency audit fails on advisories affecting the unchanged baseline dependency graph and remains Phase 3 release-hardening work.
+Build, typecheck, unit, Convex, authorization, secret scan, browser/accessibility, runtime-contract, orchestration smoke and golden-path qualification pass. The root integration-runner cleanup and accepted dependency advisories remain tracked Phase 3 work.
 
 ## Pre-existing blockers repaired
 

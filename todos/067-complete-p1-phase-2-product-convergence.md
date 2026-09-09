@@ -14,7 +14,7 @@ Mission Control's authoritative backend already knows the governed delivery line
 
 ## Findings
 
-- Baseline `5f1e232` proves the technical factory and authorization boundaries.
+- Canonical baseline `aa1e09e` proves the technical Factory, fail-closed Clerk configuration, two-company authorization, authenticated-browser harness, and Telegram operator boundary.
 - The EOS route-capability registry is the maturity authority, while multiple legacy/harness navigation groupings compete with the operator model.
 - Mission and WorkOrder surfaces already expose substantial canonical Convex data; Factory, trust, health, and ledger capabilities exist across focused views that need consolidation and cross-linking.
 
@@ -65,3 +65,9 @@ Execute Option 2 in checkpoints: map/product truth; core delivery; trust; Factor
 - Build, lint, typecheck, authorization, secrets, documentation, enterprise golden path, Convex tests, and critical browser/accessibility suites passed.
 - Two socket-restricted automation adapter tests passed when rerun with local IPC/network permission.
 - Root integration-runner configuration and dependency advisories remain documented Phase 3 release-hardening gates.
+
+### 2026-09-09 - Clerk baseline reconciliation
+
+- Reapplied all four Phase 2 commits onto canonical Step C baseline `aa1e09e` without source conflicts.
+- Confirmed the Phase 2 diff does not touch Clerk configuration, subject mapping, two-company fixtures, authenticated browser harness, service authentication, or Telegram approval authority.
+- Requalified product, Factory, authorization, authentication, browser, and documentation gates before the reconciliation checkpoint.

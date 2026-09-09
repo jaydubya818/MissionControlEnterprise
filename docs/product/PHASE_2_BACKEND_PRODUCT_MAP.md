@@ -1,7 +1,7 @@
 ---
 title: Phase 2 Backend to Product Capability Map
 status: active
-baseline: 5f1e232bb5c1130a718c5289ba5ff0b2eccbe748
+baseline: aa1e09e6844263a598a49a91995ab15539a939f5
 updated: 2026-09-09
 ---
 
@@ -10,6 +10,8 @@ updated: 2026-09-09
 ## Decision
 
 Mission Control already has one authoritative governed factory. Phase 2 will expose and connect these records; it will not create another Mission, Factory, routing, Attempt, evidence, approval, release, or health model. Product priority is attention → trust → authority → lineage → health → outcome.
+
+This map was created in Phase 2 and reconciled unchanged onto the canonical Step C Clerk baseline `aa1e09e6844263a598a49a91995ab15539a939f5`. Clerk subject mapping, two-company authorization, service authentication, and Telegram operator authority remain owned by that baseline.
 
 Maturity comes from `apps/mission-control-ui/src/shellV2/routeCapabilities.ts`. A component, fixture, or polished page does not promote a route.
 

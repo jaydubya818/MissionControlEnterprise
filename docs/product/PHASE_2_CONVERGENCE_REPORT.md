@@ -1,7 +1,7 @@
 ---
 title: Phase 2 Convergence and Productization Report
 status: complete-with-limitations
-baseline: 5f1e232bb5c1130a718c5289ba5ff0b2eccbe748
+baseline: aa1e09e6844263a598a49a91995ab15539a939f5
 updated: 2026-09-09
 ---
 
@@ -11,7 +11,9 @@ updated: 2026-09-09
 
 **PASS WITH LIMITATIONS.** The proven Factory architecture was not changed. Forty capabilities were mapped before product work. The primary EOS shell now presents one operator model—Overview, Operate, Factory, Control, Observe, Build, Knowledge and Labs—and routes the qualified delivery journey to the existing authoritative screens.
 
-Baseline: `5f1e232bb5c1130a718c5289ba5ff0b2eccbe748`
+Canonical Step C baseline: `aa1e09e6844263a598a49a91995ab15539a939f5`
+
+Phase 2 source baseline: `5f1e232bb5c1130a718c5289ba5ff0b2eccbe748`
 
 Resulting commits:
 
@@ -19,6 +21,15 @@ Resulting commits:
 - `cc4d940` — operator navigation convergence
 - `449ae08` — governed operator-surface connections
 - final qualification/documentation checkpoint — this report, feature matrix, browser evidence and route smoke contract
+
+Reconciled commits on `codex/phase-2-reconciliation`:
+
+- `3a96c61` — capability map
+- `815fdf6` — operator navigation convergence
+- `1c1ef51` — governed operator-surface connections
+- `ee2e771` — qualification evidence and documentation
+
+The reconciliation applies only the Phase 2 product diff. It does not modify `convex/auth.config.ts`, `convex/lib/clerkAuthConfig.ts`, the authenticated browser harness, two-company authorization fixtures, or Telegram approval authority introduced by `aa1e09e`.
 
 ## Backend → product convergence
 
@@ -108,6 +119,9 @@ Route registry truth remains **23 Live / 26 Preview / 7 Demo** across 56 declara
 - Unauthorized mutations/actions: **0**
 - Remaining non-Live read-only: **184**
 - Authorization scan: **917 total / 733 authorized / 0 declared-public / 184 ratcheted debt — PASS**.
+- Production Clerk harness: **READY**; real-browser execution remains **BLOCKED — EXTERNAL CONFIGURATION**.
+- Server-side two-company authorization: **PASS**.
+- Telegram approval authority: **PASS**; the server-only operator token remains required and Telegram identity is never accepted as approval identity.
 
 ## Golden-path regression
 
@@ -129,13 +143,17 @@ Route registry truth remains **23 Live / 26 Preview / 7 Demo** across 56 declara
 | Build | PASS | `pnpm run build` |
 | Lint | PASS | Typecheck is clean; repository skill/document consistency checks pass. |
 | Typecheck | PASS | `pnpm run typecheck` across 19 workspace projects. |
-| Unit | PASS | Effective total **1,991 passed / 1 skipped** after rerunning the two socket-restricted adapter cases outside the sandbox. |
-| Integration | BLOCKED | Root `pnpm test:integration` runner hardening remains explicitly deferred; package and Factory integration suites pass. |
+| Unit | PASS | Effective total **2,008 passed / 1 intentionally skipped**, including **804/804 Convex tests**. |
+| Integration | BLOCKED | Root `pnpm test:integration` passes 1,064 tests but still miscollects executable `.test.mjs` files, omits UI aliases/environments, and fails six suites; package and Factory integration suites pass. |
 | E2E | PASS | `pnpm run test:e2e:critical`: **9/9**. |
 | Browser | PASS | Desktop navigation/route checks, responsive shell, keyboard reachability and critical axe checks pass. |
 | Authorization | PASS | Ratchet unchanged at 184 non-Live read-only functions. |
 | Golden path | PASS | Enterprise golden-path qualifier complete. |
-| Dependency audit | FAIL — DEFERRED | Production: 4 high and 4 unaccepted moderate advisories; dependency changes are outside this convergence scope. |
+| Factory V2 | PASS | Full wrapper passed against canonical base `aa1e09e`, including exact lineage, negative controls, repository tests, runtime-contract guard, build and startup smoke. |
+| Runtime contract | PASS | Canonical-baseline guard found no public validator changes across 683 functions. |
+| Orchestration smoke | PASS | Built orchestration artifact loaded under Node ESM. |
+| Secret scan | PASS | 2,629 tracked files; no credential material found. |
+| Dependency audit | PASS WITH ACCEPTED ADVISORIES | 0 critical/high; 2 accepted production moderate advisories. Advisory remediation remains Phase 3 work. |
 
 Browser screenshots:
 
@@ -154,12 +172,12 @@ Browser screenshots:
 
 1. Dedicated Factory Health and Work Ledger pages are not Live; qualified data is available through existing Live components and scoped timelines.
 2. Capability Catalog, cost analytics, policy authoring, Task Graph and advanced build/review surfaces remain Preview or Demo.
-3. Browser evidence used the repository's shell-only fixture; production Clerk and live two-company isolation were not available.
+3. The authenticated browser harness is ready and its secret-safe preflight is qualified; live execution remains blocked by external Clerk credentials, issuer configuration, and two authenticated company fixtures.
 
 ## Deferred Phase 3 / release-hardening work
 
-1. Production Clerk qualification.
-2. Production two-company authenticated browser isolation.
+1. Execute the ready production Clerk harness with external credentials and `CLERK_JWT_ISSUER_DOMAIN` configured.
+2. Capture production two-company authenticated browser isolation evidence.
 3. Remaining 184 non-Live read-only authorization functions.
 4. Root integration-runner hardening.
 5. Dependency advisory remediation (including current `fast-uri`, `react-router-dom`, `hono`, `browserslist`, `qs`, Vitest and browser-mapping advisories).
@@ -169,4 +187,4 @@ Browser screenshots:
 
 ## Final determination
 
-**READY FOR PHASE 3.** Phase 2's convergence objective is met: the primary product journey now exposes the already-qualified Factory without changing its architecture, and all changed Live routes pass build, type, unit, authorization, golden-path, browser and accessibility gates. This is not release-ready: the dependency audit, production identity/isolation evidence, non-Live authorization debt and operational qualification remain explicit Phase 3 gates.
+**READY FOR PHASE 3.** Phase 2's convergence objective is met on the canonical Clerk baseline: the primary product journey exposes the already-qualified Factory without changing its architecture or authentication boundaries. All changed Live routes pass build, type, unit, authorization, golden-path, browser and accessibility gates; deterministic two-company authorization, Clerk fail-closed configuration, the production browser harness, and Telegram operator authority remain intact. This is not release-ready: external production identity/isolation evidence, dependency advisories, non-Live authorization debt and operational qualification remain explicit Phase 3 gates.
