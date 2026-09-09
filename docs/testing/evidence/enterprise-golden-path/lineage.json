@@ -1,0 +1,165 @@
+{
+  "schemaVersion": "enterprise-golden-path-lineage/v1",
+  "baseline": {
+    "commit": "b7cd6890b5ac8ced093a4163dbff8d8ae103f8f9",
+    "qualifiedHead": "b7cd6890b5ac8ced093a4163dbff8d8ae103f8f9",
+    "qualifiedAt": "2026-09-09T17:03:09.431Z",
+    "environment": {
+      "platform": "darwin",
+      "architecture": "arm64",
+      "node": "v24.18.1"
+    }
+  },
+  "authentication": {
+    "mode": "TESTED_AUTHENTICATED_IDENTITY",
+    "providerContract": "Clerk-compatible Convex identity contract",
+    "productionEquivalent": false,
+    "authenticatedUserId": "clerk-user-system-factory-e2e-v2-author",
+    "authenticatedApproverId": "clerk-user-system-factory-e2e-v2-approver",
+    "externalBlocker": "Production Clerk mode and credentials were not available in the qualification environment."
+  },
+  "company": {
+    "id": "company-system-factory-e2e-v2",
+    "comparisonCompanyId": "company-system-factory-e2e-v2-other",
+    "workspaceId": "workspace-system-factory-e2e-v2",
+    "sameCompanyRead": "PASS",
+    "sameCompanyWrite": "PASS",
+    "crossCompanyRead": "DENIED",
+    "crossCompanyWrite": "DENIED"
+  },
+  "mission": {
+    "id": "mission-system-factory-e2e-v2"
+  },
+  "plan": {
+    "id": "plan-system-factory-e2e-v2",
+    "version": 1,
+    "digest": "sha256:03a5f73f05fb94e3b0bcb14df83b9eaa891480f04ded621668fd483f6bfc5910",
+    "submittedBy": "operator-author",
+    "approvedBy": "operator-approver"
+  },
+  "workOrder": {
+    "id": "work-order-system-factory-e2e-v2",
+    "revision": 1,
+    "missionId": "mission-system-factory-e2e-v2",
+    "planId": "plan-system-factory-e2e-v2"
+  },
+  "routing": {
+    "id": "routing-decision-system-factory-e2e-v2",
+    "digest": "b65ab9de98b906956231815e31926e214b914e9c7896031aee3a855697545b91",
+    "factoryDefinitionId": "factory-definition-progressive-software",
+    "factoryVersionId": "factory-version-progressive-software-v1",
+    "factoryVersionDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "executionProfileId": "fake-system-factory-v2:v1",
+    "executionProfileDigest": "sha256:055a41505bb4625045694453407fdbe5c2cbc1296131bc419e55118c8172bffd",
+    "workflowId": "progressive-software-delivery",
+    "workflowVersion": 1,
+    "modelRoute": {
+      "adapter": "codex",
+      "version": "v1",
+      "capabilityManifestSha256": "sha256:7e8b7435f6dab9a8a9a09b90ae1791110c3593ad1b38cdc48227d18069ec1c06",
+      "effectiveConfigSha256": "94daa9e3e1ee5ce2e3d8ca9116ec29c1a1eb8d78e232d1abb383cbdf2e7d6081",
+      "executionBackend": "remote-sandbox"
+    }
+  },
+  "attempt": {
+    "id": "attempt-source-current-head",
+    "worker": {
+      "workerId": "worker-system-factory-v2",
+      "sessionId": "worker-session-current",
+      "generation": 2
+    },
+    "leaseId": "lease-source-current-head",
+    "executionManifestDigest": "sha256:dc0acfdbc549ba1d7fbc060ee9737047c0b4fdf98ca12add8fcc4345186ff123",
+    "runtime": "remote-sandbox"
+  },
+  "candidate": {
+    "id": "candidate:fa42e1cb35a8f76b294c06e5f6d53cfbd8fa159d",
+    "revision": "fa42e1cb35a8f76b294c06e5f6d53cfbd8fa159d",
+    "digest": "fa0c505e238b0afcbdc79b22400833af29d943b5ab3adbea5eae75da3be01a57",
+    "attemptId": "attempt-source-current-head"
+  },
+  "verification": {
+    "id": "verification-run:attempt-verification-current-head",
+    "attemptId": "attempt-verification-current-head",
+    "subjectId": "verification-subject:2f07456d492c0795086d7056a6643ece92875166d7248e6d45498a2636b2ba60",
+    "planId": "verification-plan:3d86d408bb699c312cb7a6ae98721de6fc266615cbbc5b3a87799330cae256ab",
+    "planDigest": "sha256:3d86d408bb699c312cb7a6ae98721de6fc266615cbbc5b3a87799330cae256ab",
+    "result": "VERIFIED",
+    "independent": true
+  },
+  "evidence": [
+    {
+      "id": "evidence:attempt-verification-current-head:factory-negative-constraints",
+      "verificationId": "verification-run:attempt-verification-current-head",
+      "candidateId": "candidate:fa42e1cb35a8f76b294c06e5f6d53cfbd8fa159d",
+      "current": true
+    },
+    {
+      "id": "evidence:attempt-verification-current-head:factory-change-budget",
+      "verificationId": "verification-run:attempt-verification-current-head",
+      "candidateId": "candidate:fa42e1cb35a8f76b294c06e5f6d53cfbd8fa159d",
+      "current": true
+    },
+    {
+      "id": "evidence:attempt-verification-current-head:mission:independent-verification",
+      "verificationId": "verification-run:attempt-verification-current-head",
+      "candidateId": "candidate:fa42e1cb35a8f76b294c06e5f6d53cfbd8fa159d",
+      "current": true
+    },
+    {
+      "id": "evidence:attempt-verification-current-head:spec:VERIFY-001",
+      "verificationId": "verification-run:attempt-verification-current-head",
+      "candidateId": "candidate:fa42e1cb35a8f76b294c06e5f6d53cfbd8fa159d",
+      "current": true
+    }
+  ],
+  "approval": {
+    "id": "approval-system-factory-e2e-v2",
+    "requestedBy": "clerk-user-system-factory-e2e-v2-author",
+    "approvedBy": "clerk-user-system-factory-e2e-v2-approver",
+    "candidateRevision": "fa42e1cb35a8f76b294c06e5f6d53cfbd8fa159d",
+    "result": "APPROVED"
+  },
+  "release": {
+    "id": "release-system-factory-e2e-v2",
+    "candidateId": "candidate:fa42e1cb35a8f76b294c06e5f6d53cfbd8fa159d",
+    "candidateRevision": "fa42e1cb35a8f76b294c06e5f6d53cfbd8fa159d",
+    "readiness": "ELIGIBLE",
+    "externalDeploymentClaimed": false
+  },
+  "persistence": {
+    "result": "PASS",
+    "basis": "Canonical Factory fixture Git state plus durable JSON evidence reloaded by the qualification command; authoritative Convex storage contracts are covered by the lifecycle suites.",
+    "processRestart": "Not exercised against an external Convex deployment."
+  },
+  "negativeTests": {
+    "staleLease": "PASS",
+    "unauthenticatedRequestBlocked": "PASS",
+    "crossCompanyReadBlocked": "PASS",
+    "crossCompanyWriteBlocked": "PASS",
+    "insufficientApprovalAuthorityBlocked": "PASS",
+    "differentReleaseCandidateBlocked": "PASS",
+    "incompleteSpecRevisionBlocked": "PASS",
+    "specRepositoryScopeMismatchBlocked": "PASS",
+    "newerSpecRevisionDidNotRebindApprovedPlanOrWorkOrder": "PASS",
+    "harnessManifestDigestMismatchBlocked": "PASS",
+    "harnessUnsupportedModelBlocked": "PASS",
+    "harnessUnsupportedBackendBlocked": "PASS",
+    "candidatePrHeadMismatch": "PASS",
+    "verificationFailure": "PASS",
+    "retryNewAttempt": "PASS",
+    "contextMiss": "PASS",
+    "deterministicGateFailure": "PASS",
+    "sandboxTeardownFailure": "PASS (focused regression suite)",
+    "repeatedCorrectionLearning": "PASS",
+    "improvementCandidateCannotSelfPromote": "PASS",
+    "unqualifiedFactoryVersionBlocked": "PASS",
+    "invalidOrStaleExecutionProfileBlocked": "PASS",
+    "staleExecutionContractBlocked": "PASS",
+    "invalidLeaseBlocked": "PASS",
+    "staleCandidateBlocked": "PASS",
+    "staleEvidenceBlocked": "PASS",
+    "missingOrInvalidVerificationBlocked": "PASS",
+    "releaseWithoutCurrentAuthorityBlocked": "PASS"
+  }
+}

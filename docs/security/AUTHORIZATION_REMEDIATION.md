@@ -80,5 +80,9 @@ No UI layout or visual behavior changed. A browser visual comparison is not appl
 - Integration: the repository-wide `pnpm run test:integration` command is not a valid green gate in the current checkout. It collects three executable `.test.mjs` scripts with no Vitest suite, runs UI tests without the UI jsdom/path-alias configuration, and detects pre-existing Factory README consistency drift. Authorization-specific integration and golden-path suites pass under `pnpm run test`.
 - Authorization: PASS; 917 public, 733 authorized, 184 unauthorized read-only non-Live queries; baseline 184.
 - Route qualification: PASS; zero unauthorized functions in Live route component graphs.
-- Factory qualification: BLOCKED in the pre-existing `docs:factory-check` gate because `README.md` lacks four current Factory contract statements. Dependency audit, authorization, and repository-secret gates passed before that stop. The full-system Factory V2 test itself passes under `pnpm run test`.
-- Browser smoke: not applicable because no UI rendering or interaction code changed.
+- Factory qualification: PASS. Step C repaired the four README consistency statements without changing the checker or Factory claims, and the canonical Factory V2 system test remains green.
+- Browser smoke: PASS (`pnpm run test:e2e:critical`, 9 tests). Clerk mode also fails closed in the browser when its publishable key is unavailable; production Clerk login and two-company browser isolation remain external qualification blockers.
+
+## Step C regression
+
+The authenticated enterprise golden-path qualification at `docs/testing/evidence/enterprise-golden-path/` preserved this ratchet exactly: 917 public functions, 733 authorized functions, 184 non-Live read-only findings, zero Live-route unauthorized functions, and P0/P1/P2 all zero. It also proves unauthenticated and cross-company reads/writes are denied through `requireWorkspacePermission`. No authorization baseline was changed.

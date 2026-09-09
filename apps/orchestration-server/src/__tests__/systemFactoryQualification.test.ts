@@ -43,6 +43,11 @@ import {
   type ProjectConstitutionContent,
 } from "../../../../convex/lib/missionSpec.js";
 import { evaluateAcceptance } from "../../../../convex/lib/workOrderGovernance.js";
+import {
+  FACTORY_PERMISSIONS,
+  requireWorkspacePermission,
+} from "../../../../convex/lib/companyAccess.js";
+import { factoryReleaseBoundLineageIssue } from "../../../../convex/lib/factoryRelease.js";
 import { compileMissionWorkOrderContract } from "../../../../convex/lib/missionWorkOrderContract.js";
 import { validateMissionPlan } from "../../../../convex/lib/missionPlan.js";
 import { compilePolicyV2VerificationPlan } from "../../../../convex/lib/policyV2Verification.js";
@@ -75,6 +80,11 @@ const FIXED_NOW = Date.UTC(2026, 7, 16, 20, 0, 0);
 const REPOSITORY_KEY = "sellerfi/system-factory-qualification-fixture";
 const REPOSITORY_ID = "repository-system-factory-e2e-v2";
 const PROJECT_ID = "workspace-system-factory-e2e-v2";
+const TENANT_ID = "company-system-factory-e2e-v2";
+const OTHER_TENANT_ID = "company-system-factory-e2e-v2-other";
+const OTHER_PROJECT_ID = "workspace-system-factory-e2e-v2-other";
+const AUTHENTICATED_USER_ID = "clerk-user-system-factory-e2e-v2-author";
+const AUTHENTICATED_APPROVER_ID = "clerk-user-system-factory-e2e-v2-approver";
 const MISSION_ID = "mission-system-factory-e2e-v2";
 const PLAN_ID = "plan-system-factory-e2e-v2";
 const WORK_ORDER_ID = "work-order-system-factory-e2e-v2";
@@ -83,7 +93,12 @@ const SPEC_REVISION_1_ID = "mission-spec-system-factory-e2e-v2-r1";
 const SPEC_REVISION_2_ID = "mission-spec-system-factory-e2e-v2-r2";
 const SPEC_REVISION_3_ID = "mission-spec-system-factory-e2e-v2-r3";
 const SPEC_EVALUATION_2_ID = "mission-spec-evaluation-system-factory-e2e-v2-r2";
+const FACTORY_DEFINITION_ID = "factory-definition-progressive-software";
 const FACTORY_VERSION_ID = "factory-version-progressive-software-v1";
+const EXECUTION_PROFILE_ID = "fake-system-factory-v2:v1";
+const ROUTING_DECISION_ID = "routing-decision-system-factory-e2e-v2";
+const APPROVAL_ID = "approval-system-factory-e2e-v2";
+const RELEASE_ID = "release-system-factory-e2e-v2";
 const VERIFICATION_FACTORY_VERSION_ID = "factory-version-independent-verification-v1";
 const CODEX_CAPABILITY_MANIFEST_SHA256 = harnessCapabilityManifestDigest(CODEX_V1_HARNESS_MANIFEST);
 const DEEPSEEK_CAPABILITY_MANIFEST_SHA256 = harnessCapabilityManifestDigest(DEEPSEEK_V1_HARNESS_MANIFEST);
@@ -108,6 +123,15 @@ afterAll(async () => {
 describe("Mission Control full-system Factory qualification V2", () => {
   it("proves exact governed lineage, failures, recovery, authority, and learning on an isolated fixture", async () => {
     const qualificationStartedAt = Date.now();
+    const authentication = await qualifyAuthenticationBoundary();
+    expect(authentication).toMatchObject({
+      mode: "TESTED_AUTHENTICATED_IDENTITY",
+      sameCompanyRead: "PASS",
+      sameCompanyWrite: "PASS",
+      unauthenticated: "DENIED",
+      crossCompanyRead: "DENIED",
+      crossCompanyWrite: "DENIED",
+    });
     const repositoryRoot = await createFixtureRepository();
     const baseSha = await gitValue(repositoryRoot, ["rev-parse", "HEAD"]);
     const baseTreeSha = await gitValue(repositoryRoot, ["rev-parse", "HEAD^{tree}"]);
@@ -149,7 +173,7 @@ describe("Mission Control full-system Factory qualification V2", () => {
       riskLevel: "MEDIUM" as const,
       branchStrategy: "isolated-worktree" as const,
       constraints: ["Preserve the deterministic verification boundary."],
-      requiredApprovals: [],
+      requiredApprovals: ["RISK_REVIEW"],
       implementationPolicy: {
         allowedCommands: ["node scripts/verify.mjs"],
         independentVerification: {
@@ -372,7 +396,10 @@ describe("Mission Control full-system Factory qualification V2", () => {
     await commit(repositoryRoot, "repair listing fee", 4);
     const repairedCandidateSha = await gitValue(repositoryRoot, ["rev-parse", "HEAD"]);
     const repairedGate = await runFixtureGate(repositoryRoot);
-    expect(repairedGate.passed).toBe(true);
+    expect(
+      repairedGate.passed,
+      `Repaired fixture gate failed. stdout:\n${repairedGate.stdout}\nstderr:\n${repairedGate.stderr}`,
+    ).toBe(true);
 
     const repairedLineage = await buildVerificationLineage({
       repositoryRoot,
@@ -716,9 +743,21 @@ describe("Mission Control full-system Factory qualification V2", () => {
     );
 
     const acceptanceProjection = evaluateAcceptance({
-      riskLevel: "LOW",
-      requiredApprovals: [],
-      approvalDecisions: [],
+      riskLevel: workOrder.riskLevel,
+      requiredApprovals: workOrder.requiredApprovals,
+      approvalDecisions: workOrder.requiredApprovals.map((approvalType: string, index: number) => ({
+        _id: index === 0 ? APPROVAL_ID : `${APPROVAL_ID}:${approvalType.toLowerCase()}`,
+        approvalType,
+        status: "APPROVED",
+        requestedBy: AUTHENTICATED_USER_ID,
+        approver: AUTHENTICATED_APPROVER_ID,
+        _creationTime: FIXED_NOW + 105 + index,
+        metadata: {
+          candidateRevision: advancedHeadSha,
+          verificationRunId: finalLineage.result.id,
+          evidenceEnvelopeIds: finalLineage.evidence.map((item) => item.id),
+        },
+      })),
       acceptanceCriteria: workOrder.acceptanceCriteria.map((criterion: any) => ({
         ...criterion,
         status: "PASS",
@@ -731,8 +770,44 @@ describe("Mission Control full-system Factory qualification V2", () => {
       })),
       now: FIXED_NOW + 110,
     });
-    expect(acceptanceProjection.eligible).toBe(true);
+    expect(acceptanceProjection.eligible, acceptanceProjection.blockingReasons.join("; ")).toBe(true);
     expect(finalEligibility.eligible).toBe(true);
+    const missingApproval = evaluateAcceptance({
+      riskLevel: workOrder.riskLevel,
+      requiredApprovals: workOrder.requiredApprovals,
+      approvalDecisions: [],
+      acceptanceCriteria: workOrder.acceptanceCriteria.map((criterion: any) => ({ ...criterion, status: "PASS" })),
+      verificationReceipts: workOrder.acceptanceCriteria.map((criterion: any, index: number) => ({
+        receiptScope: "ACCEPTANCE_CRITERION",
+        acceptanceCriterionId: criterion.id,
+        status: "PASSED",
+        _creationTime: index + 1,
+      })),
+      now: FIXED_NOW + 110,
+    });
+    expect(missingApproval.eligible).toBe(false);
+    expect(missingApproval.missingApprovalTypes).toContain(workOrder.requiredApprovals[0]);
+
+    const releaseLineage = {
+      evaluationProjectId: PROJECT_ID,
+      workOrderId: WORK_ORDER_ID,
+      workOrderProjectId: PROJECT_ID,
+      workflowWorkOrderId: WORK_ORDER_ID,
+      workflowProjectId: PROJECT_ID,
+      sourceHeadSha: advancedHeadSha,
+      workflowHeadSha: advancedHeadSha,
+      repositoryProjectId: PROJECT_ID,
+      repositoryName: REPOSITORY_KEY,
+      evaluationRepositoryName: REPOSITORY_KEY,
+      environmentType: "staging",
+      workOrderTenantId: TENANT_ID,
+      environmentTenantId: TENANT_ID,
+    };
+    expect(factoryReleaseBoundLineageIssue(releaseLineage)).toBeUndefined();
+    expect(factoryReleaseBoundLineageIssue({
+      ...releaseLineage,
+      workflowHeadSha: repairedCandidateSha,
+    })).toBe("attempt-head-mismatch");
 
     const learningSignals = failedAttempts.map((attempt, index) => ({
       projectId: PROJECT_ID,
@@ -829,6 +904,10 @@ describe("Mission Control full-system Factory qualification V2", () => {
         definitionOfDone: assertion.passCondition,
       },
       lineage: {
+        authenticatedUserId: AUTHENTICATED_USER_ID,
+        authenticatedApproverId: AUTHENTICATED_APPROVER_ID,
+        tenantId: TENANT_ID,
+        authentication,
         projectConstitutionRevisionId: CONSTITUTION_REVISION_ID,
         projectConstitutionDigest: constitutionDigest,
         failedSpecRevisionId: SPEC_REVISION_1_ID,
@@ -853,7 +932,19 @@ describe("Mission Control full-system Factory qualification V2", () => {
         workOrderId: WORK_ORDER_ID,
         workOrderRevision: workOrder.currentRevisionNumber,
         recipe: blueprint.workflowId,
+        routingDecisionId: ROUTING_DECISION_ID,
+        routingDecisionDigest: canonicalHash({
+          workOrderId: WORK_ORDER_ID,
+          factoryDefinitionVersionId: FACTORY_VERSION_ID,
+          executionProfileId: EXECUTION_PROFILE_ID,
+          workflowId: blueprint.workflowId,
+        }),
+        factoryDefinitionId: FACTORY_DEFINITION_ID,
         factoryVersionId: FACTORY_VERSION_ID,
+        factoryConfigurationDigest: executionManifest.manifest.causation.factoryConfigurationDigest,
+        executionProfileId: EXECUTION_PROFILE_ID,
+        executionProfileDigest: sandboxProfileDigest(profile),
+        workflowVersion: 1,
         verificationFactoryVersionId: VERIFICATION_FACTORY_VERSION_ID,
         contextPackageId: finalContext.contextPackage.id,
         worker: currentWorkerIdentity,
@@ -873,6 +964,18 @@ describe("Mission Control full-system Factory qualification V2", () => {
         providerPullRequestId: finalLineage.subject.pullRequest.providerPullRequestId,
         providerPullRequestUrl: finalLineage.subject.pullRequest.url,
         providerHeadSha: finalProviderHead.headSha,
+        candidateId: `candidate:${advancedHeadSha}`,
+        candidateDigest: canonicalHash({ repositoryId: REPOSITORY_ID, candidateSha: advancedHeadSha }),
+        approvalId: APPROVAL_ID,
+        approvalAuthority: {
+          requestedBy: AUTHENTICATED_USER_ID,
+          approvedBy: AUTHENTICATED_APPROVER_ID,
+          candidateRevision: advancedHeadSha,
+          result: "APPROVED",
+        },
+        releaseId: RELEASE_ID,
+        releaseCandidateRevision: advancedHeadSha,
+        releaseReadiness: "ELIGIBLE",
         acceptanceEvent: "WORK_ORDER_ACCEPTED via workOrders.accept only",
         acceptanceActor: "human operator",
       },
@@ -911,6 +1014,11 @@ describe("Mission Control full-system Factory qualification V2", () => {
       },
       failureInjection: {
         staleLease: "PASS",
+        unauthenticatedRequestBlocked: "PASS",
+        crossCompanyReadBlocked: "PASS",
+        crossCompanyWriteBlocked: "PASS",
+        insufficientApprovalAuthorityBlocked: "PASS",
+        differentReleaseCandidateBlocked: "PASS",
         incompleteSpecRevisionBlocked: "PASS",
         specRepositoryScopeMismatchBlocked: "PASS",
         newerSpecRevisionDidNotRebindApprovedPlanOrWorkOrder: "PASS",
@@ -1047,7 +1155,7 @@ function typecheckScript() {
 }
 
 function testScript() {
-  return `import { spawnSync } from "node:child_process";\nconst result = spawnSync("tsx", ["--test", "tests/listingFee.test.ts"], { cwd: process.cwd(), encoding: "utf8" });\nprocess.stdout.write(result.stdout ?? "");\nprocess.stderr.write(result.stderr ?? "");\nprocess.exit(result.status ?? 1);\n`;
+  return `import { spawnSync } from "node:child_process";\nconst result = spawnSync(process.execPath, ["--experimental-strip-types", "--test", "tests/listingFee.test.ts"], { cwd: process.cwd(), encoding: "utf8" });\nprocess.stdout.write(result.stdout ?? "");\nprocess.stderr.write(result.stderr ?? "");\nprocess.exit(result.status ?? 1);\n`;
 }
 
 function verifyScript() {
@@ -1777,6 +1885,110 @@ function sandboxBundle(input: {
       enforcement: "PROVIDER_REPORTED",
     },
   });
+}
+
+async function qualifyAuthenticationBoundary() {
+  const rows: Record<string, any[]> = {
+    tenants: [
+      { _id: TENANT_ID, active: true, name: "Qualification Company A", slug: "qualification-company-a" },
+      { _id: OTHER_TENANT_ID, active: true, name: "Qualification Company B", slug: "qualification-company-b" },
+    ],
+    projects: [
+      { _id: PROJECT_ID, tenantId: TENANT_ID, name: "Qualification Workspace A", slug: "qualification-workspace-a" },
+      { _id: OTHER_PROJECT_ID, tenantId: OTHER_TENANT_ID, name: "Qualification Workspace B", slug: "qualification-workspace-b" },
+    ],
+    operators: [{
+      _id: "operator-system-factory-e2e-v2-author",
+      tenantId: TENANT_ID,
+      authId: AUTHENTICATED_USER_ID,
+      active: true,
+    }],
+    roles: [{
+      _id: "role-system-factory-e2e-v2-author",
+      tenantId: TENANT_ID,
+      name: "Developer",
+      permissions: [FACTORY_PERMISSIONS.VIEW, FACTORY_PERMISSIONS.IMPROVE],
+    }],
+    roleAssignments: [{
+      _id: "assignment-system-factory-e2e-v2-author",
+      operatorId: "operator-system-factory-e2e-v2-author",
+      roleId: "role-system-factory-e2e-v2-author",
+      scope: { type: "project", id: PROJECT_ID },
+    }],
+    teamMemberships: [],
+    orgMembers: [],
+  };
+  const allRows = () => Object.values(rows).flat();
+  const context = (subject: string | null) => ({
+    auth: {
+      getUserIdentity: async () => subject
+        ? { subject, tokenIdentifier: `qualification|${subject}` }
+        : null,
+    },
+    db: {
+      get: async (id: string) => allRows().find((row) => row._id === id) ?? null,
+      query: (table: string) => {
+        let selected = [...(rows[table] ?? [])];
+        const builder: any = {
+          withIndex: (_name: string, apply: (query: any) => unknown) => {
+            const conditions: Array<[string, unknown]> = [];
+            const query: any = {
+              eq: (field: string, value: unknown) => {
+                conditions.push([field, value]);
+                return query;
+              },
+            };
+            apply(query);
+            selected = selected.filter((row) => conditions.every(([field, value]) => row[field] === value));
+            return builder;
+          },
+          collect: async () => [...selected],
+        };
+        return builder;
+      },
+    },
+  });
+
+  const authenticated = context(AUTHENTICATED_USER_ID);
+  const sameCompanyRead = await requireWorkspacePermission(
+    authenticated as any,
+    PROJECT_ID as any,
+    FACTORY_PERMISSIONS.VIEW,
+  );
+  const sameCompanyWrite = await requireWorkspacePermission(
+    authenticated as any,
+    PROJECT_ID as any,
+    FACTORY_PERMISSIONS.IMPROVE,
+  );
+  await expect(requireWorkspacePermission(
+    context(null) as any,
+    PROJECT_ID as any,
+    FACTORY_PERMISSIONS.VIEW,
+  )).rejects.toThrow(/unavailable or unauthorized/i);
+  await expect(requireWorkspacePermission(
+    authenticated as any,
+    OTHER_PROJECT_ID as any,
+    FACTORY_PERMISSIONS.VIEW,
+  )).rejects.toThrow(/unavailable or unauthorized/i);
+  await expect(requireWorkspacePermission(
+    authenticated as any,
+    OTHER_PROJECT_ID as any,
+    FACTORY_PERMISSIONS.IMPROVE,
+  )).rejects.toThrow(/unavailable or unauthorized/i);
+
+  return {
+    mode: "TESTED_AUTHENTICATED_IDENTITY",
+    provider: "Clerk-compatible Convex identity contract",
+    productionEquivalent: false,
+    userId: AUTHENTICATED_USER_ID,
+    tenantId: TENANT_ID,
+    projectId: PROJECT_ID,
+    sameCompanyRead: sameCompanyRead.actorId ? "PASS" : "FAIL",
+    sameCompanyWrite: sameCompanyWrite.actorId ? "PASS" : "FAIL",
+    unauthenticated: "DENIED",
+    crossCompanyRead: "DENIED",
+    crossCompanyWrite: "DENIED",
+  };
 }
 
 async function inspectAuthorityBoundaries() {

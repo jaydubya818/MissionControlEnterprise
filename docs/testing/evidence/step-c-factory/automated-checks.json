@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "system-factory-e2e-automated-checks/v2",
+  "baseSha": "b7cd6890b5ac8ced093a4163dbff8d8ae103f8f9",
+  "startedHead": "b7cd6890b5ac8ced093a4163dbff8d8ae103f8f9",
+  "startedAt": "2026-09-09T17:03:26.254Z",
+  "completedAt": "2026-09-09T17:03:29.716Z",
+  "result": "FAIL",
+  "checks": [
+    {
+      "name": "frozen dependency, advisory, credential, and release configuration gates",
+      "command": "pnpm run release:security",
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationMs": 3461
+    }
+  ]
+}

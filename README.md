@@ -61,6 +61,14 @@ verification, and acceptance with no external providers involved.
 
 ## The lifecycle
 
+The canonical builder loop is:
+
+`Intent → Plan → Configure agents, harnesses, skills, and tools → Execute → Verify and evaluate → Deliver → Observe → Improve`
+
+The governed delivery lifecycle is:
+
+`Mission → approved Plan → WorkOrder → Task → Attempt → candidate → independent evidence → pull request → human decision → release → observed outcome → governed learning`
+
 ```
 Constitution → Mission → Specification → Plan → WorkOrder → Context
    → Execution → Verification → Pull Request → Human Acceptance → Learning
@@ -80,8 +88,10 @@ canonical WorkOrder acceptance, and a human-gated learning continuation all
 compose end to end.
 
 That is implementation proof. It is **not** a claim of fleet-scale production
-operation or general Remote Sandbox certification. Current public
-client/backend runtime contract: **v33**.
+operation or general Remote Sandbox certification. Remote Sandbox is
+**Production-pilot eligible; Preview** based on the bounded 3/3 live exe.dev cohort;
+this is not general production certification. The current public
+client/backend runtime contract is **v33**.
 
 Per-capability status, evidence, and promotion gates live in the
 [Capability Maturity Ledger](docs/product/software-factory-capability-maturity.md).
