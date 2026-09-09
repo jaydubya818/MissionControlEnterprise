@@ -5,6 +5,7 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { authedMutation } from "./lib/authedFunctions";
 
 const GATEWAY_CONNECTION_ID = "default" as const;
 
@@ -21,7 +22,7 @@ export const get = query({
   },
 });
 
-export const setUrl = mutation({
+export const setUrl = authedMutation({
   args: { url: v.string(), updatedBy: v.optional(v.string()) },
   handler: async (ctx, { url, updatedBy }) => {
     const now = Date.now();

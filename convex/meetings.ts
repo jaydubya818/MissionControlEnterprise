@@ -7,6 +7,7 @@
 
 import { v } from "convex/values";
 import { query, mutation, action } from "./_generated/server";
+import { authedMutation } from "./lib/authedFunctions";
 
 const meetingStatusValidator = v.union(
   v.literal("SCHEDULED"),
@@ -120,7 +121,7 @@ export const getUpcoming = query({
 /**
  * Schedule a new meeting.
  */
-export const schedule = mutation({
+export const schedule = authedMutation({
   args: {
     projectId: v.optional(v.id("projects")),
     title: v.string(),
@@ -177,7 +178,7 @@ export const schedule = mutation({
 /**
  * Start a meeting (transition to IN_PROGRESS).
  */
-export const start = mutation({
+export const start = authedMutation({
   args: {
     meetingId: v.id("meetings"),
   },
@@ -194,7 +195,7 @@ export const start = mutation({
 /**
  * Complete a meeting with notes and action items.
  */
-export const complete = mutation({
+export const complete = authedMutation({
   args: {
     meetingId: v.id("meetings"),
     notes: v.optional(v.string()),
@@ -215,7 +216,7 @@ export const complete = mutation({
 /**
  * Cancel a meeting.
  */
-export const cancel = mutation({
+export const cancel = authedMutation({
   args: {
     meetingId: v.id("meetings"),
   },
@@ -229,7 +230,7 @@ export const cancel = mutation({
 /**
  * Convert meeting action items to tasks with owners and due dates.
  */
-export const convertActionItems = mutation({
+export const convertActionItems = authedMutation({
   args: {
     meetingId: v.id("meetings"),
   },

@@ -16,7 +16,7 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "../_generated/server";
+import { authedMutation, authedQuery } from "../lib/authedFunctions";
 import { requireContextRegistryEnabled } from "../lib/contextRegistryGate";
 import { compareSemver } from "../lib/contextPackages";
 import {
@@ -67,7 +67,7 @@ async function insertAudit(
 // Queries
 // ---------------------------------------------------------------------------
 
-export const getManifest = query({
+export const getManifest = authedQuery({
   args: { repoSlug: v.string() },
   handler: async (ctx, args) => {
     return await ctx.db
@@ -77,7 +77,7 @@ export const getManifest = query({
   },
 });
 
-export const getLock = query({
+export const getLock = authedQuery({
   args: { repoSlug: v.string() },
   handler: async (ctx, args) => {
     return await ctx.db
@@ -87,7 +87,7 @@ export const getLock = query({
   },
 });
 
-export const listInstallations = query({
+export const listInstallations = authedQuery({
   args: { repoSlug: v.string() },
   handler: async (ctx, args) => {
     const rows = await ctx.db
@@ -98,7 +98,7 @@ export const listInstallations = query({
   },
 });
 
-export const listInstallationsByPackage = query({
+export const listInstallationsByPackage = authedQuery({
   args: { packageSlug: v.string() },
   handler: async (ctx, args) => {
     const rows = await ctx.db
@@ -176,7 +176,7 @@ async function buildInstallationOverview(
  * All installation rows enriched with latest registry version and an
  * outdated flag. Powers the Installations tab in the Registry UI.
  */
-export const listInstallationOverview = query({
+export const listInstallationOverview = authedQuery({
   args: {
     repoSlug: v.optional(v.string()),
     outdatedOnly: v.optional(v.boolean()),
@@ -190,7 +190,7 @@ export const listInstallationOverview = query({
 });
 
 /** Per-repository rollups for the Installations dashboard. */
-export const listRepoSummaries = query({
+export const listRepoSummaries = authedQuery({
   args: { repoSlug: v.optional(v.string()) },
   handler: async (ctx, args): Promise<RepoInstallationSummary[]> => {
     const overview = await buildInstallationOverview(ctx, { repoSlug: args.repoSlug });
@@ -214,7 +214,7 @@ export const listRepoSummaries = query({
  * every ACTIVE or DRAFT package, in context-tools' AvailablePackage shape.
  * Versions without a contentHash are excluded (they cannot be locked).
  */
-export const registrySnapshot = query({
+export const registrySnapshot = authedQuery({
   args: {},
   handler: async (ctx): Promise<AvailablePackageShape[]> => {
     const packages = await ctx.db.query("contextPackages").collect();
@@ -242,7 +242,7 @@ export const registrySnapshot = query({
 // Mutations
 // ---------------------------------------------------------------------------
 
-export const saveManifest = mutation({
+export const saveManifest = authedMutation({
   args: {
     repoSlug: v.string(),
     manifestJson: v.string(),
@@ -306,7 +306,7 @@ export const saveManifest = mutation({
   },
 });
 
-export const saveLock = mutation({
+export const saveLock = authedMutation({
   args: {
     repoSlug: v.string(),
     lockJson: v.string(),
@@ -373,7 +373,7 @@ export const saveLock = mutation({
   },
 });
 
-export const syncInstallations = mutation({
+export const syncInstallations = authedMutation({
   args: {
     repoSlug: v.string(),
     entries: v.array(

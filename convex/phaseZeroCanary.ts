@@ -3,6 +3,7 @@ import { mutation, query } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 import { sha256Hex } from "./lib/harnessPrChecks";
+import { authedMutation } from "./lib/authedFunctions";
 
 const CANARY_CONFIRMATION = "phase-zero-read-only-canary-v1";
 const CANARY_PROJECT_SLUG = "software-factory-phase-zero-canary";
@@ -280,7 +281,7 @@ async function insertWorkOrderFixture(ctx: MutationCtx, input: {
   return { workOrderId, workflowRunId, evaluationId };
 }
 
-export const seed = mutation({
+export const seed = authedMutation({
   args: { confirmation: v.literal(CANARY_CONFIRMATION) },
   handler: async (ctx, args) => {
     assertCanaryEnabled(args.confirmation);

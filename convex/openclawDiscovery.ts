@@ -9,8 +9,9 @@
 
 import { v } from "convex/values";
 import { action, mutation } from "./_generated/server";
-import { api } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
 
 export type DiscoveredAgent = {
   id: string;
@@ -30,6 +31,7 @@ export type DiscoveredAgent = {
 export const discoverAgents = action({
   args: {},
   handler: async (ctx): Promise<{ agents: DiscoveredAgent[]; error?: string }> => {
+    await ctx.runQuery(internal.companyContext.assertAuthenticated, {});
     const conn = await ctx.runQuery(api.gatewayConnection.get, {});
     const baseUrl =
       (conn?.url?.trim()) || process.env.OPENCLAW_GATEWAY_URL || "";
@@ -109,6 +111,8 @@ export const importAgent = mutation({
     }),
   },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("A workspace is required to import agents.");
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.IMPROVE);
     const name = args.discovered.name.trim() || args.discovered.id;
     const workspacePath = `/gateway/agents/${(args.discovered.alias ?? args.discovered.id).replace(/\s+/g, "-").toLowerCase()}`;
     const allowedTaskTypes = args.discovered.capabilities?.length

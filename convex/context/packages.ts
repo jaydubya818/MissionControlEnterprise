@@ -16,7 +16,7 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "../_generated/server";
+import { authedMutation, authedQuery } from "../lib/authedFunctions";
 import { requireContextRegistryEnabled } from "../lib/contextRegistryGate";
 import {
   canTransitionPackageStatus,
@@ -92,14 +92,14 @@ async function insertAudit(
 // Queries
 // ---------------------------------------------------------------------------
 
-export const get = query({
+export const get = authedQuery({
   args: { packageId: v.id("contextPackages") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.packageId);
   },
 });
 
-export const getBySlug = query({
+export const getBySlug = authedQuery({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
     return await ctx.db
@@ -109,7 +109,7 @@ export const getBySlug = query({
   },
 });
 
-export const list = query({
+export const list = authedQuery({
   args: {
     type: v.optional(contextPackageTypeArg),
     status: v.optional(contextPackageStatusArg),
@@ -146,7 +146,7 @@ export const list = query({
   },
 });
 
-export const listVersions = query({
+export const listVersions = authedQuery({
   args: { packageId: v.id("contextPackages") },
   handler: async (ctx, args) => {
     const rows = await ctx.db
@@ -158,7 +158,7 @@ export const listVersions = query({
   },
 });
 
-export const getVersion = query({
+export const getVersion = authedQuery({
   args: { versionId: v.id("contextPackageVersions") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.versionId);
@@ -166,7 +166,7 @@ export const getVersion = query({
 });
 
 /** Package + current version detail for the Registry detail view. */
-export const getDetail = query({
+export const getDetail = authedQuery({
   args: { packageId: v.id("contextPackages") },
   handler: async (ctx, args) => {
     const pkg = await ctx.db.get(args.packageId);
@@ -213,7 +213,7 @@ export const getDetail = query({
  * Registry listing: packages joined with their current (or latest) version's
  * score/security fields. Powers the Registry UI.
  */
-export const listWithCurrentVersions = query({
+export const listWithCurrentVersions = authedQuery({
   args: {
     type: v.optional(contextPackageTypeArg),
     status: v.optional(contextPackageStatusArg),
@@ -285,7 +285,7 @@ export const listWithCurrentVersions = query({
   },
 });
 
-export const create = mutation({
+export const create = authedMutation({
   args: {
     name: v.string(),
     slug: v.string(),
@@ -347,7 +347,7 @@ export const create = mutation({
   },
 });
 
-export const update = mutation({
+export const update = authedMutation({
   args: {
     packageId: v.id("contextPackages"),
     description: v.optional(v.string()),
@@ -418,7 +418,7 @@ export const update = mutation({
   },
 });
 
-export const createVersion = mutation({
+export const createVersion = authedMutation({
   args: {
     packageId: v.id("contextPackages"),
     version: v.string(),
@@ -497,7 +497,7 @@ export const createVersion = mutation({
   },
 });
 
-export const setVersionReview = mutation({
+export const setVersionReview = authedMutation({
   args: {
     versionId: v.id("contextPackageVersions"),
     qualityScore: v.number(),
@@ -559,7 +559,7 @@ export const setVersionReview = mutation({
   },
 });
 
-export const publishVersion = mutation({
+export const publishVersion = authedMutation({
   args: {
     versionId: v.id("contextPackageVersions"),
     // Caller-computed sha256 for rows created without one (see lib docstring)
@@ -657,7 +657,7 @@ export const publishVersion = mutation({
   },
 });
 
-export const deprecateVersion = mutation({
+export const deprecateVersion = authedMutation({
   args: {
     versionId: v.id("contextPackageVersions"),
     actorId: v.optional(v.string()),

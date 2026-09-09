@@ -6,6 +6,12 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
+
+async function requireRunWorkspace(ctx: any, projectId?: any) {
+  if (!projectId) throw new Error("A workspace is required for run telemetry.");
+  await requireWorkspacePermission(ctx, projectId, FACTORY_PERMISSIONS.VIEW);
+}
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { logTaskEvent } from "./lib/taskEvents";
@@ -16,6 +22,7 @@ import { preferInstanceRefs } from "./lib/armCompat";
 import { classifyRisk } from "./lib/riskClassifier";
 import { evaluatePolicyEnvelopes } from "./lib/armPolicy";
 import { evaluateLegacyToolPolicy } from "./lib/legacyToolPolicy";
+import { authedMutation } from "./lib/authedFunctions";
 
 function toPreview(value: unknown): string | undefined {
   if (value === undefined || value === null) return undefined;
@@ -84,6 +91,7 @@ export const listRecent = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireRunWorkspace(ctx, args.projectId);
     let runs = await ctx.db
       .query("runs")
       .order("desc")
@@ -172,6 +180,7 @@ export const getUsageTimeSeries = query({
     bucketHours: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireRunWorkspace(ctx, args.projectId);
     const windowMs = (args.windowHours ?? 24) * 60 * 60 * 1000;
     const bucketMs = (args.bucketHours ?? 1) * 60 * 60 * 1000;
     const since = Date.now() - windowMs;
@@ -223,7 +232,7 @@ export const getUsageTimeSeries = query({
 // MUTATIONS
 // ============================================================================
 
-export const start = mutation({
+export const start = authedMutation({
   args: {
     agentId: v.id("agents"),
     taskId: v.optional(v.id("tasks")),
@@ -714,7 +723,7 @@ export const start = mutation({
   },
 });
 
-export const complete = mutation({
+export const complete = authedMutation({
   args: {
     runId: v.id("runs"),
     inputTokens: v.number(),

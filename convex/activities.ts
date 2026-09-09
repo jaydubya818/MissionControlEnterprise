@@ -6,8 +6,29 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
+import type { QueryCtx } from "./_generated/server";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
+import { authedMutation } from "./lib/authedFunctions";
 
-export const create = mutation({
+async function requireActivityProject(ctx: QueryCtx, projectId?: Id<"projects">) {
+  if (!projectId) throw new Error("A workspace is required to access activity history.");
+  return await requireWorkspacePermission(ctx, projectId, FACTORY_PERMISSIONS.VIEW);
+}
+
+async function requireTaskActivity(ctx: QueryCtx, taskId: Id<"tasks">) {
+  const task = await ctx.db.get(taskId);
+  if (!task?.projectId) throw new Error("Task is unavailable or unscoped.");
+  await requireWorkspacePermission(ctx, task.projectId, FACTORY_PERMISSIONS.VIEW);
+}
+
+async function requireAgentActivity(ctx: QueryCtx, agentId: Id<"agents">) {
+  const agent = await ctx.db.get(agentId);
+  if (!agent?.projectId) throw new Error("Agent is unavailable or unscoped.");
+  await requireWorkspacePermission(ctx, agent.projectId, FACTORY_PERMISSIONS.VIEW);
+}
+
+export const create = authedMutation({
   args: {
     projectId: v.optional(v.id("projects")),
     actorType: v.union(v.literal("HUMAN"), v.literal("AGENT"), v.literal("SYSTEM")),
@@ -31,6 +52,7 @@ export const list = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireActivityProject(ctx, args.projectId);
     if (args.projectId) {
       return await ctx.db
         .query("activities")
@@ -51,6 +73,7 @@ export const listRecent = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireActivityProject(ctx, args.projectId);
     if (args.projectId) {
       return await ctx.db
         .query("activities")
@@ -71,6 +94,7 @@ export const listByTask = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireTaskActivity(ctx, args.taskId);
     return await ctx.db
       .query("activities")
       .withIndex("by_task", (q) => q.eq("taskId", args.taskId))
@@ -85,6 +109,7 @@ export const listByAgent = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireAgentActivity(ctx, args.agentId);
     return await ctx.db
       .query("activities")
       .withIndex("by_agent", (q) => q.eq("agentId", args.agentId))
@@ -95,13 +120,16 @@ export const listByAgent = query({
 
 export const listByAction = query({
   args: { 
+    projectId: v.id("projects"),
     action: v.string(),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireActivityProject(ctx, args.projectId);
     return await ctx.db
       .query("activities")
       .withIndex("by_action", (q) => q.eq("action", args.action))
+      .filter((q) => q.eq(q.field("projectId"), args.projectId))
       .order("desc")
       .take(args.limit ?? 50);
   },

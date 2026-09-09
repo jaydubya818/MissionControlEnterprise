@@ -100,6 +100,21 @@ export const assertAuthenticated = internalQuery({
   },
 });
 
+/** Require an authenticated company administrator for deployment-global actions. */
+export const assertAdministrator = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const memberships = await listCompanyMemberships(ctx);
+    const administrator = memberships.find((membership) => membership.canManageCompany);
+    if (!administrator) throw new Error("A company administrator is required.");
+    return {
+      actorId: administrator.operatorId ? String(administrator.operatorId) : "demo:company-administrator",
+      tenantId: String(administrator.tenant._id),
+      mode: administrator.mode,
+    };
+  },
+});
+
 /**
  * Actions do not have direct database access. This internal query gives them
  * the same authenticated, project-scoped operator decision used by mutations.
@@ -256,6 +271,7 @@ export const getSession = query({
 export const listWorkspaces = query({
   args: { tenantId: v.id("tenants") },
   handler: async (ctx, args) => {
+    await requireCompanyAccess(ctx, args.tenantId);
     return await listAccessibleWorkspaces(ctx, args.tenantId);
   },
 });

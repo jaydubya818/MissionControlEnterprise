@@ -21,7 +21,7 @@ describe("authorization rollout", () => {
     ).toBe("ENFORCED");
   });
 
-  it("retains legacy access only while nobody could pass a check", () => {
+  it("describes the legacy unprovisioned state without treating it as public authority", () => {
     const mode = resolveAuthorizationMode({
       flagEnabled: false,
       hasActiveOperator: false,
@@ -29,6 +29,8 @@ describe("authorization rollout", () => {
     });
     expect(mode).toBe("UNPROVISIONED");
     expect(authorizationIsEnforced(mode)).toBe(false);
+    // Delivery authorization no longer uses this rollout result to bypass
+    // server checks. The helper remains descriptive for rollout telemetry.
     expect(authorizationRequiredFor(mode, "READ")).toBe(false);
     expect(authorizationRequiredFor(mode, "WRITE")).toBe(true);
     // The state must be self-describing, not silent.

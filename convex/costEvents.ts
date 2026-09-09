@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { authedMutation } from "./lib/authedFunctions";
 
 // ============================================================================
 // QUERIES
@@ -131,7 +132,7 @@ export const summaryByProject = query({
 // MUTATIONS
 // ============================================================================
 
-export const record = mutation({
+export const record = authedMutation({
   args: {
     projectId: v.optional(v.id("projects")),
     agentId: v.id("agents"),

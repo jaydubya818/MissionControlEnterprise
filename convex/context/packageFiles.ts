@@ -1,9 +1,9 @@
 import { v } from "convex/values";
-import { action } from "../_generated/server";
+import { authedAction } from "../lib/authedFunctions";
 import { discoverSkillPaths } from "../lib/githubRepoSkills";
 import { buildFileTreeFromPaths, skillDirectoryPrefix } from "../lib/fileTree";
 
-export const listSourceTree = action({
+export const listSourceTree = authedAction({
   args: {
     sourceRepo: v.string(),
     sourcePath: v.optional(v.string()),

@@ -8,6 +8,7 @@ import { v } from "convex/values";
 import { mutation, query, internalMutation } from "./_generated/server";
 import { Doc, Id } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
+import { authedMutation } from "./lib/authedFunctions";
 
 // ============================================================================
 // QUERIES
@@ -237,7 +238,7 @@ export const updateMetrics = internalMutation({
 /**
  * Refresh metrics for all workflows
  */
-export const refreshAll = mutation({
+export const refreshAll = authedMutation({
   handler: async (ctx) => {
     // Get all unique workflow IDs
     const workflows = await ctx.db.query("workflows").collect();

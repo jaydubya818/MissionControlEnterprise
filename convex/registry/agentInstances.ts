@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { appendChangeRecord } from "../lib/armAudit";
 import { resolveActiveTenantId } from "../lib/getActiveTenant";
+import { authedMutation } from "../lib/authedFunctions";
 
 const instanceStatus = v.union(
   v.literal("PROVISIONING"),
@@ -13,7 +14,7 @@ const instanceStatus = v.union(
   v.literal("RETIRED")
 );
 
-export const createInstance = mutation({
+export const createInstance = authedMutation({
   args: {
     tenantId: v.optional(v.id("tenants")),
     projectId: v.optional(v.id("projects")),
@@ -116,7 +117,7 @@ export const listInstances = query({
   },
 });
 
-export const transitionInstance = mutation({
+export const transitionInstance = authedMutation({
   args: {
     instanceId: v.id("agentInstances"),
     status: instanceStatus,

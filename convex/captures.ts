@@ -4,6 +4,7 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { authedMutation } from "./lib/authedFunctions";
 
 /**
  * List all captures for a project
@@ -81,7 +82,7 @@ export const get = query({
 /**
  * Create a new capture
  */
-export const create = mutation({
+export const create = authedMutation({
   args: {
     projectId: v.optional(v.id("projects")),
     taskId: v.optional(v.id("tasks")),
@@ -117,7 +118,7 @@ export const create = mutation({
 /**
  * Update a capture
  */
-export const update = mutation({
+export const update = authedMutation({
   args: {
     id: v.id("captures"),
     title: v.optional(v.string()),
@@ -138,7 +139,7 @@ export const update = mutation({
 /**
  * Delete a capture
  */
-export const remove = mutation({
+export const remove = authedMutation({
   args: {
     id: v.id("captures"),
   },

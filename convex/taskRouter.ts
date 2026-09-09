@@ -11,6 +11,7 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
+import { authedMutation } from "./lib/authedFunctions";
 
 /** Performance data for an agent on a task type */
 interface AgentPerfData {
@@ -281,7 +282,7 @@ export const getRecommendations = query({
 /**
  * Auto-assign a task to the best agent
  */
-export const autoAssign = mutation({
+export const autoAssign = authedMutation({
   args: {
     taskId: v.id("tasks"),
     actorType: v.union(v.literal("AGENT"), v.literal("HUMAN"), v.literal("SYSTEM")),

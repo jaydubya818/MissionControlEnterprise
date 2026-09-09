@@ -6,8 +6,9 @@
 
 import { v } from "convex/values";
 import { mutation } from "./_generated/server";
+import { authedMutation } from "./lib/authedFunctions";
 
-export const updateThreadRef = mutation({
+export const updateThreadRef = authedMutation({
   args: {
     taskId: v.id("tasks"),
     chatId: v.string(),

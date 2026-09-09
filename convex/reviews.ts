@@ -7,6 +7,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { Doc } from "./_generated/dataModel";
+import { authedMutation } from "./lib/authedFunctions";
 
 // ============================================================================
 // QUERIES
@@ -109,7 +110,7 @@ export const getStats = query({
 // MUTATIONS
 // ============================================================================
 
-export const create = mutation({
+export const create = authedMutation({
   args: {
     projectId: v.id("projects"),
     taskId: v.id("tasks"),
@@ -187,7 +188,7 @@ export const create = mutation({
   },
 });
 
-export const respond = mutation({
+export const respond = authedMutation({
   args: {
     reviewId: v.id("reviews"),
     responseBy: v.id("agents"),
@@ -227,7 +228,7 @@ export const respond = mutation({
   },
 });
 
-export const supersede = mutation({
+export const supersede = authedMutation({
   args: {
     reviewId: v.id("reviews"),
     reason: v.string(),
@@ -262,7 +263,7 @@ export const supersede = mutation({
   },
 });
 
-export const remove = mutation({
+export const remove = authedMutation({
   args: { reviewId: v.id("reviews") },
   handler: async (ctx, args) => {
     const review = await ctx.db.get(args.reviewId);

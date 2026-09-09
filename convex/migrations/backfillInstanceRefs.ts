@@ -4,6 +4,7 @@ import { api } from "../_generated/api";
 import { resolveAgentRef } from "../lib/agentResolver";
 import { preferInstanceRefs } from "../lib/armCompat";
 import { resolveActiveTenantId } from "../lib/getActiveTenant";
+import { authedAction, authedMutation } from "../lib/authedFunctions";
 
 async function collectMigrationHealthSnapshot(ctx: { db: any }) {
   const [tasks, runs, toolCalls, messages, projects, agents, approvals] = await Promise.all([
@@ -238,7 +239,7 @@ export const listApprovalsNeedingTenantBackfill = query({
   },
 });
 
-export const backfillProjectTenant = mutation({
+export const backfillProjectTenant = authedMutation({
   args: { projectId: v.id("projects") },
   handler: async (ctx, args) => {
     const project = await ctx.db.get(args.projectId);
@@ -255,7 +256,7 @@ export const backfillProjectTenant = mutation({
   },
 });
 
-export const backfillAgentTenant = mutation({
+export const backfillAgentTenant = authedMutation({
   args: { agentId: v.id("agents") },
   handler: async (ctx, args) => {
     const agent = await ctx.db.get(args.agentId);
@@ -273,7 +274,7 @@ export const backfillAgentTenant = mutation({
   },
 });
 
-export const backfillTaskTenant = mutation({
+export const backfillTaskTenant = authedMutation({
   args: { taskId: v.id("tasks") },
   handler: async (ctx, args) => {
     const task = await ctx.db.get(args.taskId);
@@ -296,7 +297,7 @@ export const backfillTaskTenant = mutation({
   },
 });
 
-export const backfillRunTenant = mutation({
+export const backfillRunTenant = authedMutation({
   args: { runId: v.id("runs") },
   handler: async (ctx, args) => {
     const run = await ctx.db.get(args.runId);
@@ -319,7 +320,7 @@ export const backfillRunTenant = mutation({
   },
 });
 
-export const backfillToolCallTenant = mutation({
+export const backfillToolCallTenant = authedMutation({
   args: { toolCallId: v.id("toolCalls") },
   handler: async (ctx, args) => {
     const toolCall = await ctx.db.get(args.toolCallId);
@@ -343,7 +344,7 @@ export const backfillToolCallTenant = mutation({
   },
 });
 
-export const backfillMessageTenant = mutation({
+export const backfillMessageTenant = authedMutation({
   args: { messageId: v.id("messages") },
   handler: async (ctx, args) => {
     const message = await ctx.db.get(args.messageId);
@@ -366,7 +367,7 @@ export const backfillMessageTenant = mutation({
   },
 });
 
-export const backfillApprovalTenant = mutation({
+export const backfillApprovalTenant = authedMutation({
   args: { approvalId: v.id("approvals") },
   handler: async (ctx, args) => {
     const approval = await ctx.db.get(args.approvalId);
@@ -392,7 +393,7 @@ export const backfillApprovalTenant = mutation({
   },
 });
 
-export const backfillTask = mutation({
+export const backfillTask = authedMutation({
   args: { taskId: v.id("tasks") },
   handler: async (ctx, args) => {
     const task = await ctx.db.get(args.taskId);
@@ -413,7 +414,7 @@ export const backfillTask = mutation({
   },
 });
 
-export const backfillRun = mutation({
+export const backfillRun = authedMutation({
   args: { runId: v.id("runs") },
   handler: async (ctx, args) => {
     const run = await ctx.db.get(args.runId);
@@ -434,7 +435,7 @@ export const backfillRun = mutation({
   },
 });
 
-export const backfillToolCall = mutation({
+export const backfillToolCall = authedMutation({
   args: { toolCallId: v.id("toolCalls") },
   handler: async (ctx, args) => {
     const toolCall = await ctx.db.get(args.toolCallId);
@@ -454,7 +455,7 @@ export const backfillToolCall = mutation({
   },
 });
 
-export const backfillMessage = mutation({
+export const backfillMessage = authedMutation({
   args: { messageId: v.id("messages") },
   handler: async (ctx, args) => {
     const message = await ctx.db.get(args.messageId);
@@ -473,7 +474,7 @@ export const backfillMessage = mutation({
   },
 });
 
-export const runBackfill = action({
+export const runBackfill = authedAction({
   args: {
     tasksOffset: v.optional(v.number()),
     runsOffset: v.optional(v.number()),
@@ -555,7 +556,7 @@ export const runBackfill = action({
   },
 });
 
-export const runTenantBackfill = action({
+export const runTenantBackfill = authedAction({
   args: {
     projectsOffset: v.optional(v.number()),
     agentsOffset: v.optional(v.number()),

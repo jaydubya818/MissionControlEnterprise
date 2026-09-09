@@ -16,14 +16,14 @@ const crons = cronJobs();
 crons.interval(
   "expire stale approvals",
   { minutes: 15 },
-  api.approvals.expireStale
+  internal.approvals.expireStale
 );
 
 // Escalate pending approvals breaching SLA every 10 minutes
 crons.interval(
   "escalate overdue approvals",
   { minutes: 10 },
-  api.approvals.escalateOverdue,
+  internal.approvals.escalateOverdue,
   {}
 );
 

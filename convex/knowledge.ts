@@ -9,6 +9,12 @@ import { v } from "convex/values";
 import { mutation, query, action } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 import type { Id, Doc } from "./_generated/dataModel";
+import { assertAuthenticated } from "./lib/companyAccess";
+
+async function authenticatedSessionKey(ctx: Parameters<typeof assertAuthenticated>[0], sessionId: string) {
+  const identity = await assertAuthenticated(ctx);
+  return `${identity?.subject ?? "demo"}:${sessionId}`;
+}
 
 // ---------------------------------------------------------------------------
 // CONSTANTS
@@ -26,6 +32,7 @@ const CHUNK_OVERLAP = 150;
 export const getIndexedSources = query({
   args: {},
   handler: async (ctx) => {
+    await assertAuthenticated(ctx);
     const chunks = await ctx.db.query("knowledgeChunks").collect();
     const sources = new Map<string, { title: string; count: number }>();
     for (const c of chunks) {
@@ -47,9 +54,10 @@ export const getIndexedSources = query({
 export const getChatHistory = query({
   args: { sessionId: v.string() },
   handler: async (ctx, args) => {
+    const sessionId = await authenticatedSessionKey(ctx, args.sessionId);
     return await ctx.db
       .query("knowledgeChatHistory")
-      .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
+      .withIndex("by_session", (q) => q.eq("sessionId", sessionId))
       .collect();
   },
 });
@@ -57,6 +65,7 @@ export const getChatHistory = query({
 export const getTotalChunks = query({
   args: {},
   handler: async (ctx) => {
+    await assertAuthenticated(ctx);
     const chunks = await ctx.db.query("knowledgeChunks").collect();
     return chunks.length;
   },
@@ -75,6 +84,7 @@ export const storeChunk = mutation({
     embedding: v.array(v.float64()),
   },
   handler: async (ctx, args) => {
+    await assertAuthenticated(ctx);
     // Deduplicate by source + chunkIndex
     const existing = await ctx.db
       .query("knowledgeChunks")
@@ -96,6 +106,7 @@ export const storeChunk = mutation({
 export const clearSource = mutation({
   args: { source: v.string() },
   handler: async (ctx, args) => {
+    await assertAuthenticated(ctx);
     const chunks = await ctx.db
       .query("knowledgeChunks")
       .withIndex("by_source", (q) => q.eq("source", args.source))
@@ -117,16 +128,18 @@ export const storeChatMessage = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("knowledgeChatHistory", args);
+    const sessionId = await authenticatedSessionKey(ctx, args.sessionId);
+    return await ctx.db.insert("knowledgeChatHistory", { ...args, sessionId });
   },
 });
 
 export const clearChatHistory = mutation({
   args: { sessionId: v.string() },
   handler: async (ctx, args) => {
+    const sessionId = await authenticatedSessionKey(ctx, args.sessionId);
     const msgs = await ctx.db
       .query("knowledgeChatHistory")
-      .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
+      .withIndex("by_session", (q) => q.eq("sessionId", sessionId))
       .collect();
     await Promise.all(msgs.map((m) => ctx.db.delete(m._id)));
     return msgs.length;
@@ -339,6 +352,7 @@ export const semanticSearch = action({
 export const getChunkById = query({
   args: { id: v.id("knowledgeChunks") },
   handler: async (ctx, args) => {
+    await assertAuthenticated(ctx);
     return await ctx.db.get(args.id);
   },
 });

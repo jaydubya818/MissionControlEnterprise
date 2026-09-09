@@ -1,5 +1,20 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
+import { authedMutation } from "./lib/authedFunctions";
+
+async function requireAgentLearningAccess(
+  ctx: QueryCtx | MutationCtx,
+  agentId: Id<"agents">,
+  permission: typeof FACTORY_PERMISSIONS.VIEW | typeof FACTORY_PERMISSIONS.IMPROVE,
+) {
+  const agent = await ctx.db.get(agentId);
+  if (!agent?.projectId) throw new Error("Agent is unavailable or unscoped.");
+  await requireWorkspacePermission(ctx, agent.projectId, permission);
+  return agent;
+}
 
 /**
  * Agent Learning System
@@ -17,6 +32,7 @@ import { mutation, query } from "./_generated/server";
 export const getAgentPerformance = query({
   args: { agentId: v.id("agents") },
   handler: async (ctx, args) => {
+    await requireAgentLearningAccess(ctx, args.agentId, FACTORY_PERMISSIONS.VIEW);
     // Get aggregated performance by task type
     const perfRecords = await ctx.db
       .query("agentPerformance")
@@ -63,6 +79,8 @@ export const listPatterns = query({
     projectId: v.optional(v.id("projects")),
   },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("A workspace is required to list learning patterns.");
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     if (args.projectId) {
       return await ctx.db
         .query("agentPatterns")
@@ -76,6 +94,7 @@ export const listPatterns = query({
 export const getAgentStrengths = query({
   args: { agentId: v.id("agents") },
   handler: async (ctx, args) => {
+    await requireAgentLearningAccess(ctx, args.agentId, FACTORY_PERMISSIONS.VIEW);
     const patterns = await ctx.db
       .query("agentPatterns")
       .withIndex("by_agent", (q) => q.eq("agentId", args.agentId))
@@ -96,6 +115,7 @@ export const getAgentStrengths = query({
 export const getAgentWeaknesses = query({
   args: { agentId: v.id("agents") },
   handler: async (ctx, args) => {
+    await requireAgentLearningAccess(ctx, args.agentId, FACTORY_PERMISSIONS.VIEW);
     const patterns = await ctx.db
       .query("agentPatterns")
       .withIndex("by_agent", (q) => q.eq("agentId", args.agentId))
@@ -119,6 +139,7 @@ export const getBestAgentForTask = query({
     taskType: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     // Get all active agents for this project
     const agents = await ctx.db
       .query("agents")
@@ -175,7 +196,7 @@ export const getBestAgentForTask = query({
 // MUTATIONS
 // ============================================================================
 
-export const recordTaskCompletion = mutation({
+export const recordTaskCompletion = authedMutation({
   args: {
     taskId: v.id("tasks"),
     success: v.boolean(),
@@ -257,10 +278,10 @@ export const createPattern = mutation({
     evidence: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
-    const agent = await ctx.db.get(args.agentId);
-    if (!agent) throw new Error("Agent not found");
+    const agent = await requireAgentLearningAccess(ctx, args.agentId, FACTORY_PERMISSIONS.IMPROVE);
 
     const projectId = args.projectId ?? agent.projectId;
+    if (args.projectId && args.projectId !== agent.projectId) throw new Error("Pattern workspace does not match the agent.");
 
     // Check for existing pattern to prevent duplicates (same logic as discoverPattern)
     const existing = await ctx.db
@@ -327,6 +348,7 @@ export const updatePattern = mutation({
   handler: async (ctx, args) => {
     const existing = await ctx.db.get(args.patternId);
     if (!existing) throw new Error("Pattern not found");
+    await requireAgentLearningAccess(ctx, existing.agentId, FACTORY_PERMISSIONS.IMPROVE);
 
     const updates: Record<string, unknown> = { lastSeenAt: Date.now() };
     if (args.pattern !== undefined) updates.pattern = args.pattern;
@@ -346,6 +368,7 @@ export const removePattern = mutation({
   handler: async (ctx, args) => {
     const existing = await ctx.db.get(args.patternId);
     if (!existing) throw new Error("Pattern not found");
+    await requireAgentLearningAccess(ctx, existing.agentId, FACTORY_PERMISSIONS.IMPROVE);
 
     await ctx.db.delete(args.patternId);
 
@@ -361,7 +384,7 @@ export const removePattern = mutation({
   },
 });
 
-export const discoverPattern = mutation({
+export const discoverPattern = authedMutation({
   args: {
     agentId: v.id("agents"),
     pattern: v.string(),

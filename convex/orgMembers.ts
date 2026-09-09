@@ -6,6 +6,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { COMPANY_PERMISSIONS, requireWorkspaceAccess } from "./lib/companyAccess";
+import { authedMutation } from "./lib/authedFunctions";
 
 // ============================================================================
 // RBAC VALIDATORS
@@ -275,7 +276,7 @@ export const create = mutation({
 /**
  * Update an org member (including RBAC fields)
  */
-export const update = mutation({
+export const update = authedMutation({
   args: {
     id: v.id("orgMembers"),
     name: v.optional(v.string()),
@@ -305,7 +306,7 @@ export const update = mutation({
 /**
  * Update ONLY the role & permissions for a member
  */
-export const updatePermissions = mutation({
+export const updatePermissions = authedMutation({
   args: {
     id: v.id("orgMembers"),
     systemRole: v.optional(systemRoleValidator),
@@ -329,7 +330,7 @@ export const updatePermissions = mutation({
 /**
  * Add project access for a member
  */
-export const addProjectAccess = mutation({
+export const addProjectAccess = authedMutation({
   args: {
     memberId: v.id("orgMembers"),
     projectId: v.id("projects"),
@@ -357,7 +358,7 @@ export const addProjectAccess = mutation({
 /**
  * Remove project access for a member
  */
-export const removeProjectAccess = mutation({
+export const removeProjectAccess = authedMutation({
   args: {
     memberId: v.id("orgMembers"),
     projectId: v.id("projects"),
@@ -379,7 +380,7 @@ export const removeProjectAccess = mutation({
 /**
  * Delete an org member (soft delete by setting active = false)
  */
-export const remove = mutation({
+export const remove = authedMutation({
   args: {
     id: v.id("orgMembers"),
   },
@@ -392,7 +393,7 @@ export const remove = mutation({
 /**
  * Move an org member to a new parent (reorganize hierarchy)
  */
-export const move = mutation({
+export const move = authedMutation({
   args: {
     id: v.id("orgMembers"),
     newParentId: v.optional(v.id("orgMembers")),

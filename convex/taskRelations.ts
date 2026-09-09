@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { authedMutation } from "./lib/authedFunctions";
 
 const relationType = v.union(
   v.literal("BLOCKS"),
@@ -70,7 +71,7 @@ export const listByProject = query({
 // MUTATIONS
 // ============================================================================
 
-export const create = mutation({
+export const create = authedMutation({
   args: {
     sourceTaskId: v.id("tasks"),
     targetTaskId: v.id("tasks"),
@@ -178,7 +179,7 @@ export const create = mutation({
   },
 });
 
-export const remove = mutation({
+export const remove = authedMutation({
   args: { relationId: v.id("taskRelations") },
   handler: async (ctx, args) => {
     const relation = await ctx.db.get(args.relationId);

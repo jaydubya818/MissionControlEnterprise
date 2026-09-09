@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query, action } from "./_generated/server";
 import { api } from "./_generated/api";
+import { authedAction, authedMutation } from "./lib/authedFunctions";
 
 function buildWorkflowId(): string {
   return `hyb_${Math.random().toString(36).slice(2, 10)}`;
@@ -37,7 +38,7 @@ export const getResults = query({
   },
 });
 
-export const create = mutation({
+export const create = authedMutation({
   args: {
     projectId: v.optional(v.id("projects")),
     name: v.string(),
@@ -76,7 +77,7 @@ export const create = mutation({
   },
 });
 
-export const execute: any = action({
+export const execute: any = authedAction({
   args: {
     id: v.id("hybridWorkflows"),
     executedBy: v.optional(v.string()),

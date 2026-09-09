@@ -16,6 +16,7 @@ import {
   PRD_TASK_TYPES,
   type ParsedPrdTask,
 } from "./lib/prdParser";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
 
 export type ParsedTaskPreview = ParsedPrdTask;
 
@@ -29,7 +30,10 @@ export type ParsedTaskPreview = ParsedPrdTask;
 export const getPrdDocument = query({
   args: { id: v.id("prdDocuments") },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.id);
+    const document = await ctx.db.get(args.id);
+    if (!document?.projectId) throw new Error("PRD document is unavailable or unscoped.");
+    await requireWorkspacePermission(ctx, document.projectId, FACTORY_PERMISSIONS.VIEW);
+    return document;
   },
 });
 
@@ -49,6 +53,8 @@ export const storePrdDocument = mutation({
     createdBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("A workspace is required to store a PRD.");
+    const access = await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.IMPROVE);
     const content = normalizePrdContent(args.content);
     const contentHash = fingerprintPrdContent(content);
     const matchingHashes = await ctx.db
@@ -91,7 +97,7 @@ export const storePrdDocument = mutation({
       contentHash,
       taskCount: args.taskCount,
       parsedAt: Date.now(),
-      createdBy: args.createdBy,
+      createdBy: access.actorId,
     });
     return { prdDocumentId: id, created: true };
   },
@@ -120,10 +126,15 @@ export const bulkCreateFromPrd = mutation({
     const doc = await ctx.db.get(args.prdDocumentId);
     if (!doc) throw new Error("PRD document not found");
 
+    if (!args.projectId || doc.projectId !== args.projectId) {
+      throw new Error("PRD document is outside the selected workspace.");
+    }
+    const access = await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.IMPROVE);
+
     const project = args.projectId ? await ctx.db.get(args.projectId) : null;
     const tenantId = project ? (project as { tenantId?: Id<"tenants"> }).tenantId : undefined;
     const sourceRef = args.prdDocumentId;
-    const createdBy = (args.createdBy as "HUMAN" | "AGENT" | "SYSTEM") ?? "SYSTEM";
+    const createdBy = "HUMAN" as const;
     const createdIds: Id<"tasks">[] = [];
     let createdCount = 0;
 
@@ -168,6 +179,7 @@ export const bulkCreateFromPrd = mutation({
       await ctx.db.insert("activities", {
         projectId: args.projectId,
         actorType: createdBy,
+        actorId: access.actorId,
         action: "TASK_CREATED",
         description: `Task "${t.title.slice(0, 50)}" created via PRD_IMPORT`,
         targetType: "TASK",
@@ -179,6 +191,7 @@ export const bulkCreateFromPrd = mutation({
         projectId: args.projectId,
         eventType: "TASK_CREATED",
         actorType: createdBy,
+        actorId: access.actorId,
         relatedId: taskId,
         afterState: { status: "INBOX", title: t.title, type, priority },
         metadata: { source: "PRD_IMPORT", sourceRef },

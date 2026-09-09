@@ -5,8 +5,9 @@
  */
 
 import { mutation } from "./_generated/server";
+import { authedMutation } from "./lib/authedFunctions";
 
-export const createSellerFiAgents = mutation({
+export const createSellerFiAgents = authedMutation({
   args: {},
   handler: async (ctx) => {
     const results = [];

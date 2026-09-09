@@ -14,6 +14,7 @@ import {
   scoreScenarioStructure,
   type OperatorScenarioResult,
 } from "./lib/operatorEvals";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
 
 const runMode = v.union(v.literal("PROXY"), v.literal("MODEL"), v.literal("HUMAN"));
 const scenarioResult = v.object({
@@ -52,6 +53,7 @@ async function audit(ctx: { db: any }, args: { projectId: string; actorId?: stri
 export const getDashboard = query({
   args: { projectId: v.id("projects") },
   handler: async (ctx, args) => {
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     const profiles = await ctx.db
       .query("operatorPersonaProfiles")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
@@ -86,6 +88,7 @@ export const getDashboard = query({
 export const seedV1 = mutation({
   args: { projectId: v.id("projects"), actorId: v.optional(v.string()) },
   handler: async (ctx, args) => {
+    const access = await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.IMPROVE);
     const existing = await ctx.db
       .query("operatorPersonaProfiles")
       .withIndex("by_project_slug", (q) => q.eq("projectId", args.projectId).eq("slug", DEFAULT_FLEET_OPERATOR.slug))
@@ -131,7 +134,7 @@ export const seedV1 = mutation({
 
     await audit(ctx, {
       projectId: args.projectId,
-      actorId: args.actorId,
+      actorId: access.actorId,
       action: "OPERATOR_EVAL_CONTRACT_SEEDED",
       description: `Fleet Operator v1 contract ready with ${createdScenarios} new scenarios`,
       targetType: "operatorPersonaProfile",
@@ -150,6 +153,7 @@ export const runStructuralProxy = mutation({
     actorId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const access = await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.IMPROVE);
     const existing = await ctx.db
       .query("operatorEvalRuns")
       .withIndex("by_idempotency", (q) => q.eq("idempotencyKey", args.idempotencyKey))
@@ -193,7 +197,7 @@ export const runStructuralProxy = mutation({
       });
       await audit(ctx, {
         projectId: args.projectId,
-        actorId: args.actorId,
+        actorId: access.actorId,
         action: "OPERATOR_EVAL_PROXY_COMPLETED",
         description: `Structural operator eval completed across ${results.length} scenarios`,
         targetType: "operatorEvalRun",
@@ -223,6 +227,7 @@ export const startExternalRun = mutation({
     runnerVersion: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const access = await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.IMPROVE);
     if (args.mode === "PROXY") throw new Error("Use runStructuralProxy for proxy runs");
     const existing = await ctx.db.query("operatorEvalRuns").withIndex("by_idempotency", (q) => q.eq("idempotencyKey", args.idempotencyKey)).first();
     if (existing) return { run: existing, created: false };
@@ -240,7 +245,7 @@ export const startExternalRun = mutation({
       completedScenarios: 0,
       humanObservationCount: observations.length,
       idempotencyKey: args.idempotencyKey,
-      actorId: args.actorId,
+      actorId: access.actorId,
       modelId: args.modelId,
       runnerVersion: args.runnerVersion,
       caveat: args.mode === "MODEL"
@@ -261,6 +266,7 @@ export const completeExternalRun = mutation({
     actorId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const access = await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.IMPROVE);
     const run = await ctx.db.get(args.runId);
     if (!run || run.projectId !== args.projectId) throw new Error("Eval run does not belong to the selected workspace");
     if (run.mode === "PROXY") throw new Error("Proxy runs complete synchronously");
@@ -280,7 +286,7 @@ export const completeExternalRun = mutation({
     await ctx.db.patch(args.runId, { status: "COMPLETED", ...aggregate, results, completedAt: Date.now() });
     await audit(ctx, {
       projectId: args.projectId,
-      actorId: args.actorId,
+      actorId: access.actorId,
       action: "OPERATOR_EVAL_EXTERNAL_COMPLETED",
       description: `${run.mode} operator eval completed across ${results.length} scenarios`,
       targetType: "operatorEvalRun",
@@ -304,6 +310,7 @@ export const recordHumanObservation = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.IMPROVE);
     const [persona, scenario] = await Promise.all([ctx.db.get(args.personaId), ctx.db.get(args.scenarioId)]);
     if (!persona || persona.projectId !== args.projectId || !scenario || scenario.projectId !== args.projectId || scenario.personaId !== args.personaId) {
       throw new Error("Human observation scope does not match the selected workspace and persona");

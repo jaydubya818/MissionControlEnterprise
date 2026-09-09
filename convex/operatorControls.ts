@@ -1,8 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getEffectiveOperatorControl } from "./lib/operatorControls";
-import { COMPANY_PERMISSIONS } from "./lib/companyAccess";
-import { requireAuthorizedDeliveryScope } from "./lib/deliveryAuthorization";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
 import {
   effectiveWorkflowExecutionPolicy,
 } from "./lib/workflowExecutionControl";
@@ -20,6 +19,8 @@ export const getCurrent = query({
     projectId: v.optional(v.id("projects")),
   },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("A workspace is required for operator controls.");
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     return await getEffectiveOperatorControl(ctx.db, args.projectId);
   },
 });
@@ -30,6 +31,8 @@ export const listHistory = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("A workspace is required for operator controls.");
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     const limit = args.limit ?? 50;
 
     if (args.projectId) {
@@ -58,13 +61,12 @@ export const setMode = mutation({
     metadata: v.optional(v.any()),
   },
   handler: async (ctx, args) => {
-    if (args.projectId) {
-      await requireAuthorizedDeliveryScope(
-        ctx,
-        args.projectId,
-        COMPANY_PERMISSIONS.MANAGE_WORKSPACES,
-      );
-    }
+    if (!args.projectId) throw new Error("A workspace is required for operator controls.");
+    const access = await requireWorkspacePermission(
+      ctx,
+      args.projectId,
+      FACTORY_PERMISSIONS.MANAGE_AUTOMATION,
+    );
     const now = Date.now();
     const current = await getEffectiveOperatorControl(ctx.db, args.projectId);
     const executionPolicy = effectiveWorkflowExecutionPolicy({
@@ -81,7 +83,7 @@ export const setMode = mutation({
       mode: args.mode,
       ...executionPolicy,
       reason: args.reason,
-      updatedBy: args.userId,
+      updatedBy: access.actorId,
       updatedAt: now,
       metadata: args.metadata,
     });
@@ -89,7 +91,7 @@ export const setMode = mutation({
     await ctx.db.insert("activities", {
       projectId: args.projectId,
       actorType: "HUMAN",
-      actorId: args.userId,
+      actorId: access.actorId,
       action: "OPERATOR_MODE_UPDATED",
       description: `Operator mode set to ${args.mode}${args.reason ? ` (${args.reason})` : ""}`,
       targetType: "OPERATOR_CONTROL",
@@ -110,7 +112,7 @@ export const setMode = mutation({
         status: "OPEN",
         metadata: {
           mode: args.mode,
-          changedBy: args.userId,
+          changedBy: access.actorId,
         },
       });
     }
@@ -130,7 +132,7 @@ export const setMode = mutation({
         const hasActiveLease = Boolean(run.lease && run.lease.expiresAt > now);
         await ctx.db.patch(run._id, {
           cancellationRequestedAt: run.cancellationRequestedAt ?? now,
-          cancellationRequestedBy: args.userId,
+          cancellationRequestedBy: access.actorId,
           checkpointAt: now,
           checkpointSummary: `Workspace kill requested: ${args.reason ?? "No reason supplied"}`,
           ...(!hasActiveLease

@@ -7,6 +7,7 @@ import type { MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { authedMutation } from "./lib/authedFunctions";
 
 export async function appendTransition(
   ctx: MutationCtx,
@@ -44,7 +45,7 @@ export async function appendTransition(
   });
 }
 
-export const transitions_append = mutation({
+export const transitions_append = authedMutation({
   args: {
     taskId: v.id("tasks"),
     fromStatus: v.string(),

@@ -8,6 +8,7 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { FACTORY_PERMISSIONS, assertAuthenticated, requireWorkspacePermission } from "./lib/companyAccess";
 import type { Doc } from "./_generated/dataModel";
 import { classifyRisk, requiresApproval } from "./lib/riskClassifier";
 import { evaluateOperatorGate, getEffectiveOperatorControl } from "./lib/operatorControls";
@@ -15,6 +16,7 @@ import { appendChangeRecord, appendOpEvent } from "./lib/armAudit";
 import { resolveAgentRef } from "./lib/agentResolver";
 import { evaluatePolicyEnvelopes, type ArmDecision } from "./lib/armPolicy";
 import { evaluateLegacyToolPolicy } from "./lib/legacyToolPolicy";
+import { authedMutation } from "./lib/authedFunctions";
 
 // ============================================================================
 // ALLOWLIST HELPERS
@@ -201,6 +203,7 @@ function getTaskTypeRiskLevel(taskType: string): "GREEN" | "YELLOW" | "RED" {
 export const getActive = query({
   args: {},
   handler: async (ctx) => {
+    await assertAuthenticated(ctx);
     return await ctx.db
       .query("policies")
       .withIndex("by_active", (q) => q.eq("active", true))
@@ -211,6 +214,7 @@ export const getActive = query({
 export const listAll = query({
   args: {},
   handler: async (ctx) => {
+    await assertAuthenticated(ctx);
     return await ctx.db.query("policies").order("desc").collect();
   },
 });
@@ -653,6 +657,9 @@ export const evaluateWithARM = mutation({
     const legacyAgentId = args.agentId ?? resolved?.legacyAgentId;
     const legacyAgent = legacyAgentId ? await ctx.db.get(legacyAgentId) : null;
     const resolvedInstance = resolved?.instanceId ? await ctx.db.get(resolved.instanceId) : null;
+    const projectId = legacyAgent?.projectId ?? resolvedInstance?.projectId;
+    if (!projectId) throw new Error("An authorized workspace-scoped agent is required.");
+    await requireWorkspacePermission(ctx, projectId, FACTORY_PERMISSIONS.IMPROVE);
     const effectiveTenantId = legacyAgent?.tenantId ?? resolvedInstance?.tenantId;
     const risk = args.toolName
       ? classifyRisk(args.toolName, args.toolArgs as Record<string, unknown> | undefined)
@@ -765,7 +772,7 @@ export const evaluateWithARM = mutation({
 // MUTATIONS
 // ============================================================================
 
-export const create = mutation({
+export const create = authedMutation({
   args: {
     name: v.string(),
     scopeType: v.string(),
@@ -810,7 +817,7 @@ export const create = mutation({
   },
 });
 
-export const deactivate = mutation({
+export const deactivate = authedMutation({
   args: { policyId: v.id("policies") },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.policyId, { active: false });

@@ -46,6 +46,28 @@ import {
   buildWorkOrderTaskAuthority,
   workOrderTaskAuthorityIssue,
 } from "./lib/taskAuthority";
+import { assertAuthenticated, COMPANY_PERMISSIONS } from "./lib/companyAccess";
+import { requireAuthorizedDeliveryScope } from "./lib/deliveryAuthorization";
+import { authedMutation } from "./lib/authedFunctions";
+
+async function requireTaskReadScope(
+  ctx: Parameters<typeof requireAuthorizedDeliveryScope>[0],
+  taskId: Id<"tasks">,
+) {
+  const task = await ctx.db.get(taskId);
+  if (!task?.projectId) throw new Error("Task is unavailable or unauthorized.");
+  await requireAuthorizedDeliveryScope(ctx, task.projectId);
+  return task;
+}
+
+async function requireProjectReadScope(
+  ctx: Parameters<typeof requireAuthorizedDeliveryScope>[0],
+  projectId: Id<"projects"> | undefined,
+) {
+  if (!projectId) throw new Error("An authorized workspace is required.");
+  await requireAuthorizedDeliveryScope(ctx, projectId);
+  return projectId;
+}
 
 // ============================================================================
 // TYPES
@@ -198,8 +220,7 @@ async function resolveAssigneeInstanceIds(
 export const get = query({
   args: { taskId: v.id("tasks") },
   handler: async (ctx, args) => {
-    const task = await ctx.db.get(args.taskId);
-    if (!task) return null;
+    const task = await requireTaskReadScope(ctx, args.taskId);
     return (await loadTaskProjections(ctx, [task], task.projectId))[0];
   },
 });
@@ -207,10 +228,13 @@ export const get = query({
 export const getByIdentifier = query({
   args: { identifier: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const task = await ctx.db
       .query("tasks")
       .withIndex("by_identifier", (q) => q.eq("identifier", args.identifier))
       .first();
+    if (!task) throw new Error("Task is unavailable or unauthorized.");
+    await requireAuthorizedDeliveryScope(ctx, task.projectId);
+    return task;
   },
 });
 
@@ -218,8 +242,7 @@ export const getByIdentifier = query({
 export const validateOutputForReview = query({
   args: { taskId: v.id("tasks") },
   handler: async (ctx, args) => {
-    const task = await ctx.db.get(args.taskId);
-    if (!task) return { valid: false, errors: ["Task not found"] };
+    const task = await requireTaskReadScope(ctx, args.taskId);
     const errors = validateForReview(
       task.deliverable ?? null,
       task.reviewChecklist ?? null,
@@ -236,6 +259,7 @@ export const list = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireProjectReadScope(ctx, args.projectId);
     const limit = args.limit ?? 200;
     let tasks;
     if (args.projectId) {
@@ -258,6 +282,7 @@ export const listByStatus = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireProjectReadScope(ctx, args.projectId);
     const limit = args.limit ?? 100;
     let tasks;
 
@@ -299,6 +324,7 @@ export const listAll = query({
     projectId: v.optional(v.id("projects")),
   },
   handler: async (ctx, args) => {
+    await requireProjectReadScope(ctx, args.projectId);
     let tasks;
     if (args.projectId) {
       tasks = await ctx.db
@@ -322,6 +348,7 @@ export const listByWorkOrder = query({
     workOrderId: v.id("workOrders"),
   },
   handler: async (ctx, args) => {
+    await requireAuthorizedDeliveryScope(ctx, args.projectId);
     const workOrder = await ctx.db.get(args.workOrderId);
     if (!workOrder || workOrder.projectId !== args.projectId) {
       throw new Error("Work Order is unavailable in the selected workspace.");
@@ -343,6 +370,9 @@ export const listByAgent = query({
     agentId: v.id("agents"),
   },
   handler: async (ctx, args) => {
+    const agent = await ctx.db.get(args.agentId);
+    if (!agent?.projectId) throw new Error("Agent is unavailable or unauthorized.");
+    await requireAuthorizedDeliveryScope(ctx, agent.projectId);
     // assigneeIds is an array field — no direct Convex index possible.
     // Safety cap prevents unbounded full-table scan; proper fix = taskAssignments junction table.
     const tasks = await ctx.db.query("tasks").take(500);
@@ -364,7 +394,8 @@ export const listByAgent = query({
 /** Allowed toStatus values for actor HUMAN per fromStatus (for UI "Move to" menu) */
 export const getAllowedTransitionsForHuman = query({
   args: {},
-  handler: async () => {
+  handler: async (ctx) => {
+    await assertAuthenticated(ctx);
     const map: Record<string, string[]> = {};
     for (const r of TRANSITION_RULES) {
       if (r.allowedActors.includes("HUMAN")) {
@@ -377,7 +408,7 @@ export const getAllowedTransitionsForHuman = query({
 });
 
 /** Update task threadRef (for Telegram thread-per-task) */
-export const updateThreadRef = mutation({
+export const updateThreadRef = authedMutation({
   args: {
     taskId: v.id("tasks"),
     projectId: v.optional(v.id("projects")),
@@ -400,6 +431,7 @@ export const search = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireProjectReadScope(ctx, args.projectId);
     const limit = args.limit ?? 50;
     let tasks;
     
@@ -437,8 +469,7 @@ export const search = query({
 export const exportIncidentReport = query({
   args: { taskId: v.id("tasks") },
   handler: async (ctx, args) => {
-    const task = await ctx.db.get(args.taskId);
-    if (!task) return null;
+    const task = await requireTaskReadScope(ctx, args.taskId);
     
     const transitions = await ctx.db
       .query("taskTransitions")
@@ -658,8 +689,7 @@ export const exportIncidentReport = query({
 export const getWithTimeline = query({
   args: { taskId: v.id("tasks") },
   handler: async (ctx, args) => {
-    const task = await ctx.db.get(args.taskId);
-    if (!task) return null;
+    const task = await requireTaskReadScope(ctx, args.taskId);
     
     const transitions = await ctx.db
       .query("taskTransitions")
@@ -734,6 +764,7 @@ export const getWithTimeline = query({
 export const getUnifiedTimeline = query({
   args: { taskId: v.id("tasks") },
   handler: async (ctx, args) => {
+    await requireTaskReadScope(ctx, args.taskId);
     return await ctx.db
       .query("taskEvents")
       .withIndex("by_task", (q) => q.eq("taskId", args.taskId))
@@ -749,6 +780,7 @@ export const getUnifiedTimeline = query({
 export const getWorkflowStateCompatibilityReport = query({
   args: { projectId: v.id("projects") },
   handler: async (ctx, args) => {
+    await requireAuthorizedDeliveryScope(ctx, args.projectId);
     const tasks = await ctx.db
       .query("tasks")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
@@ -776,17 +808,7 @@ export const simulateTransition = query({
     hasChecklist: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const task = await ctx.db.get(args.taskId);
-    if (!task) {
-      return {
-        valid: false,
-        fromStatus: null,
-        toStatus: args.toStatus,
-        actorType: args.actorType ?? "HUMAN",
-        errors: [{ field: "taskId", message: "Task not found" }],
-        allowedTransitions: [],
-      };
-    }
+    const task = await requireTaskReadScope(ctx, args.taskId);
 
     const fromStatus = task.status as TaskStatus;
     const toStatus = args.toStatus as TaskStatus;
@@ -900,13 +922,7 @@ export const simulateExecutionPlan = query({
     estimatedCost: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const task = await ctx.db.get(args.taskId);
-    if (!task) {
-      return {
-        ok: false,
-        error: "Task not found",
-      };
-    }
+    const task = await requireTaskReadScope(ctx, args.taskId);
 
     const actorType = (args.actorType ?? "HUMAN") as "AGENT" | "HUMAN" | "SYSTEM";
     const transitionPreview = (() => {
@@ -1110,6 +1126,8 @@ export const create = mutation({
     dueAt: v.optional(v.number()),        // deadline timestamp (ms)
   },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("A workspace is required to create a Task.");
+    await requireAuthorizedDeliveryScope(ctx, args.projectId, COMPANY_PERMISSIONS.UPDATE_DELIVERY);
     // ── Idempotency check ──
     // If an idempotencyKey is provided, return existing task if found
     if (args.idempotencyKey) {
@@ -1321,7 +1339,7 @@ export const create = mutation({
   },
 });
 
-export const linkToWorkOrder = mutation({
+export const linkToWorkOrder = authedMutation({
   args: {
     taskId: v.id("tasks"),
     projectId: v.id("projects"),
@@ -1478,6 +1496,12 @@ export const transition = mutation({
     })),
   },
   handler: async (ctx, args) => {
+    const authorizedTask = await ctx.db.get(args.taskId);
+    if (!authorizedTask?.projectId) throw new Error("Task is unavailable or unscoped.");
+    await requireAuthorizedDeliveryScope(ctx, authorizedTask.projectId, COMPANY_PERMISSIONS.UPDATE_DELIVERY);
+    if (args.projectId && authorizedTask.projectId !== args.projectId) {
+      throw new Error("Task does not belong to the selected workspace.");
+    }
     // 1. Check idempotency - return existing if same key
     const existingTransition = await ctx.db
       .query("taskTransitions")
@@ -1923,7 +1947,7 @@ export const transition = mutation({
   },
 });
 
-export const supersedeWorkflowAttempt = mutation({
+export const supersedeWorkflowAttempt = authedMutation({
   args: {
     taskId: v.id("tasks"),
     runId: v.string(),
@@ -2072,7 +2096,7 @@ export const supersedeWorkflowAttempt = mutation({
   },
 });
 
-export const resolveApprovedWorkflowGate = mutation({
+export const resolveApprovedWorkflowGate = authedMutation({
   args: {
     taskId: v.id("tasks"),
     approvalId: v.id("approvals"),
@@ -2266,7 +2290,7 @@ export const resolveApprovedWorkflowGate = mutation({
   },
 });
 
-export const assign = mutation({
+export const assign = authedMutation({
   args: {
     taskId: v.id("tasks"),
     agentIds: v.array(v.id("agents")),
@@ -2308,7 +2332,7 @@ export const assign = mutation({
  * Update editable task fields.
  * Status changes are routed through the state-machine transition mutation.
  */
-export const update = mutation({
+export const update = authedMutation({
   args: {
     taskId: v.id("tasks"),
     title: v.optional(v.string()),

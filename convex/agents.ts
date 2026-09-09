@@ -4,8 +4,33 @@
 
 import { v } from "convex/values";
 import { mutation, query, internalMutation } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 import { ensureInstanceForLegacyAgent, resolveAgentRef } from "./lib/agentResolver";
 import { appendChangeRecord } from "./lib/armAudit";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
+import { authedMutation } from "./lib/authedFunctions";
+
+async function requireAgentAccess(
+  ctx: Parameters<typeof requireWorkspacePermission>[0],
+  agentId: Id<"agents">,
+  permission: typeof FACTORY_PERMISSIONS.VIEW | typeof FACTORY_PERMISSIONS.IMPROVE = FACTORY_PERMISSIONS.VIEW,
+) {
+  const agent = await ctx.db.get(agentId);
+  if (!agent?.projectId) {
+    throw new Error("Agent is unavailable or unauthorized.");
+  }
+  const access = await requireWorkspacePermission(ctx, agent.projectId, permission);
+  return { agent, access };
+}
+
+async function requireAgentProject(
+  ctx: Parameters<typeof requireWorkspacePermission>[0],
+  projectId: any,
+  permission: typeof FACTORY_PERMISSIONS.VIEW | typeof FACTORY_PERMISSIONS.IMPROVE = FACTORY_PERMISSIONS.VIEW,
+) {
+  if (!projectId) throw new Error("An authorized workspace is required.");
+  return await requireWorkspacePermission(ctx, projectId, permission);
+}
 
 // ============================================================================
 // QUERIES
@@ -14,7 +39,7 @@ import { appendChangeRecord } from "./lib/armAudit";
 export const get = query({
   args: { agentId: v.id("agents") },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.agentId);
+    return (await requireAgentAccess(ctx, args.agentId)).agent;
   },
 });
 
@@ -23,8 +48,9 @@ export const getByName = query({
     name: v.string(),
     projectId: v.optional(v.id("projects")),
   },
-  handler: async (ctx, args) =>
-    args.projectId
+  handler: async (ctx, args) => {
+    await requireAgentProject(ctx, args.projectId);
+    return args.projectId
       ? await ctx.db
           .query("agents")
           .withIndex("by_project_name", (q) =>
@@ -34,7 +60,8 @@ export const getByName = query({
       : await ctx.db
           .query("agents")
           .withIndex("by_name", (q) => q.eq("name", args.name))
-          .first(),
+          .first();
+  },
 });
 
 export const list = query({
@@ -42,6 +69,7 @@ export const list = query({
     projectId: v.optional(v.id("projects")),
   },
   handler: async (ctx, args) => {
+    await requireAgentProject(ctx, args.projectId);
     if (args.projectId) {
       return await ctx.db
         .query("agents")
@@ -59,6 +87,7 @@ export const listAll = query({
     includeOrgPositions: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    await requireAgentProject(ctx, args.projectId);
     let agents;
     if (args.projectId) {
       agents = await ctx.db
@@ -90,6 +119,7 @@ export const listByStatus = query({
     status: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAgentProject(ctx, args.projectId);
     if (args.projectId) {
       return await ctx.db
         .query("agents")
@@ -110,6 +140,7 @@ export const listActive = query({
     projectId: v.optional(v.id("projects")),
   },
   handler: async (ctx, args) => {
+    await requireAgentProject(ctx, args.projectId);
     if (args.projectId) {
       return await ctx.db
         .query("agents")
@@ -147,6 +178,7 @@ export const register = mutation({
     metadata: v.optional(v.any()),
   },
   handler: async (ctx, args) => {
+    const access = await requireAgentProject(ctx, args.projectId, FACTORY_PERMISSIONS.IMPROVE);
     // Check if agent already exists
     const existing = args.projectId
       ? await ctx.db
@@ -273,10 +305,7 @@ export const heartbeat = mutation({
     errorMessage: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const agent = await ctx.db.get(args.agentId);
-    if (!agent) {
-      return { success: false, error: "Agent not found" };
-    }
+    const { agent, access } = await requireAgentAccess(ctx, args.agentId, FACTORY_PERMISSIONS.IMPROVE);
     
     const now = Date.now();
     
@@ -392,10 +421,7 @@ export const updateStatus = mutation({
     reason: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const agent = await ctx.db.get(args.agentId);
-    if (!agent) {
-      return { success: false, error: "Agent not found" };
-    }
+    const { agent, access } = await requireAgentAccess(ctx, args.agentId, FACTORY_PERMISSIONS.IMPROVE);
     if (args.projectId && agent.projectId !== args.projectId) {
       return { success: false, error: "Agent does not belong to the selected workspace" };
     }
@@ -408,8 +434,8 @@ export const updateStatus = mutation({
     // Log activity
     await ctx.db.insert("activities", {
       projectId: agent.projectId,
-      actorType: "SYSTEM",
-      actorId: undefined,
+      actorType: "HUMAN",
+      actorId: access.actorId,
       action: "AGENT_STATUS_CHANGED",
       description: `Agent "${agent.name}" status: ${oldStatus} → ${args.status}`,
       targetType: "AGENT",
@@ -432,6 +458,7 @@ export const pauseAll = mutation({
     userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const access = await requireAgentProject(ctx, args.projectId, FACTORY_PERMISSIONS.IMPROVE);
     let active;
     if (args.projectId) {
       active = await ctx.db
@@ -452,7 +479,7 @@ export const pauseAll = mutation({
       await ctx.db.insert("activities", {
         projectId: agent.projectId,
         actorType: "HUMAN",
-        actorId: args.userId ?? "operator",
+        actorId: access.actorId,
         action: "AGENT_PAUSED",
         description: `Agent "${agent.name}" paused (Pause squad)`,
         targetType: "AGENT",
@@ -474,6 +501,7 @@ export const resumeAll = mutation({
     userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const access = await requireAgentProject(ctx, args.projectId, FACTORY_PERMISSIONS.IMPROVE);
     let paused;
     if (args.projectId) {
       paused = await ctx.db
@@ -494,7 +522,7 @@ export const resumeAll = mutation({
       await ctx.db.insert("activities", {
         projectId: agent.projectId,
         actorType: "HUMAN",
-        actorId: args.userId ?? "operator",
+        actorId: access.actorId,
         action: "AGENT_RESUMED",
         description: `Agent "${agent.name}" resumed`,
         targetType: "AGENT",
@@ -535,8 +563,7 @@ export const update = mutation({
   },
   handler: async (ctx, args) => {
     const { agentId, projectId, expectedConfigVersion, ...updates } = args;
-    const agent = await ctx.db.get(agentId);
-    if (!agent) throw new Error("Agent not found");
+    const { agent, access } = await requireAgentAccess(ctx, agentId, FACTORY_PERMISSIONS.IMPROVE);
     if (projectId && agent.projectId !== projectId) {
       throw new Error("Agent does not belong to the selected workspace");
     }
@@ -603,7 +630,7 @@ export const update = mutation({
     await ctx.db.insert("activities", {
       projectId: agent.projectId,
       actorType: "HUMAN",
-      actorId: "operator",
+      actorId: access.actorId,
       action: "AGENT_UPDATED",
       description: `Agent "${agent.name}" updated`,
       targetType: "AGENT",
@@ -616,7 +643,7 @@ export const update = mutation({
   },
 });
 
-export const recordSpend = mutation({
+export const recordSpend = authedMutation({
   args: {
     agentId: v.id("agents"),
     amount: v.number(),
@@ -863,6 +890,7 @@ export const resetAll = mutation({
     projectId: v.optional(v.id("projects")),
   },
   handler: async (ctx, args) => {
+    const access = await requireAgentProject(ctx, args.projectId, FACTORY_PERMISSIONS.IMPROVE);
     const now = Date.now();
     const agents = args.projectId
       ? await ctx.db
@@ -886,7 +914,7 @@ export const resetAll = mutation({
         await ctx.db.insert("activities", {
           projectId: agent.projectId,
           actorType: "HUMAN",
-          actorId: "operator",
+          actorId: access.actorId,
           action: "AGENT_RESET",
           description: `Agent "${agent.name}" reset: ${oldStatus} → ACTIVE`,
           targetType: "AGENT",

@@ -6,8 +6,9 @@
  */
 
 import { mutation, query } from "./_generated/server";
+import { authedMutation } from "./lib/authedFunctions";
 
-export const seedV0 = mutation({
+export const seedV0 = authedMutation({
   args: {},
   handler: async (ctx) => {
     // Check if already seeded
@@ -648,7 +649,7 @@ export const seedV0 = mutation({
  * Safe to run multiple times — skips if documents already exist.
  * Run with: npx convex run seed:backfillBJDocs
  */
-export const backfillBJDocs = mutation({
+export const backfillBJDocs = authedMutation({
   args: {},
   handler: async (ctx) => {
     // Find BJ
@@ -838,7 +839,7 @@ export const backfillBJDocs = mutation({
   },
 });
 
-export const clearAll = mutation({
+export const clearAll = authedMutation({
   args: {},
   handler: async (ctx) => {
     // Clear all tables (for development reset)
@@ -878,7 +879,7 @@ export const clearAll = mutation({
  * Safe to run multiple times — skips if documents already exist.
  * Run with: npx convex run seed:backfillSofieDocs
  */
-export const backfillSofieDocs = mutation({
+export const backfillSofieDocs = authedMutation({
   args: {},
   handler: async (ctx) => {
     // Find Sofie
@@ -1072,7 +1073,7 @@ export const getSeededStatus = query({
  * heartbeat and creates dedicated IN_PROGRESS tasks.
  * Run with: npx convex run seed:activateAgentsForDemo
  */
-export const activateAgentsForDemo = mutation({
+export const activateAgentsForDemo = authedMutation({
   args: {},
   handler: async (ctx) => {
     const now = Date.now();
@@ -1147,7 +1148,7 @@ export const activateAgentsForDemo = mutation({
  * Creates realistic multi-agent decision-making data for the Council view.
  * Run with: npx convex run seed:seedCouncilData
  */
-export const seedCouncilData = mutation({
+export const seedCouncilData = authedMutation({
   args: {},
   handler: async (ctx) => {
     const now = Date.now();

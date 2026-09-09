@@ -6,6 +6,14 @@
 import { v } from "convex/values";
 import { query } from "../_generated/server";
 import { isRunNeedingAttention } from "../lib/factoryOverview";
+import type { Id } from "../_generated/dataModel";
+import type { QueryCtx } from "../_generated/server";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "../lib/companyAccess";
+
+async function requireProjectionWorkspace(ctx: QueryCtx, projectId?: Id<"projects">) {
+  if (!projectId) throw new Error("A workspace is required for EOS projections.");
+  await requireWorkspacePermission(ctx, projectId, FACTORY_PERMISSIONS.VIEW);
+}
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -19,6 +27,7 @@ function healthFromCounts(blocked: number, stale: number, failed: number): "HEAL
 export const getHealthSignals = query({
   args: { projectId: v.optional(v.id("projects")) },
   handler: async (ctx, args) => {
+    await requireProjectionWorkspace(ctx, args.projectId);
     const workOrders = args.projectId
       ? await ctx.db.query("workOrders").withIndex("by_project", (q) => q.eq("projectId", args.projectId!)).collect()
       : await ctx.db.query("workOrders").collect();
@@ -151,6 +160,7 @@ export const getHealthSignals = query({
 export const getFactoryTraits = query({
   args: { projectId: v.optional(v.id("projects")) },
   handler: async (ctx, args) => {
+    await requireProjectionWorkspace(ctx, args.projectId);
     const now = Date.now();
     const windowStart = now - 90 * DAY_MS;
     const runs = args.projectId
@@ -196,6 +206,7 @@ export const getFactoryTraits = query({
 export const getEffectivenessMetrics = query({
   args: { projectId: v.optional(v.id("projects")) },
   handler: async (ctx, args) => {
+    await requireProjectionWorkspace(ctx, args.projectId);
     const workOrders = args.projectId
       ? await ctx.db.query("workOrders").withIndex("by_project", (q) => q.eq("projectId", args.projectId!)).collect()
       : await ctx.db.query("workOrders").collect();
@@ -252,6 +263,7 @@ export const getEffectivenessMetrics = query({
 export const getFrictionSummary = query({
   args: { projectId: v.optional(v.id("projects")), periodDays: v.optional(v.number()) },
   handler: async (ctx, args) => {
+    await requireProjectionWorkspace(ctx, args.projectId);
     const periodMs = (args.periodDays ?? 30) * DAY_MS;
     const since = Date.now() - periodMs;
 
@@ -318,6 +330,7 @@ export const getFrictionSummary = query({
 export const getReadinessAssessments = query({
   args: { projectId: v.optional(v.id("projects")) },
   handler: async (ctx, args) => {
+    await requireProjectionWorkspace(ctx, args.projectId);
     const installs = await ctx.db.query("contextInstallations").collect();
     const stale = installs.filter((i) => i.state === "STALE").length;
     const missing = installs.filter((i) => i.state === "MISSING").length;
@@ -351,6 +364,7 @@ export const getReadinessAssessments = query({
 export const getMissionSummaries = query({
   args: { projectId: v.optional(v.id("projects")) },
   handler: async (ctx, args) => {
+    await requireProjectionWorkspace(ctx, args.projectId);
     if (!args.projectId) {
       const project = await ctx.db
         .query("projects")
@@ -399,6 +413,7 @@ export const getMissionSummaries = query({
 export const getRecommendations = query({
   args: { projectId: v.optional(v.id("projects")) },
   handler: async (ctx, args) => {
+    await requireProjectionWorkspace(ctx, args.projectId);
     const suggestions = args.projectId
       ? await ctx.db
           .query("metaLoopSuggestions")

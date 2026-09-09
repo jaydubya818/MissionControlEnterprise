@@ -4,6 +4,7 @@ import { appendChangeRecord } from "../lib/armAudit";
 import { evaluatePolicyEnvelopes } from "../lib/armPolicy";
 import { resolveActiveTenantId } from "../lib/getActiveTenant";
 import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "../lib/companyAccess";
+import { authedMutation } from "../lib/authedFunctions";
 
 export const createPolicyEnvelope = mutation({
   args: {
@@ -61,7 +62,7 @@ export const createPolicyEnvelope = mutation({
   },
 });
 
-export const attachPolicy = mutation({
+export const attachPolicy = authedMutation({
   args: {
     envelopeId: v.id("policyEnvelopes"),
     active: v.boolean(),

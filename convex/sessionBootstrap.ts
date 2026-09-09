@@ -13,6 +13,7 @@
 import { v } from "convex/values";
 import { action, query } from "./_generated/server";
 import { api } from "./_generated/api";
+import { authedAction } from "./lib/authedFunctions";
 
 // ============================================================================
 // QUERIES
@@ -88,7 +89,7 @@ export const getBootstrapContext = query({
  * Called at the start of every agent session.
  * Returns assembled context per OpenClaw AGENTS template requirements.
  */
-export const bootstrap: any = action({
+export const bootstrap: any = authedAction({
   args: {
     agentId: v.id("agents"),
     projectId: v.optional(v.id("projects")),

@@ -3,6 +3,7 @@ import type { Id } from "../_generated/dataModel";
 import {
   COMPANY_PERMISSIONS,
   FACTORY_PERMISSIONS,
+  assertAuthenticated,
   listCompanyMemberships,
   roleGrantsPermission,
   teamMembershipGrantsPermission,
@@ -123,6 +124,14 @@ function fakeContext({
 }
 
 describe("company access", () => {
+  it("requires authentication for global public operations", async () => {
+    delete process.env.MC_ALLOW_ANONYMOUS_COMPANY_CONTEXT;
+    await expect(assertAuthenticated(fakeContext().ctx)).rejects.toThrow("Authentication is required");
+    await expect(assertAuthenticated(fakeContext({
+      identity: { subject: "auth-user", tokenIdentifier: "issuer|auth-user" },
+    }).ctx)).resolves.toMatchObject({ subject: "auth-user" });
+  });
+
   it("keeps the initial role permission matrix explicit and least-privileged", () => {
     const role = (name: string, permissions: string[] = []) => ({ name, permissions } as any);
     const everyPermission = Object.values(COMPANY_PERMISSIONS);

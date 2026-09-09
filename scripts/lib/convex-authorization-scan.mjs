@@ -47,6 +47,7 @@ const AUTHORIZATION_MARKERS = [
 const AUTHORIZING_WRAPPERS = [
   "authedQuery",
   "authedMutation",
+  "authedAction",
   "workspaceQuery",
   "workspaceMutation",
   "companyQuery",
@@ -57,6 +58,18 @@ const AUTHORIZING_WRAPPERS = [
 
 /** Wrappers that declare a deliberate unauthenticated exposure. */
 const DECLARED_PUBLIC_WRAPPERS = ["publicQuery", "publicMutation"];
+
+/** Exact internal queries that establish human/workspace authority for actions. */
+const AUTHORIZATION_QUERY_REFERENCES = [
+  "internal.companyContext.assertAuthenticated",
+  "internal.companyContext.authorizeFactoryAction",
+  "internal.researchIngestion.authorizeVerification",
+];
+
+/** Exact internal mutations that authorize before performing any state change. */
+const AUTHORIZATION_MUTATION_REFERENCES = [
+  "internal.researchIngestion.beginManualRun",
+];
 
 const PUBLIC_KINDS = ["query", "mutation", "action"];
 
@@ -120,6 +133,20 @@ function nodeIsAuthorized(node, helpers, seen = new Set()) {
     if (ts.isCallExpression(candidate)) {
       const called = expressionName(candidate.expression);
       if (AUTHORIZATION_MARKERS.includes(called)) return true;
+      if (
+        called === "ctx.runQuery" &&
+        candidate.arguments[0] &&
+        AUTHORIZATION_QUERY_REFERENCES.includes(expressionName(candidate.arguments[0]))
+      ) {
+        return true;
+      }
+      if (
+        called === "ctx.runMutation" &&
+        candidate.arguments[0] &&
+        AUTHORIZATION_MUTATION_REFERENCES.includes(expressionName(candidate.arguments[0]))
+      ) {
+        return true;
+      }
       if (ts.isIdentifier(candidate.expression)) {
         const helper = helpers.get(called);
         if (helper && !seen.has(called)) {

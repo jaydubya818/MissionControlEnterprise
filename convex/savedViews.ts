@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
 
 const scopeValidator = v.union(
   v.literal("KANBAN"),
@@ -15,6 +16,7 @@ export const list = query({
     scope: v.optional(scopeValidator),
   },
   handler: async (ctx, args) => {
+    const access = await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     let views = await ctx.db
       .query("savedViews")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
@@ -25,7 +27,7 @@ export const list = query({
     }
 
     // Owner sees all own views + shared views from others.
-    views = views.filter((view) => view.ownerUserId === args.ownerUserId || view.isShared);
+    views = views.filter((view) => view.ownerUserId === access.actorId || view.isShared);
 
     return views.sort((a, b) => b.updatedAt - a.updatedAt);
   },
@@ -42,11 +44,12 @@ export const create = mutation({
     isShared: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    const access = await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.IMPROVE);
     const now = Date.now();
 
     const id = await ctx.db.insert("savedViews", {
       projectId: args.projectId,
-      ownerUserId: args.ownerUserId,
+      ownerUserId: access.actorId,
       name: args.name,
       description: args.description,
       scope: args.scope,
@@ -59,7 +62,7 @@ export const create = mutation({
     await ctx.db.insert("activities", {
       projectId: args.projectId,
       actorType: "HUMAN",
-      actorId: args.ownerUserId,
+      actorId: access.actorId,
       action: "SAVED_VIEW_CREATED",
       description: `Saved view \"${args.name}\" created`,
       targetType: "SAVED_VIEW",
@@ -87,7 +90,9 @@ export const update = mutation({
     const view = await ctx.db.get(args.viewId);
     if (!view) throw new Error("Saved view not found");
 
-    if (view.ownerUserId !== args.ownerUserId) {
+    const access = await requireWorkspacePermission(ctx, view.projectId, FACTORY_PERMISSIONS.IMPROVE);
+
+    if (view.ownerUserId !== access.actorId) {
       throw new Error("Only the owner can update this saved view");
     }
 
@@ -105,7 +110,7 @@ export const update = mutation({
     await ctx.db.insert("activities", {
       projectId: view.projectId,
       actorType: "HUMAN",
-      actorId: args.ownerUserId,
+      actorId: access.actorId,
       action: "SAVED_VIEW_UPDATED",
       description: `Saved view \"${view.name}\" updated`,
       targetType: "SAVED_VIEW",
@@ -128,7 +133,9 @@ export const remove = mutation({
     const view = await ctx.db.get(args.viewId);
     if (!view) throw new Error("Saved view not found");
 
-    if (view.ownerUserId !== args.ownerUserId) {
+    const access = await requireWorkspacePermission(ctx, view.projectId, FACTORY_PERMISSIONS.IMPROVE);
+
+    if (view.ownerUserId !== access.actorId) {
       throw new Error("Only the owner can delete this saved view");
     }
 
@@ -137,7 +144,7 @@ export const remove = mutation({
     await ctx.db.insert("activities", {
       projectId: view.projectId,
       actorType: "HUMAN",
-      actorId: args.ownerUserId,
+      actorId: access.actorId,
       action: "SAVED_VIEW_DELETED",
       description: `Saved view \"${view.name}\" deleted`,
       targetType: "SAVED_VIEW",

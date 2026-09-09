@@ -8,6 +8,7 @@
 import { v } from "convex/values";
 import { query, mutation, action } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { authedMutation } from "./lib/authedFunctions";
 
 // ============================================================================
 // QUERIES
@@ -75,7 +76,7 @@ export const getArtifact = query({
 /**
  * Store a voice artifact record.
  */
-export const storeArtifact = mutation({
+export const storeArtifact = authedMutation({
   args: {
     agentId: v.optional(v.string()),
     projectId: v.optional(v.id("projects")),

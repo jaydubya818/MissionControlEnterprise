@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { appendChangeRecord } from "../lib/armAudit";
 import { resolveActiveTenantId } from "../lib/getActiveTenant";
+import { authedMutation } from "../lib/authedFunctions";
 
 const deploymentStatus = v.union(
   v.literal("PENDING"),
@@ -10,7 +11,7 @@ const deploymentStatus = v.union(
   v.literal("RETIRED")
 );
 
-export const createDeployment = mutation({
+export const createDeployment = authedMutation({
   args: {
     tenantId: v.optional(v.id("tenants")),
     templateId: v.id("agentTemplates"),
@@ -54,7 +55,7 @@ export const createDeployment = mutation({
   },
 });
 
-export const activateDeployment = mutation({
+export const activateDeployment = authedMutation({
   args: {
     deploymentId: v.id("deployments"),
     approvedBy: v.optional(v.id("operators")),
@@ -103,7 +104,7 @@ export const activateDeployment = mutation({
   },
 });
 
-export const recordShadowGate = mutation({
+export const recordShadowGate = authedMutation({
   args: {
     deploymentId: v.id("deployments"),
     status: v.union(v.literal("PASS"), v.literal("WARN"), v.literal("FAIL")),
@@ -171,7 +172,7 @@ export const listShadowGateHistory = query({
   },
 });
 
-export const rollbackDeployment = mutation({
+export const rollbackDeployment = authedMutation({
   args: {
     deploymentId: v.id("deployments"),
     approvedBy: v.optional(v.id("operators")),

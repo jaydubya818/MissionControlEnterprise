@@ -7,8 +7,9 @@
 
 import { mutation } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
+import { authedMutation } from "./lib/authedFunctions";
 
-export const run = mutation({
+export const run = authedMutation({
   args: {},
   handler: async (ctx) => {
     const project = await ctx.db.query("projects").first();

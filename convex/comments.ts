@@ -6,6 +6,31 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { resolveAgentRef } from "./lib/agentResolver";
+import { COMPANY_PERMISSIONS } from "./lib/companyAccess";
+import { requireAuthorizedDeliveryScope } from "./lib/deliveryAuthorization";
+
+async function requireTaskScope(
+  ctx: Parameters<typeof requireAuthorizedDeliveryScope>[0],
+  taskId: Id<"tasks">,
+  permission?: typeof COMPANY_PERMISSIONS.UPDATE_DELIVERY,
+) {
+  const task = await ctx.db.get(taskId);
+  if (!task?.projectId) throw new Error("Task is unavailable or unauthorized.");
+  await requireAuthorizedDeliveryScope(ctx, task.projectId, permission);
+  return task;
+}
+
+async function requireCommentScope(
+  ctx: Parameters<typeof requireAuthorizedDeliveryScope>[0],
+  commentId: Id<"messages">,
+) {
+  const comment = await ctx.db.get(commentId);
+  if (!comment?.projectId || comment.type !== "COMMENT") {
+    throw new Error("Comment is unavailable or unauthorized.");
+  }
+  await requireAuthorizedDeliveryScope(ctx, comment.projectId, COMPANY_PERMISSIONS.UPDATE_DELIVERY);
+  return comment;
+}
 
 // ============================================================================
 // QUERIES
@@ -14,6 +39,7 @@ import { resolveAgentRef } from "./lib/agentResolver";
 export const listByTask = query({
   args: { taskId: v.id("tasks") },
   handler: async (ctx, args) => {
+    await requireTaskScope(ctx, args.taskId);
     const comments = await ctx.db
       .query("messages")
       .withIndex("by_task", (q) => q.eq("taskId", args.taskId))
@@ -50,6 +76,7 @@ export const post = mutation({
     idempotencyKey: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const task = await requireTaskScope(ctx, args.taskId, COMPANY_PERMISSIONS.UPDATE_DELIVERY);
     // Check idempotency
     if (args.idempotencyKey) {
       const existing = await ctx.db
@@ -60,11 +87,6 @@ export const post = mutation({
       if (existing) {
         return { commentId: existing._id, created: false };
       }
-    }
-
-    const task = await ctx.db.get(args.taskId);
-    if (!task) {
-      throw new Error("Task not found");
     }
 
     // Extract @mentions from content
@@ -141,14 +163,7 @@ export const edit = mutation({
     content: v.string(),
   },
   handler: async (ctx, args) => {
-    const comment = await ctx.db.get(args.commentId);
-    if (!comment) {
-      throw new Error("Comment not found");
-    }
-
-    if (comment.type !== "COMMENT") {
-      throw new Error("Not a comment");
-    }
+    await requireCommentScope(ctx, args.commentId);
 
     await ctx.db.patch(args.commentId, {
       content: args.content,
@@ -163,14 +178,7 @@ export const remove = mutation({
     commentId: v.id("messages"),
   },
   handler: async (ctx, args) => {
-    const comment = await ctx.db.get(args.commentId);
-    if (!comment) {
-      throw new Error("Comment not found");
-    }
-
-    if (comment.type !== "COMMENT") {
-      throw new Error("Not a comment");
-    }
+    await requireCommentScope(ctx, args.commentId);
 
     await ctx.db.delete(args.commentId);
 

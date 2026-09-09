@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query, action } from "./_generated/server";
 import { api } from "./_generated/api";
+import { authedAction, authedMutation } from "./lib/authedFunctions";
 
 function buildRequestId(): string {
   return `cg_${Math.random().toString(36).slice(2, 10)}`;
@@ -34,7 +35,7 @@ export const get = query({
   handler: async (ctx, args) => await ctx.db.get(args.id),
 });
 
-export const requestPatch = mutation({
+export const requestPatch = authedMutation({
   args: {
     projectId: v.optional(v.id("projects")),
     filePath: v.string(),
@@ -57,7 +58,7 @@ export const requestPatch = mutation({
   },
 });
 
-export const generateDiff = action({
+export const generateDiff = authedAction({
   args: { id: v.id("codegenRequests") },
   handler: async (ctx, args) => {
     const request = await ctx.runQuery(api.codegen.get, { id: args.id });
@@ -78,7 +79,7 @@ export const generateDiff = action({
   },
 });
 
-export const applyAndPR: any = action({
+export const applyAndPR: any = authedAction({
   args: { id: v.id("codegenRequests") },
   handler: async (ctx, args): Promise<any> => {
     const request = await ctx.runQuery(api.codegen.get, { id: args.id });
@@ -91,7 +92,7 @@ export const applyAndPR: any = action({
   },
 });
 
-export const updateStatus = mutation({
+export const updateStatus = authedMutation({
   args: {
     id: v.id("codegenRequests"),
     status: v.union(v.literal("PENDING"), v.literal("GENERATING"), v.literal("COMPLETED"), v.literal("FAILED")),
@@ -102,7 +103,7 @@ export const updateStatus = mutation({
   },
 });
 
-export const complete = mutation({
+export const complete = authedMutation({
   args: {
     id: v.id("codegenRequests"),
     diff: v.string(),

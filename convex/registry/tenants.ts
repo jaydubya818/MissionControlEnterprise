@@ -1,8 +1,9 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { listCompanyMemberships, requireCompanyAccess } from "../lib/companyAccess";
+import { authedMutation } from "../lib/authedFunctions";
 
-export const createTenant = mutation({
+export const createTenant = authedMutation({
   args: {
     name: v.string(),
     slug: v.string(),

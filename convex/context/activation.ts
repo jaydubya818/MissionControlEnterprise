@@ -4,6 +4,7 @@ import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { requireContextRegistryEnabled } from "../lib/contextRegistryGate";
 import { parseResolvedContextLock } from "../lib/contextActivation";
+import { authedMutation } from "../lib/authedFunctions";
 
 async function insertAudit(
   ctx: { db: any },
@@ -29,7 +30,7 @@ export const getReceiptForRun = query({
       .first(),
 });
 
-export const activateLockedContext = mutation({
+export const activateLockedContext = authedMutation({
   args: {
     repoSlug: v.string(),
     workflowRunId: v.id("contextWorkflowRuns"),
@@ -119,7 +120,7 @@ export const activateLockedContext = mutation({
   },
 });
 
-export const activateForWorkflowRun = mutation({
+export const activateForWorkflowRun = authedMutation({
   args: {
     repoSlug: v.string(),
     workflowRunId: v.id("workflowRuns"),

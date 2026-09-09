@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { assertAuthenticated } from "./lib/companyAccess";
 
 export const upsertQuotaSnapshot = mutation({
   args: {
@@ -11,6 +12,7 @@ export const upsertQuotaSnapshot = mutation({
     tokensLimit: v.number(),
   },
   handler: async (ctx, args) => {
+    await assertAuthenticated(ctx);
     const recordedAt = Date.now();
     await ctx.db.insert("quotaSnapshots", {
       provider: args.provider,
@@ -30,6 +32,7 @@ export const getLatestSnapshot = query({
     provider: v.optional(v.union(v.literal("anthropic"), v.literal("openai"), v.literal("google"))),
   },
   handler: async (ctx, args) => {
+    await assertAuthenticated(ctx);
     const all = await ctx.db
       .query("quotaSnapshots")
       .withIndex("by_recorded_at", (q) => q.gte("recordedAt", 0))
@@ -48,6 +51,7 @@ export const getProjectedBurnRate = query({
     windowMs: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await assertAuthenticated(ctx);
     const windowMs = args.windowMs ?? 24 * 60 * 60 * 1000;
     const cutoff = Date.now() - windowMs;
     let rows = await ctx.db

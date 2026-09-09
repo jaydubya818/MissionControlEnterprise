@@ -1,7 +1,8 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { authedMutation } from "./lib/authedFunctions";
 
-export const record = mutation({
+export const record = authedMutation({
   args: {
     projectId: v.optional(v.id("projects")),
     metricName: v.string(),

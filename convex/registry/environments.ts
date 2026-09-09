@@ -1,7 +1,8 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
+import { authedMutation } from "../lib/authedFunctions";
 
-export const createEnvironment = mutation({
+export const createEnvironment = authedMutation({
   args: {
     tenantId: v.id("tenants"),
     name: v.string(),

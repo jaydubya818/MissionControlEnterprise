@@ -8,6 +8,7 @@
 
 import { v } from "convex/values";
 import { query } from "./_generated/server";
+import { assertAuthenticated, FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -35,6 +36,7 @@ export const kpiSummary = query({
     costUsd: KpiDatum;
     policyDenials: KpiDatum;
   }> => {
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     const now = Date.now();
     const periodMs = Math.max(1, Math.floor(args.periodDays)) * DAY_MS;
     const currentStart = now - periodMs;
@@ -117,6 +119,7 @@ export const dailyModelCost = query({
     days: Array<{ date: string; series: Record<string, number> }>;
     models: string[];
   }> => {
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     const now = Date.now();
     const periodDays = Math.max(1, Math.floor(args.periodDays));
     const start = now - periodDays * DAY_MS;
@@ -184,6 +187,7 @@ export const activityHeatmap = query({
       currentStreakDays: number;
     };
   }> => {
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     const now = Date.now();
     const cutoff = now - HEATMAP_DAYS * DAY_MS;
 
@@ -267,6 +271,8 @@ export const activityHeatmap = query({
 export const schematicOverview = query({
   args: { projectId: v.optional(v.id("projects")) },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("An authorized workspace is required.");
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     let runs = await ctx.db.query("runs").order("desc").take(500);
     if (args.projectId) {
       runs = runs.filter((r) => r.projectId === args.projectId);
@@ -371,6 +377,8 @@ export const recentRunTurns = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("An authorized workspace is required.");
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     const limit = args.limit ?? 20;
     let runs = await ctx.db.query("runs").order("desc").take(limit * 2);
     if (args.projectId) {
@@ -414,6 +422,8 @@ export const recentHarnessEvents = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("An authorized workspace is required.");
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     const limit = args.limit ?? 10;
     let activities = await ctx.db.query("activities").order("desc").take(limit * 2);
     if (args.projectId) {
@@ -432,6 +442,7 @@ export const recentHarnessEvents = query({
 export const gatewaySessions = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
+    await assertAuthenticated(ctx);
     const limit = args.limit ?? 20;
     const runs = await ctx.db.query("runs").order("desc").take(limit * 3);
     const bySession = new Map<string, typeof runs>();
@@ -462,6 +473,8 @@ export const gatewaySessions = query({
 export const dataExplorerTables = query({
   args: { projectId: v.optional(v.id("projects")) },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("An authorized workspace is required.");
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     const tables = [
       { id: "tasks", label: "tasks", description: "Work order task lifecycle" },
       { id: "runs", label: "runs", description: "Agent execution runs" },

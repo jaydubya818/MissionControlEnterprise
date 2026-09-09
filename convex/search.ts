@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query } from "./_generated/server";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
 
 /**
  * Advanced Search System
@@ -27,6 +28,8 @@ export const searchAll = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("A workspace is required for search.");
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     const limit = args.limit || 50;
     const searchQuery = args.query.toLowerCase();
     

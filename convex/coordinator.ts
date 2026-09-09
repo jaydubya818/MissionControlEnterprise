@@ -12,6 +12,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { Id, Doc } from "./_generated/dataModel";
+import { authedMutation } from "./lib/authedFunctions";
 
 // ============================================================================
 // QUERIES
@@ -156,7 +157,7 @@ export const getDependencyGraph = query({
  * Uses the same decomposition strategies as packages/coordinator/src/decomposer.ts
  * but runs inside Convex for transactional safety.
  */
-export const decomposeTask = mutation({
+export const decomposeTask = authedMutation({
   args: {
     taskId: v.id("tasks"),
     maxSubtasks: v.optional(v.number()),

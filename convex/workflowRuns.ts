@@ -19,6 +19,7 @@ import { COMPANY_PERMISSIONS } from "./lib/companyAccess";
 import { buildExecutionRecoverySummary } from "./lib/executionRecovery";
 import { buildFactoryAttemptReviewReadModel, loadFactoryAttemptReviewReadModel } from "./lib/factoryReviewReadModel";
 import { getEffectiveOperatorControl } from "./lib/operatorControls";
+import { authedMutation } from "./lib/authedFunctions";
 import {
   automationDesignValidator,
   automationOutputSnapshotValidator,
@@ -397,6 +398,7 @@ export const list = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireAuthorizedDeliveryScope(ctx, args.projectId);
     // Build query based on filters
     if (args.repositoryId && args.status) {
       return (await ctx.db
@@ -470,7 +472,10 @@ export const get = query({
 export const getById = query({
   args: { id: v.id("workflowRuns") },
   handler: async (ctx, args) => {
-    return redactExecutionPrompt(await ctx.db.get(args.id));
+    const run = await ctx.db.get(args.id);
+    if (!run) return null;
+    await requireAuthorizedDeliveryScope(ctx, run.projectId);
+    return redactExecutionPrompt(run);
   },
 });
 
@@ -660,7 +665,7 @@ export const search = query({
 // MUTATIONS
 // ============================================================================
 
-export const claimExecution = mutation({
+export const claimExecution = authedMutation({
   args: {
     runId: v.string(),
     leaseId: v.string(),
@@ -812,7 +817,7 @@ export const claimExecution = mutation({
   },
 });
 
-export const heartbeatExecution = mutation({
+export const heartbeatExecution = authedMutation({
   args: {
     runId: v.string(),
     leaseId: v.string(),
@@ -874,7 +879,7 @@ export const heartbeatExecution = mutation({
   },
 });
 
-export const checkpointExecution = mutation({
+export const checkpointExecution = authedMutation({
   args: {
     runId: v.string(),
     leaseId: v.string(),
@@ -898,7 +903,7 @@ export const checkpointExecution = mutation({
   },
 });
 
-export const releaseExecution = mutation({
+export const releaseExecution = authedMutation({
   args: {
     runId: v.string(),
     leaseId: v.string(),
@@ -955,7 +960,7 @@ export const releaseExecution = mutation({
 /**
  * Start a new workflow run
  */
-export const start = mutation({
+export const start = authedMutation({
   args: {
     workflowId: v.string(),
     projectId: v.optional(v.id("projects")),
@@ -1086,7 +1091,7 @@ export const start = mutation({
   },
 });
 
-export const recordEvent = mutation({
+export const recordEvent = authedMutation({
   args: {
     workflowRunId: v.id("workflowRuns"),
     idempotencyKey: v.optional(v.string()),
@@ -1262,7 +1267,7 @@ export const linkArtifactToVerificationReceipt = mutation({
 /**
  * Update step status
  */
-export const updateStep = mutation({
+export const updateStep = authedMutation({
   args: {
     runId: v.string(),
     leaseId: v.optional(v.string()),
@@ -1462,7 +1467,7 @@ export const updateStep = mutation({
 /**
  * Advance workflow to next step
  */
-export const advance = mutation({
+export const advance = authedMutation({
   args: {
     runId: v.string(),
   },
@@ -1644,7 +1649,7 @@ export const requestCancellation = mutation({
 /**
  * Update workflow run status
  */
-export const updateStatus = mutation({
+export const updateStatus = authedMutation({
   args: {
     runId: v.string(),
     leaseId: v.optional(v.string()),
@@ -1813,7 +1818,7 @@ export const updateStatus = mutation({
 /**
  * Update workflow context (variables passed between steps)
  */
-export const updateContext = mutation({
+export const updateContext = authedMutation({
   args: {
     runId: v.string(),
     leaseId: v.optional(v.string()),
@@ -1842,7 +1847,7 @@ export const updateContext = mutation({
 /**
  * Increment retry count for a step
  */
-export const incrementRetry = mutation({
+export const incrementRetry = authedMutation({
   args: {
     runId: v.string(),
     leaseId: v.optional(v.string()),

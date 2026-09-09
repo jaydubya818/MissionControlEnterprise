@@ -7,6 +7,7 @@
 
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { authedMutation } from "./lib/authedFunctions";
 
 const channelValidator = v.union(v.literal("INTERNAL"), v.literal("TELEGRAM"));
 const senderTypeValidator = v.union(
@@ -104,7 +105,7 @@ export const getThreadsByTask = query({
 /**
  * Create a new telegraph thread.
  */
-export const createThread = mutation({
+export const createThread = authedMutation({
   args: {
     projectId: v.optional(v.id("projects")),
     title: v.string(),
@@ -138,7 +139,7 @@ export const createThread = mutation({
 /**
  * Link a thread to a task, approval, or incident.
  */
-export const linkToEntity = mutation({
+export const linkToEntity = authedMutation({
   args: {
     threadId: v.id("telegraphThreads"),
     linkedTaskId: v.optional(v.id("tasks")),
@@ -168,7 +169,7 @@ export const linkToEntity = mutation({
  * Send a message to a thread.
  * Enforces "final replies only" safety rule for TELEGRAM channel.
  */
-export const sendMessage = mutation({
+export const sendMessage = authedMutation({
   args: {
     threadId: v.id("telegraphThreads"),
     senderId: v.string(),
@@ -238,7 +239,7 @@ export const sendMessage = mutation({
 /**
  * Mark a message as read.
  */
-export const markRead = mutation({
+export const markRead = authedMutation({
   args: {
     messageId: v.id("telegraphMessages"),
   },

@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { authedMutation } from "./lib/authedFunctions";
 
 function buildSessionId(): string {
   return `rec_${Math.random().toString(36).slice(2, 10)}`;
@@ -67,7 +68,7 @@ export const getBySession = query({
   },
 });
 
-export const start = mutation({
+export const start = authedMutation({
   args: {
     projectId: v.optional(v.id("projects")),
     userId: v.string(),
@@ -92,7 +93,7 @@ export const start = mutation({
   },
 });
 
-export const captureEvent = mutation({
+export const captureEvent = authedMutation({
   args: {
     sessionId: v.string(),
     eventType: v.string(),
@@ -109,7 +110,7 @@ export const captureEvent = mutation({
   },
 });
 
-export const stop = mutation({
+export const stop = authedMutation({
   args: { sessionId: v.string() },
   handler: async (ctx, args) => {
     const recording = await ctx.db.query("testRecordings").withIndex("by_session", (q) => q.eq("sessionId", args.sessionId)).first();

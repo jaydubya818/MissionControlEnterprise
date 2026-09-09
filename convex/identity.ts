@@ -6,10 +6,23 @@
  */
 
 import { v } from "convex/values";
-import { query, mutation, action } from "./_generated/server";
-import { api } from "./_generated/api";
+import { query, mutation, internalAction, internalMutation, internalQuery } from "./_generated/server";
+import { internal } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
 import { resolveAgentRef } from "./lib/agentResolver";
 import { appendChangeRecord } from "./lib/armAudit";
+import { assertAuthenticated, FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
+
+async function requireIdentityAgentAccess(
+  ctx: Parameters<typeof requireWorkspacePermission>[0],
+  agentId: Id<"agents">,
+  permission: typeof FACTORY_PERMISSIONS.VIEW | typeof FACTORY_PERMISSIONS.IMPROVE = FACTORY_PERMISSIONS.VIEW,
+) {
+  const agent = await ctx.db.get(agentId);
+  if (!agent?.projectId) throw new Error("Agent identity is unavailable or unauthorized.");
+  await requireWorkspacePermission(ctx, agent.projectId, permission);
+  return agent;
+}
 
 // ============================================================================
 // VALIDATION HELPERS
@@ -106,7 +119,8 @@ export const validate = query({
     avatarPath: v.optional(v.string()),
     soulContent: v.optional(v.string()),
   },
-  handler: async (_ctx, args) => {
+  handler: async (ctx, args) => {
+    await assertAuthenticated(ctx);
     const identityResult = validateIdentityFields(args);
     const soulResult = validateSoulContent(args.soulContent);
 
@@ -126,6 +140,8 @@ export const getDirectory = query({
     projectId: v.optional(v.id("projects")),
   },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("An authorized workspace is required.");
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     const identities = await ctx.db.query("agentIdentities").collect();
 
     // If projectId filter, get agents for that project and filter
@@ -150,6 +166,7 @@ export const getByAgent = query({
     agentId: v.id("agents"),
   },
   handler: async (ctx, args) => {
+    await requireIdentityAgentAccess(ctx, args.agentId);
     const identities = await ctx.db
       .query("agentIdentities")
       .withIndex("by_agent", (q) => q.eq("agentId", args.agentId))
@@ -166,6 +183,8 @@ export const getComplianceReport = query({
     projectId: v.optional(v.id("projects")),
   },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("An authorized workspace is required.");
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     const identities = await ctx.db.query("agentIdentities").collect();
     const agents = args.projectId
       ? await ctx.db.query("agents").withIndex("by_project", (q) => q.eq("projectId", args.projectId)).collect()
@@ -222,6 +241,7 @@ export const upsert = mutation({
     toolsNotes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireIdentityAgentAccess(ctx, args.agentId, FACTORY_PERMISSIONS.IMPROVE);
     // Validate
     const identityResult = validateIdentityFields(args);
     const soulResult = validateSoulContent(args.soulContent);
@@ -350,11 +370,11 @@ export const upsert = mutation({
  * Scan all agents for missing/invalid identity/soul/tools files.
  * Writes results to agentIdentities table.
  */
-export const scan = action({
+export const scan = internalAction({
   args: {},
   handler: async (ctx) => {
     // Get all agents
-    const agents: any[] = await ctx.runQuery(api.identity.listAgentsForScan);
+    const agents: any[] = await ctx.runQuery(internal.identity.listAgentsForScan);
 
     const results = {
       scanned: 0,
@@ -368,13 +388,13 @@ export const scan = action({
       results.scanned++;
 
       // Check if identity already exists
-      const existing: any = await ctx.runQuery(api.identity.getByAgentInternal, {
+      const existing: any = await ctx.runQuery(internal.identity.getByAgentInternal, {
         agentId: agent._id,
       });
 
       if (!existing) {
         // Create a MISSING identity record from agent data
-        await ctx.runMutation(api.identity.upsertInternal, {
+        await ctx.runMutation(internal.identity.upsertInternal, {
           agentId: agent._id,
           name: agent.name || "Unknown",
           creature: undefined,
@@ -400,7 +420,7 @@ export const scan = action({
           status = (hasName || hasSoul) ? "PARTIAL" : "INVALID";
         }
 
-        await ctx.runMutation(api.identity.updateValidationStatus, {
+        await ctx.runMutation(internal.identity.updateValidationStatus, {
           identityId: existing._id,
           validationStatus: status,
           validationErrors: allErrors.length > 0 ? allErrors : undefined,
@@ -420,14 +440,14 @@ export const scan = action({
 // INTERNAL HELPERS (for use by actions)
 // ============================================================================
 
-export const listAgentsForScan = query({
+export const listAgentsForScan = internalQuery({
   args: {},
   handler: async (ctx) => {
     return await ctx.db.query("agents").collect();
   },
 });
 
-export const getByAgentInternal = query({
+export const getByAgentInternal = internalQuery({
   args: { agentId: v.id("agents") },
   handler: async (ctx, args) => {
     return await ctx.db
@@ -437,7 +457,7 @@ export const getByAgentInternal = query({
   },
 });
 
-export const upsertInternal = mutation({
+export const upsertInternal = internalMutation({
   args: {
     agentId: v.id("agents"),
     name: v.string(),
@@ -476,7 +496,7 @@ export const upsertInternal = mutation({
   },
 });
 
-export const updateValidationStatus = mutation({
+export const updateValidationStatus = internalMutation({
   args: {
     identityId: v.id("agentIdentities"),
     validationStatus: v.union(

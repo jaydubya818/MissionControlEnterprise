@@ -15,6 +15,7 @@ import type { Id } from "./_generated/dataModel";
 import { computeGenomeHash } from "./lib/genomeHash";
 import { seedDemoExtensions } from "./lib/demoSeedExtensions";
 import { v } from "convex/values";
+import { authedMutation } from "./lib/authedFunctions";
 
 const SEED_VERSION = "mc-demo-v2";
 const SEED_TAG = "mc-demo";
@@ -747,7 +748,7 @@ async function collectCounts(ctx: any, projectId: Id<"projects">, tenantId: Id<"
   };
 }
 
-export const run = mutation({
+export const run = authedMutation({
   args: {
     force: v.optional(v.boolean()),
   },

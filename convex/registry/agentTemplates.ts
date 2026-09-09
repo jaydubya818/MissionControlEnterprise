@@ -3,6 +3,7 @@ import { mutation, query } from "../_generated/server";
 import { appendChangeRecord } from "../lib/armAudit";
 import { resolveActiveTenantId } from "../lib/getActiveTenant";
 import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "../lib/companyAccess";
+import { authedMutation } from "../lib/authedFunctions";
 
 export const createTemplate = mutation({
   args: {
@@ -95,7 +96,7 @@ export const listTemplates = query({
   },
 });
 
-export const updateTemplate = mutation({
+export const updateTemplate = authedMutation({
   args: {
     templateId: v.id("agentTemplates"),
     name: v.optional(v.string()),

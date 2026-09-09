@@ -129,6 +129,67 @@ describe("convex authorization scan", () => {
     expect(scanConvexAuthorization(root).unauthorized).toEqual([]);
   });
 
+  it("recognizes exact internal action authorization queries", () => {
+    const root = fixture({
+      "provider.ts": `
+        export const callProvider = action({
+          args: {},
+          handler: async (ctx, args) => {
+            await ctx.runQuery(internal.companyContext.authorizeFactoryAction, {
+              projectId: args.projectId,
+              permission: "factory.improve",
+            });
+          },
+        });
+      `,
+    });
+    expect(scanConvexAuthorization(root).unauthorized).toEqual([]);
+  });
+
+  it("recognizes authenticated action wrappers", () => {
+    const root = fixture({
+      "provider.ts": `
+        export const callProvider = authedAction({
+          args: {},
+          handler: async () => "ok",
+        });
+      `,
+    });
+    const scan = scanConvexAuthorization(root);
+    expect(scan.authorizedCount).toBe(1);
+    expect(scan.unauthorized).toEqual([]);
+  });
+
+  it("does not accept an arbitrary internal query as authorization", () => {
+    const root = fixture({
+      "provider.ts": `
+        export const callProvider = action({
+          args: {},
+          handler: async (ctx) => {
+            await ctx.runQuery(internal.projects.get, {});
+          },
+        });
+      `,
+    });
+    expect(toIdentifiers(scanConvexAuthorization(root).unauthorized)).toEqual([
+      "provider:callProvider",
+    ]);
+  });
+
+  it("recognizes an exact internal mutation that authorizes before writing", () => {
+    const root = fixture({
+      "research.ts": `
+        export const run = action({
+          args: {},
+          handler: async (ctx, args) => {
+            await ctx.runMutation(internal.researchIngestion.beginManualRun, args);
+          },
+        });
+      `,
+    });
+    expect(scanConvexAuthorization(root).unauthorized).toEqual([]);
+  });
+
   it("treats internal functions as out of scope entirely", () => {
     const root = fixture({
       "seed.ts": `

@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { appendChangeRecord } from "../lib/armAudit";
 import { resolveActiveTenantId } from "../lib/getActiveTenant";
+import { authedMutation } from "../lib/authedFunctions";
 
 const statusValidator = v.union(
   v.literal("PENDING"),
@@ -11,7 +12,7 @@ const statusValidator = v.union(
   v.literal("CANCELED")
 );
 
-export const createApprovalRecord = mutation({
+export const createApprovalRecord = authedMutation({
   args: {
     tenantId: v.optional(v.id("tenants")),
     projectId: v.optional(v.id("projects")),
@@ -58,7 +59,7 @@ export const createApprovalRecord = mutation({
   },
 });
 
-export const decideApproval = mutation({
+export const decideApproval = authedMutation({
   args: {
     approvalRecordId: v.id("approvalRecords"),
     status: v.union(v.literal("APPROVED"), v.literal("DENIED"), v.literal("CANCELED"), v.literal("EXPIRED")),

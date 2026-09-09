@@ -5,6 +5,30 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
+
+async function requireAgentDocumentAccess(
+  ctx: QueryCtx | MutationCtx,
+  agentId: Id<"agents">,
+  permission: typeof FACTORY_PERMISSIONS.VIEW | typeof FACTORY_PERMISSIONS.IMPROVE,
+) {
+  const agent = await ctx.db.get(agentId);
+  if (!agent?.projectId) throw new Error("Agent is unavailable or unscoped.");
+  const access = await requireWorkspacePermission(ctx, agent.projectId, permission);
+  return { agent, access };
+}
+
+async function requireStoredDocumentAccess(
+  ctx: MutationCtx,
+  documentId: Id<"agentDocuments">,
+) {
+  const doc = await ctx.db.get(documentId);
+  if (!doc?.projectId) throw new Error("Document is unavailable or unscoped.");
+  await requireWorkspacePermission(ctx, doc.projectId, FACTORY_PERMISSIONS.IMPROVE);
+  return doc;
+}
 
 const documentType = v.union(
   v.literal("WORKING_MD"),
@@ -20,6 +44,7 @@ export const set = mutation({
     metadata: v.optional(v.any()),
   },
   handler: async (ctx, args) => {
+    const { agent } = await requireAgentDocumentAccess(ctx, args.agentId, FACTORY_PERMISSIONS.IMPROVE);
     const now = Date.now();
     const existing = await ctx.db
       .query("agentDocuments")
@@ -37,7 +62,7 @@ export const set = mutation({
     }
     const id = await ctx.db.insert("agentDocuments", {
       agentId: args.agentId,
-      projectId: (args as any).projectId,
+      projectId: agent.projectId,
       type: args.type,
       content: args.content,
       updatedAt: now,
@@ -53,6 +78,7 @@ export const get = query({
     type: documentType,
   },
   handler: async (ctx, args) => {
+    await requireAgentDocumentAccess(ctx, args.agentId, FACTORY_PERMISSIONS.VIEW);
     return await ctx.db
       .query("agentDocuments")
       .withIndex("by_agent_type", (q) =>
@@ -68,6 +94,8 @@ export const list = query({
     projectId: v.optional(v.id("projects")),
   },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("A workspace is required to list agent documents.");
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     if (args.projectId) {
       return await ctx.db
         .query("agentDocuments")
@@ -82,6 +110,7 @@ export const list = query({
 export const listByAgent = query({
   args: { agentId: v.id("agents") },
   handler: async (ctx, args) => {
+    await requireAgentDocumentAccess(ctx, args.agentId, FACTORY_PERMISSIONS.VIEW);
     return await ctx.db
       .query("agentDocuments")
       .withIndex("by_agent", (q) => q.eq("agentId", args.agentId))
@@ -94,6 +123,7 @@ export const listByAgent = query({
 export const getWorkingMd = query({
   args: { agentId: v.id("agents") },
   handler: async (ctx, args) => {
+    await requireAgentDocumentAccess(ctx, args.agentId, FACTORY_PERMISSIONS.VIEW);
     const doc = await ctx.db
       .query("agentDocuments")
       .withIndex("by_agent_type", (q) =>
@@ -108,6 +138,7 @@ export const getWorkingMd = query({
 export const getDailyNote = query({
   args: { agentId: v.id("agents") },
   handler: async (ctx, args) => {
+    await requireAgentDocumentAccess(ctx, args.agentId, FACTORY_PERMISSIONS.VIEW);
     const doc = await ctx.db
       .query("agentDocuments")
       .withIndex("by_agent_type", (q) =>
@@ -132,10 +163,10 @@ export const create = mutation({
     metadata: v.optional(v.any()),
   },
   handler: async (ctx, args) => {
-    const agent = await ctx.db.get(args.agentId);
-    if (!agent) throw new Error("Agent not found");
+    const { agent } = await requireAgentDocumentAccess(ctx, args.agentId, FACTORY_PERMISSIONS.IMPROVE);
 
     const projectId = args.projectId ?? agent.projectId;
+    if (args.projectId && args.projectId !== agent.projectId) throw new Error("Document workspace does not match the agent.");
 
     // Check for existing document for this agent+type to prevent duplicates
     const existing = await ctx.db
@@ -194,8 +225,7 @@ export const update = mutation({
     metadata: v.optional(v.any()),
   },
   handler: async (ctx, args) => {
-    const doc = await ctx.db.get(args.documentId);
-    if (!doc) throw new Error("Document not found");
+    await requireStoredDocumentAccess(ctx, args.documentId);
 
     await ctx.db.patch(args.documentId, {
       content: args.content,
@@ -213,8 +243,7 @@ export const remove = mutation({
     documentId: v.id("agentDocuments"),
   },
   handler: async (ctx, args) => {
-    const doc = await ctx.db.get(args.documentId);
-    if (!doc) throw new Error("Document not found");
+    const doc = await requireStoredDocumentAccess(ctx, args.documentId);
 
     await ctx.db.delete(args.documentId);
 

@@ -2,6 +2,7 @@ import { query, mutation } from "../_generated/server";
 import { v } from "convex/values";
 import { resolveAgentRef } from "../lib/agentResolver";
 import { appendChangeRecord } from "../lib/armAudit";
+import { authedMutation } from "../lib/authedFunctions";
 
 export const getIdentity = query({
   args: {
@@ -48,7 +49,7 @@ export const listIdentities = query({
   },
 });
 
-export const upsertAgentIdentity = mutation({
+export const upsertAgentIdentity = authedMutation({
   args: {
     agentId: v.id("agents"),
     name: v.string(),

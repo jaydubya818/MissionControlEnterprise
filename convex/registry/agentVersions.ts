@@ -4,6 +4,7 @@ import { computeGenomeHash } from "../lib/genomeHash";
 import { appendChangeRecord } from "../lib/armAudit";
 import { resolveActiveTenantId } from "../lib/getActiveTenant";
 import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "../lib/companyAccess";
+import { authedMutation } from "../lib/authedFunctions";
 
 const versionStatus = v.union(
   v.literal("DRAFT"),
@@ -120,7 +121,7 @@ export const listVersions = query({
   },
 });
 
-export const transitionVersion = mutation({
+export const transitionVersion = authedMutation({
   args: {
     versionId: v.id("agentVersions"),
     status: versionStatus,

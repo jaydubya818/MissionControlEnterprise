@@ -6,6 +6,7 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { authedMutation } from "./lib/authedFunctions";
 
 // ============================================================================
 // QUERIES
@@ -24,7 +25,7 @@ export const listPending = query({
 // MUTATIONS
 // ============================================================================
 
-export const routeTask = mutation({
+export const routeTask = authedMutation({
   args: { taskId: v.id("tasks") },
   handler: async (ctx, args) => {
     const task = await ctx.db.get(args.taskId);
@@ -70,7 +71,7 @@ export const routeTask = mutation({
   },
 });
 
-export const handleExecutionCallback = mutation({
+export const handleExecutionCallback = authedMutation({
   args: {
     taskId: v.id("tasks"),
     status: v.string(),

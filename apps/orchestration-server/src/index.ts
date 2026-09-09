@@ -374,6 +374,7 @@ async function spawnAgent(personaName: string): Promise<string> {
   const lifecycle = new AgentLifecycle({
     personaPath,
     convexUrl: CONVEX_URL,
+    serviceAuthToken: CONVEX_SERVICE_AUTH_TOKEN,
     projectSlug: PROJECT_SLUG,
     heartbeatIntervalMs: 30_000,
     errorQuarantineThreshold: 5,

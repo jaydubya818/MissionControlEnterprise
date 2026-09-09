@@ -11,6 +11,14 @@ import { api, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { resolveAgentRef } from "./lib/agentResolver";
 import { preferInstanceRefs } from "./lib/armCompat";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
+
+async function requirePlanningTask(ctx: any, taskId: Id<"tasks">, permission: typeof FACTORY_PERMISSIONS.VIEW | typeof FACTORY_PERMISSIONS.IMPROVE) {
+  const task = await ctx.db.get(taskId);
+  if (!task?.projectId) throw new Error("Task is unavailable or unscoped.");
+  const access = await requireWorkspacePermission(ctx, task.projectId, permission);
+  return { task, access };
+}
 
 // ============================================================================
 // QUERIES
@@ -19,7 +27,7 @@ import { preferInstanceRefs } from "./lib/armCompat";
 export const getTaskForPlanning = query({
   args: { taskId: v.id("tasks") },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.taskId);
+    return (await requirePlanningTask(ctx, args.taskId, FACTORY_PERMISSIONS.VIEW)).task;
   },
 });
 
@@ -47,8 +55,7 @@ export const submitPlan = mutation({
     idempotencyKey: v.string(),
   },
   handler: async (ctx, args) => {
-    const task = await ctx.db.get(args.taskId);
-    if (!task) throw new Error("Task not found");
+    const { task } = await requirePlanningTask(ctx, args.taskId, FACTORY_PERMISSIONS.IMPROVE);
     if (task.status !== "INBOX") {
       throw new Error("Only INBOX tasks can be planned and assigned");
     }

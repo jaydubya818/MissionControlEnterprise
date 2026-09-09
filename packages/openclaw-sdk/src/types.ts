@@ -145,6 +145,8 @@ export interface HeartbeatResult {
 
 export interface SDKConfig {
   convexUrl: string;
+  /** Signed Convex workload JWT used for authenticated agent operations. */
+  serviceAuthToken?: string;
   projectSlug: string;
   agent: AgentConfig;
   heartbeatIntervalMs?: number;

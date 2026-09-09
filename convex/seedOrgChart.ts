@@ -5,8 +5,9 @@
 
 import { mutation } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
+import { authedMutation } from "./lib/authedFunctions";
 
-export const run = mutation({
+export const run = authedMutation({
   args: {},
   handler: async (ctx) => {
     // Get or create default project
@@ -186,7 +187,7 @@ export const run = mutation({
 /**
  * Clear all org members and agents (for testing)
  */
-export const clear = mutation({
+export const clear = authedMutation({
   args: {},
   handler: async (ctx) => {
     const members = await ctx.db.query("orgMembers").collect();

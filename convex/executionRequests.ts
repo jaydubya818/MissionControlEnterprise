@@ -7,6 +7,7 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { authedMutation } from "./lib/authedFunctions";
 
 // ============================================================================
 // QUERIES
@@ -89,7 +90,7 @@ export const listByProject = query({
 // MUTATIONS
 // ============================================================================
 
-export const enqueue = mutation({
+export const enqueue = authedMutation({
   args: {
     projectId: v.optional(v.id("projects")),
     taskId: v.optional(v.id("tasks")),
@@ -130,7 +131,7 @@ export const enqueue = mutation({
   },
 });
 
-export const updateStatus = mutation({
+export const updateStatus = authedMutation({
   args: {
     requestId: v.id("executionRequests"),
     status: v.string(),
@@ -180,7 +181,7 @@ export const updateStatus = mutation({
   },
 });
 
-export const cancel = mutation({
+export const cancel = authedMutation({
   args: {
     requestId: v.id("executionRequests"),
     reason: v.optional(v.string()),

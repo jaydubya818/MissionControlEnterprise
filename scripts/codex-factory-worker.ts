@@ -33,6 +33,9 @@ if (!CONVEX_URL) throw new Error("CONVEX_URL or VITE_CONVEX_URL is required.");
 if (!AGENT_NAME) throw new Error("Set FACTORY_AGENT_NAME or pass the agent name as argv[2].");
 
 const client = new ConvexHttpClient(CONVEX_URL);
+const serviceAuthToken = process.env.CONVEX_SERVICE_AUTH_TOKEN?.trim();
+if (!serviceAuthToken) throw new Error("CONVEX_SERVICE_AUTH_TOKEN is required for factory worker operations.");
+client.setAuth(serviceAuthToken);
 const inFlight = new Set<string>();
 let running = true;
 let shutdownRequested = false;

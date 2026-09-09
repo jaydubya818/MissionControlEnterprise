@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query, action } from "./_generated/server";
+import { authedAction, authedMutation } from "./lib/authedFunctions";
 
 // Extension point: executeApi / executeUi / executeHybrid currently simulate steps.
 // To wire real runners (e.g. Playwright, API client), replace evaluateSteps with
@@ -47,7 +48,7 @@ export const get = query({
   handler: async (ctx, args) => await ctx.db.get(args.id),
 });
 
-export const executeApi = action({
+export const executeApi = authedAction({
   args: {
     projectId: v.optional(v.id("projects")),
     executedBy: v.optional(v.string()),
@@ -59,7 +60,7 @@ export const executeApi = action({
   },
 });
 
-export const executeUi = action({
+export const executeUi = authedAction({
   args: {
     projectId: v.optional(v.id("projects")),
     executedBy: v.optional(v.string()),
@@ -77,7 +78,7 @@ export const executeUi = action({
   },
 });
 
-export const executeHybrid = action({
+export const executeHybrid = authedAction({
   args: {
     projectId: v.optional(v.id("projects")),
     executedBy: v.optional(v.string()),
@@ -102,7 +103,7 @@ export const executeHybrid = action({
   },
 });
 
-export const storeResult = mutation({
+export const storeResult = authedMutation({
   args: {
     projectId: v.optional(v.id("projects")),
     executionType: v.union(v.literal("api"), v.literal("ui"), v.literal("hybrid")),

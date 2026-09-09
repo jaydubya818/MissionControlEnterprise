@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query, action } from "./_generated/server";
 import { api } from "./_generated/api";
+import { authedAction, authedMutation } from "./lib/authedFunctions";
 
 function buildCollectionId(): string {
   return `col_${Math.random().toString(36).slice(2, 10)}`;
@@ -23,7 +24,7 @@ export const get = query({
   handler: async (ctx, args) => await ctx.db.get(args.id),
 });
 
-export const importCollection = mutation({
+export const importCollection = authedMutation({
   args: {
     projectId: v.optional(v.id("projects")),
     importedBy: v.string(),
@@ -58,7 +59,7 @@ export const importCollection = mutation({
   },
 });
 
-export const remove = mutation({
+export const remove = authedMutation({
   args: { id: v.id("apiCollections") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
@@ -66,7 +67,7 @@ export const remove = mutation({
   },
 });
 
-export const convertToTests: any = action({
+export const convertToTests: any = authedAction({
   args: {
     id: v.id("apiCollections"),
     createdBy: v.optional(v.string()),

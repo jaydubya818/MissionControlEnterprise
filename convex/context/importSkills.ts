@@ -19,6 +19,7 @@
 import { v } from "convex/values";
 import { mutation } from "../_generated/server";
 import { requireContextRegistryEnabled } from "../lib/contextRegistryGate";
+import { authedMutation } from "../lib/authedFunctions";
 import {
   compareSemver,
   findVersionByContentHash,
@@ -43,7 +44,7 @@ const importableTypeArg = v.union(
   v.literal("EVALUATION_GUIDE")
 );
 
-export const importSkillMarkdown = mutation({
+export const importSkillMarkdown = authedMutation({
   args: {
     slug: v.string(),
     name: v.string(),

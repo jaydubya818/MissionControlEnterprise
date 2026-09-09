@@ -10,6 +10,7 @@ import { api, internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
 import { resolveActiveTenantId } from "./lib/getActiveTenant";
 import { buildMissionSuggestionIntake } from "./lib/missionPromptScheduling";
+import { COMPANY_PERMISSIONS, requireCompanyAccess, requireCompanyPermission, requireWorkspaceAccess } from "./lib/companyAccess";
 
 // ============================================================================
 // QUERIES
@@ -24,6 +25,17 @@ export const getMission = query({
     projectId: v.optional(v.id("projects")),
   },
   handler: async (ctx, args) => {
+    if (args.projectId) {
+      const projectId = args.projectId;
+      const project = await ctx.db.get(projectId);
+      if (!project?.tenantId) throw new Error("Workspace is unavailable or unscoped.");
+      await requireWorkspaceAccess(ctx, project.tenantId, projectId);
+    } else if (args.tenantId) {
+      const tenantId = args.tenantId;
+      await requireCompanyAccess(ctx, tenantId);
+    } else {
+      throw new Error("A company or workspace is required.");
+    }
     const tenantId = await resolveActiveTenantId(ctx as any, {
       tenantId: args.tenantId,
       projectId: args.projectId,
@@ -60,6 +72,16 @@ export const setMission = mutation({
     projectId: v.optional(v.id("projects")),
   },
   handler: async (ctx, args) => {
+    if (args.projectId) {
+      const project = await ctx.db.get(args.projectId);
+      if (!project?.tenantId) throw new Error("Workspace is unavailable or unscoped.");
+      await requireCompanyPermission(ctx, project.tenantId, COMPANY_PERMISSIONS.MANAGE_COMPANY);
+    } else if (args.tenantId) {
+      const tenantId = args.tenantId;
+      await requireCompanyPermission(ctx, tenantId, COMPANY_PERMISSIONS.MANAGE_COMPANY);
+    } else {
+      throw new Error("A company or workspace is required.");
+    }
     const tenantId = await resolveActiveTenantId(ctx as any, {
       tenantId: args.tenantId,
       projectId: args.projectId,

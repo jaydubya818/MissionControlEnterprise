@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { api } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
 
 const CHAT_KIND = "MISSION_CONTROL_CHAT";
 
@@ -24,6 +25,7 @@ export const listThreads = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     const threads = await ctx.db
       .query("telegraphThreads")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
@@ -38,6 +40,8 @@ export const getSession = query({
   handler: async (ctx, args) => {
     const thread = await ctx.db.get(args.threadId);
     if (!thread || thread.metadata?.kind !== CHAT_KIND) return null;
+    if (!thread.projectId) throw new Error("Chat thread is unscoped.");
+    await requireWorkspacePermission(ctx, thread.projectId, FACTORY_PERMISSIONS.VIEW);
     const messages = await ctx.db
       .query("telegraphMessages")
       .withIndex("by_thread", (q) => q.eq("threadId", args.threadId))
@@ -71,6 +75,7 @@ export const submitRequest = mutation({
     taskId?: Id<"tasks">;
     workOrderId?: Id<"workOrders">;
   }> => {
+    const access = await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.IMPROVE);
     const content = args.content.trim();
     if (!content) throw new Error("Message cannot be empty.");
     if (content.length > 20_000) throw new Error("Message is too long.");
@@ -102,11 +107,11 @@ export const submitRequest = mutation({
         tenantId: project.tenantId,
         projectId: args.projectId,
         title: requestTitle(content),
-        participants: [args.actorId, "mission-control"],
+        participants: [access.actorId, "mission-control"],
         channel: "INTERNAL",
         lastMessageAt: Date.now(),
         messageCount: 0,
-        metadata: { kind: CHAT_KIND, createdBy: args.actorId },
+        metadata: { kind: CHAT_KIND, createdBy: access.actorId },
       });
       thread = await ctx.db.get(threadId);
     }
@@ -117,7 +122,7 @@ export const submitRequest = mutation({
       projectId: args.projectId,
       threadId: thread._id,
       idempotencyKey: args.idempotencyKey,
-      senderId: args.actorId,
+      senderId: access.actorId,
       senderType: "HUMAN",
       content,
       channel: "INTERNAL",
@@ -141,7 +146,7 @@ export const submitRequest = mutation({
         source: "MISSION_PROMPT",
         sourceRef: `mission-chat:${thread._id}`,
         createdBy: "HUMAN",
-        createdByRef: args.actorId,
+        createdByRef: access.actorId,
         metadata: { missionChatThreadId: thread._id },
       })) as { task: Doc<"tasks"> | null; created: boolean };
       taskId = taskResult.task?._id;
@@ -158,7 +163,7 @@ export const submitRequest = mutation({
         branchStrategy: "isolated-worktree",
         priority: 3,
         riskLevel: "MEDIUM",
-        requestedBy: args.actorId,
+        requestedBy: access.actorId,
         assignedSquad: "Software Factory",
         acceptanceCriteria: [{
           id: "operator-request-accepted",
@@ -192,7 +197,7 @@ export const submitRequest = mutation({
       await ctx.runMutation(api.messages.post, {
         taskId,
         authorType: "HUMAN",
-        authorUserId: args.actorId,
+        authorUserId: access.actorId,
         type: "COMMENT",
         content,
         idempotencyKey: `chat-followup:${args.idempotencyKey}`,
@@ -231,7 +236,7 @@ export const submitRequest = mutation({
       tenantId: project.tenantId,
       projectId: args.projectId,
       actorType: "HUMAN",
-      actorId: args.actorId,
+      actorId: access.actorId,
       action: createdWork ? "CHAT_WORK_CREATED" : "CHAT_WORK_UPDATED",
       description: createdWork
         ? `Mission Control chat created work for: ${requestTitle(content)}`

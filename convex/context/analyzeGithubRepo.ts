@@ -3,7 +3,7 @@
  */
 
 import { v } from "convex/values";
-import { action } from "../_generated/server";
+import { authedAction } from "../lib/authedFunctions";
 import { api } from "../_generated/api";
 import {
   discoverSkillPaths,
@@ -14,7 +14,7 @@ import {
 } from "../lib/githubRepoSkills";
 import { repoFullName, sha256Hex } from "../lib/harnessPrChecks";
 
-export const analyzeRepository = action({
+export const analyzeRepository = authedAction({
   args: {
     repoUrl: v.string(),
     projectId: v.optional(v.id("projects")),

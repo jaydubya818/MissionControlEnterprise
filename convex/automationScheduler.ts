@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { api } from "./_generated/api";
 import { internalMutation, mutation } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
 import {
   AUTOMATION_POLICY_VERSION,
   buildReviewGate,
@@ -240,6 +241,7 @@ export const evaluateNow = mutation({
     reason: v.string(),
   },
   handler: async (ctx, args): Promise<EvaluationResult> => {
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.MANAGE_AUTOMATION);
     if (args.reason.trim().length < 5) {
       throw new Error("A reason is required for manual evaluation");
     }

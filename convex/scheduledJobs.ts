@@ -7,6 +7,25 @@ import type { GenericDatabaseReader } from "convex/server";
 import { api } from "./_generated/api";
 import { resolveActiveTenantId } from "./lib/getActiveTenant";
 import { evaluateMissionPromptReadiness } from "./lib/missionPromptScheduling";
+import type { Id } from "./_generated/dataModel";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
+
+async function requireScheduledJobWorkspace(
+  ctx: QueryCtx | MutationCtx,
+  projectId: Id<"projects"> | undefined,
+  permission: typeof FACTORY_PERMISSIONS.VIEW | typeof FACTORY_PERMISSIONS.MANAGE_AUTOMATION,
+) {
+  if (!projectId) throw new Error("A workspace is required for scheduled jobs.");
+  return await requireWorkspacePermission(ctx, projectId, permission);
+}
+
+async function requireScheduledJobObject(ctx: QueryCtx | MutationCtx, id: Id<"scheduledJobs">) {
+  const job = await ctx.db.get(id);
+  if (!job?.projectId) throw new Error("Scheduled job is unavailable or unscoped.");
+  const access = await requireWorkspacePermission(ctx, job.projectId, FACTORY_PERMISSIONS.MANAGE_AUTOMATION);
+  return { job, access };
+}
 
 function buildJobId(): string {
   return `job_${Math.random().toString(36).slice(2, 10)}`;
@@ -149,6 +168,7 @@ export const list = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireScheduledJobWorkspace(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     const rows = args.projectId
       ? await ctx.db.query("scheduledJobs").withIndex("by_project", (q) => q.eq("projectId", args.projectId)).order("desc").take(args.limit ?? 100)
       : await ctx.db.query("scheduledJobs").order("desc").take(args.limit ?? 100);
@@ -189,6 +209,7 @@ export const create = mutation({
     lastRunDuration: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    const access = await requireScheduledJobWorkspace(ctx, args.projectId, FACTORY_PERMISSIONS.MANAGE_AUTOMATION);
     const now = Date.now();
     const id = await ctx.db.insert("scheduledJobs", {
       tenantId: undefined,
@@ -201,7 +222,7 @@ export const create = mutation({
       targetId: args.targetId ?? "",
       autoRerunFlaky: args.autoRerunFlaky ?? false,
       enabled: args.enabled ?? true,
-      createdBy: args.createdBy,
+      createdBy: access.actorId,
       runPolicy: args.runPolicy,
       runPolicyParams: args.runPolicyParams,
       priority: args.priority,
@@ -228,8 +249,7 @@ export const update = mutation({
   },
   handler: async (ctx, args) => {
     const { id, ...updates } = args;
-    const job = await ctx.db.get(id);
-    if (!job) throw new Error("Scheduled job not found");
+    await requireScheduledJobObject(ctx, id);
     const patch: Record<string, unknown> = {};
     if (updates.name !== undefined) patch.name = updates.name;
     if (updates.cronExpression !== undefined) {
@@ -252,8 +272,7 @@ export const update = mutation({
 export const evaluatePolicy = query({
   args: { id: v.id("scheduledJobs") },
   handler: async (ctx, args) => {
-    const job = await ctx.db.get(args.id);
-    if (!job) return { allowed: false, reason: "Job not found" };
+    const { job } = await requireScheduledJobObject(ctx, args.id);
     return evaluateRunPolicy(ctx, job);
   },
 });
@@ -261,6 +280,7 @@ export const evaluatePolicy = query({
 export const setEnabled = mutation({
   args: { id: v.id("scheduledJobs"), enabled: v.boolean() },
   handler: async (ctx, args) => {
+    await requireScheduledJobObject(ctx, args.id);
     await ctx.db.patch(args.id, { enabled: args.enabled });
     return { success: true };
   },
@@ -269,6 +289,7 @@ export const setEnabled = mutation({
 export const remove = mutation({
   args: { id: v.id("scheduledJobs") },
   handler: async (ctx, args) => {
+    await requireScheduledJobObject(ctx, args.id);
     await ctx.db.delete(args.id);
     return { success: true };
   },
@@ -280,8 +301,7 @@ export const runNow = mutation({
     dryRun: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const job = await ctx.db.get(args.id);
-    if (!job) throw new Error("Scheduled job not found");
+    const { job } = await requireScheduledJobObject(ctx, args.id);
     const evaluation = await evaluateRunPolicy(ctx, job);
     if (!evaluation.allowed) {
       if (args.dryRun) {

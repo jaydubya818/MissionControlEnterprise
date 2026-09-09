@@ -6,6 +6,7 @@
 
 import { query } from "./_generated/server";
 import { v } from "convex/values";
+import { FACTORY_PERMISSIONS, assertAuthenticated, requireWorkspacePermission } from "./lib/companyAccess";
 
 // ============================================================================
 // HEALTH CHECK
@@ -106,6 +107,8 @@ export const metrics = query({
     projectId: v.optional(v.id("projects")),
   },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("A workspace is required for system metrics.");
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     const now = Date.now();
     
     // Get counts
@@ -203,6 +206,7 @@ export const metrics = query({
 export const status = query({
   args: {},
   handler: async (ctx) => {
+    await assertAuthenticated(ctx);
     const now = Date.now();
     
     // Perform health checks

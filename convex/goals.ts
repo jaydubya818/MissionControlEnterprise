@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { authedMutation } from "./lib/authedFunctions";
 
 // ============================================================================
 // QUERIES
@@ -115,7 +116,7 @@ export const getAncestorChain = query({
 // MUTATIONS
 // ============================================================================
 
-export const create = mutation({
+export const create = authedMutation({
   args: {
     projectId: v.id("projects"),
     title: v.string(),
@@ -171,7 +172,7 @@ export const create = mutation({
   },
 });
 
-export const update = mutation({
+export const update = authedMutation({
   args: {
     goalId: v.id("goals"),
     title: v.optional(v.string()),
@@ -219,7 +220,7 @@ export const update = mutation({
   },
 });
 
-export const remove = mutation({
+export const remove = authedMutation({
   args: { goalId: v.id("goals") },
   handler: async (ctx, args) => {
     const goal = await ctx.db.get(args.goalId);

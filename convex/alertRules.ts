@@ -5,6 +5,7 @@
 import { v } from "convex/values";
 import { mutation, query, internalMutation } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -13,6 +14,8 @@ export const list = query({
     projectId: v.optional(v.id("projects")),
   },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("A workspace is required to list alert rules.");
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     if (args.projectId) {
       return await ctx.db
         .query("alertRules")
@@ -31,6 +34,8 @@ export const create = mutation({
     enabled: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("A workspace is required to create alert rules.");
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.MANAGE_AUTOMATION);
     const now = Date.now();
     return await ctx.db.insert("alertRules", {
       projectId: args.projectId,
@@ -53,6 +58,8 @@ export const update = mutation({
     const { id, ...updates } = args;
     const rule = await ctx.db.get(id);
     if (!rule) throw new Error("Alert rule not found");
+    if (!rule.projectId) throw new Error("Alert rule is unavailable or unscoped.");
+    await requireWorkspacePermission(ctx, rule.projectId, FACTORY_PERMISSIONS.MANAGE_AUTOMATION);
     const patch: { updatedAt: number; threshold?: number; enabled?: boolean } = {
       updatedAt: Date.now(),
     };
@@ -66,6 +73,9 @@ export const update = mutation({
 export const remove = mutation({
   args: { id: v.id("alertRules") },
   handler: async (ctx, args) => {
+    const rule = await ctx.db.get(args.id);
+    if (!rule?.projectId) throw new Error("Alert rule is unavailable or unscoped.");
+    await requireWorkspacePermission(ctx, rule.projectId, FACTORY_PERMISSIONS.MANAGE_AUTOMATION);
     await ctx.db.delete(args.id);
     return args.id;
   },

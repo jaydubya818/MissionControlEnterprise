@@ -9,7 +9,8 @@ import { v } from "convex/values";
 import { mutation, query, action } from "./_generated/server";
 import { Doc, Id } from "./_generated/dataModel";
 import { workflowDefinitionChanged } from "./lib/workflowSnapshot";
-import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
+import { FACTORY_PERMISSIONS, assertAuthenticated, requireWorkspacePermission } from "./lib/companyAccess";
+import { authedAction, authedMutation } from "./lib/authedFunctions";
 import {
   factoryWorkflowContractIssues,
   workflowRunCompatibilityProjection,
@@ -54,6 +55,7 @@ export const list = query({
     activeOnly: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    await assertAuthenticated(ctx);
     if (args.activeOnly) {
       return await ctx.db
         .query("workflows")
@@ -177,6 +179,7 @@ export const upsert = mutation({
     createdBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await assertAuthenticated(ctx);
     const existing = await ctx.db
       .query("workflows")
       .withIndex("by_workflow_id", (q) => q.eq("workflowId", args.workflowId))
@@ -290,7 +293,7 @@ export const registerProduction = mutation({
 /**
  * Activate or deactivate a workflow
  */
-export const setActive = mutation({
+export const setActive = authedMutation({
   args: {
     workflowId: v.string(),
     active: v.boolean(),
@@ -317,7 +320,7 @@ export const setActive = mutation({
 /**
  * Delete a workflow
  */
-export const remove = mutation({
+export const remove = authedMutation({
   args: { workflowId: v.string() },
   handler: async (ctx, args) => {
     const workflow = await ctx.db
@@ -357,7 +360,7 @@ export const remove = mutation({
  * Install a workflow from YAML definition
  * (In production, this would parse YAML files from workflows/ directory)
  */
-export const install = action({
+export const install = authedAction({
   args: {
     workflowId: v.string(),
     yamlContent: v.optional(v.string()),

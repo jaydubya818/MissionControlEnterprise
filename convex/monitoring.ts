@@ -6,6 +6,13 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
+import { authedMutation } from "./lib/authedFunctions";
+
+async function requireMonitoringWorkspace(ctx: any, projectId?: any) {
+  if (!projectId) throw new Error("A workspace is required for monitoring data.");
+  await requireWorkspacePermission(ctx, projectId, FACTORY_PERMISSIONS.VIEW);
+}
 
 // ============================================================================
 // ERROR LOGGING
@@ -14,7 +21,7 @@ import { mutation, query } from "./_generated/server";
 /**
  * Log an error for monitoring and debugging.
  */
-export const logError = mutation({
+export const logError = authedMutation({
   args: {
     projectId: v.optional(v.id("projects")),
     source: v.string(), // e.g., "agent-runner", "telegram-bot", "ui"
@@ -76,6 +83,7 @@ export const listRecentErrors = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireMonitoringWorkspace(ctx, args.projectId);
     const activities = await ctx.db
       .query("activities")
       .filter((q) => q.eq(q.field("action"), "ERROR_LOGGED"))
@@ -98,7 +106,7 @@ export const listRecentErrors = query({
 /**
  * Log performance metrics.
  */
-export const logPerformance = mutation({
+export const logPerformance = authedMutation({
   args: {
     projectId: v.optional(v.id("projects")),
     operation: v.string(),
@@ -151,6 +159,7 @@ export const getPerformanceStats = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireMonitoringWorkspace(ctx, args.projectId);
     const activities = await ctx.db
       .query("activities")
       .filter((q) => q.eq(q.field("action"), "PERFORMANCE_LOG"))
@@ -203,6 +212,7 @@ export const getAuditLog = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireMonitoringWorkspace(ctx, args.projectId);
     let activities = await ctx.db
       .query("activities")
       .order("desc")

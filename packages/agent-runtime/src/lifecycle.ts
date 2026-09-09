@@ -19,6 +19,8 @@ import { MemoryManager } from "@mission-control/memory";
 export interface AgentLifecycleConfig {
   personaPath: string;
   convexUrl: string;
+  /** Signed Convex workload JWT. Required for server-side mutations. */
+  serviceAuthToken?: string;
   projectSlug: string;
   heartbeatIntervalMs?: number;
   errorQuarantineThreshold?: number;
@@ -38,6 +40,9 @@ export class AgentLifecycle {
     this.config = config;
     this.persona = loadPersona(config.personaPath);
     this.client = new ConvexHttpClient(config.convexUrl);
+    if (config.serviceAuthToken?.trim()) {
+      this.client.setAuth(config.serviceAuthToken.trim());
+    }
   }
   
   /**

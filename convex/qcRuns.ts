@@ -9,6 +9,8 @@ import { mutation, query, action, internalMutation } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 import { appendOpEvent, appendChangeRecord } from "./lib/armAudit";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
+import { authedAction, authedMutation } from "./lib/authedFunctions";
 
 // ============================================================================
 // TYPES
@@ -390,6 +392,8 @@ export const start = mutation({
     )),
   },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("A workspace is required to start a QC run.");
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.IMPROVE);
     if (args.releaseDeploymentId) {
       const deployment = await ctx.db.get(args.releaseDeploymentId);
       if (!deployment) throw new Error("Linked deployment not found");
@@ -507,7 +511,7 @@ export const start = mutation({
 /**
  * Cancel a QC run
  */
-export const cancel = mutation({
+export const cancel = authedMutation({
   args: { id: v.id("qcRuns") },
   handler: async (ctx, args) => {
     const run = await ctx.db.get(args.id);
@@ -594,7 +598,7 @@ export const complete = internalMutation({
 /**
  * Execute QC run (calls AssuranceAgents.AI)
  */
-export const execute = action({
+export const execute = authedAction({
   args: {
     id: v.id("qcRuns"),
   },

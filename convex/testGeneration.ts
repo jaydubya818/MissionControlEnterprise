@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query, action } from "./_generated/server";
 import { api } from "./_generated/api";
+import { authedAction, authedMutation } from "./lib/authedFunctions";
 
 function buildSuiteId(): string {
   return `suite_${Math.random().toString(36).slice(2, 10)}`;
@@ -43,7 +44,7 @@ export const get = query({
   handler: async (ctx, args) => await ctx.db.get(args.id),
 });
 
-export const create = mutation({
+export const create = authedMutation({
   args: {
     projectId: v.optional(v.id("projects")),
     createdBy: v.optional(v.string()),
@@ -90,7 +91,7 @@ export const create = mutation({
   },
 });
 
-export const generate: any = action({
+export const generate: any = authedAction({
   args: {
     projectId: v.optional(v.id("projects")),
     createdBy: v.optional(v.string()),
@@ -162,7 +163,7 @@ export const generate: any = action({
   },
 });
 
-export const execute = action({
+export const execute = authedAction({
   args: {
     id: v.id("testSuites"),
     executedBy: v.optional(v.string()),

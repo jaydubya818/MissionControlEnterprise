@@ -4,8 +4,9 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { authedMutation } from "./lib/authedFunctions";
 
-export const subscribe = mutation({
+export const subscribe = authedMutation({
   args: {
     agentId: v.id("agents"),
     taskId: v.id("tasks"),
@@ -30,7 +31,7 @@ export const subscribe = mutation({
   },
 });
 
-export const unsubscribe = mutation({
+export const unsubscribe = authedMutation({
   args: {
     agentId: v.id("agents"),
     taskId: v.id("tasks"),

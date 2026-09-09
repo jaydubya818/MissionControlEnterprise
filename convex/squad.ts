@@ -4,6 +4,7 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { authedMutation } from "./lib/authedFunctions";
 
 interface PersonaDef {
   name: string;
@@ -37,7 +38,7 @@ export const getPersonas = query({
   },
 });
 
-export const deploySquad = mutation({
+export const deploySquad = authedMutation({
   args: {
     projectId: v.optional(v.id("projects")),
   },

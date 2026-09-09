@@ -4,8 +4,9 @@
  */
 
 import { mutation } from "./_generated/server";
+import { authedMutation } from "./lib/authedFunctions";
 
-export const run = mutation({
+export const run = authedMutation({
   args: {},
   handler: async (ctx) => {
     // 1. Create SellerFi project

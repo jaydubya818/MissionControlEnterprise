@@ -4,6 +4,7 @@
 
 import { v } from "convex/values";
 import { query } from "../_generated/server";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "../lib/companyAccess";
 import {
   computeMaturityStage,
   pct,
@@ -20,6 +21,8 @@ export const getFactoryHealth = query({
     periodDays: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("A workspace is required for factory health.");
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     const periodDays = args.periodDays ?? 7;
     const now = Date.now();
     const currentStart = now - periodDays * DAY_MS;
@@ -208,6 +211,8 @@ export const getAdoptionMetrics = query({
     periodDays: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("A workspace is required for adoption metrics.");
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     const periodDays = args.periodDays ?? 30;
     const now = Date.now();
     const start = now - periodDays * DAY_MS;

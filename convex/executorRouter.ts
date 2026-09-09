@@ -7,6 +7,7 @@
 
 import { v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
+import { authedMutation } from "./lib/authedFunctions";
 
 // ============================================================================
 // ROUTING RULES
@@ -88,7 +89,7 @@ export const autoRoute = internalMutation({
 /**
  * Callback from executor when execution starts.
  */
-export const onExecutionStart = mutation({
+export const onExecutionStart = authedMutation({
   args: {
     requestId: v.id("executionRequests"),
     executorId: v.string(),
@@ -115,7 +116,7 @@ export const onExecutionStart = mutation({
 /**
  * Callback from executor when execution completes.
  */
-export const onExecutionComplete = mutation({
+export const onExecutionComplete = authedMutation({
   args: {
     requestId: v.id("executionRequests"),
     executorId: v.string(),
@@ -207,7 +208,7 @@ export const getQueueForExecutor = query({
 /**
  * Claim an execution request (for executor polling).
  */
-export const claimExecution = mutation({
+export const claimExecution = authedMutation({
   args: {
     requestId: v.id("executionRequests"),
     executorId: v.string(),

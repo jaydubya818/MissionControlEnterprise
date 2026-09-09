@@ -7,12 +7,13 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { authedMutation } from "./lib/authedFunctions";
 
 /**
  * Seed E2E test data
  * Creates agents, tasks, content drops, and budget entries for validation.
  */
-export const seed = mutation({
+export const seed = authedMutation({
   args: {
     runId: v.string(),
   },
@@ -310,7 +311,7 @@ export const seed = mutation({
  * Cleanup E2E test data
  * Deletes or archives all objects with matching runId.
  */
-export const cleanup = mutation({
+export const cleanup = authedMutation({
   args: {
     runId: v.string(),
   },

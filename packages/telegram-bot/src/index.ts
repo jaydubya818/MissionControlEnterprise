@@ -60,6 +60,11 @@ interface BotContext extends Context {
 
 const bot = new Telegraf<BotContext>(BOT_TOKEN);
 const convex = new ConvexHttpClient(CONVEX_URL);
+const convexServiceAuthToken = process.env.CONVEX_SERVICE_AUTH_TOKEN?.trim();
+if (!convexServiceAuthToken) {
+  throw new Error("CONVEX_SERVICE_AUTH_TOKEN is required for Telegram workload operations");
+}
+convex.setAuth(convexServiceAuthToken);
 
 // Attach convex client to context
 bot.use(async (ctx, next) => {

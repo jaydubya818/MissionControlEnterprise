@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { action } from "./_generated/server";
+import { authedAction } from "./lib/authedFunctions";
 
 type EventInput = {
   eventType?: string;
@@ -54,7 +55,7 @@ function toGherkinFromApiSteps(steps: Record<string, unknown>[], name: string): 
   return lines.join("\n");
 }
 
-export const generateFromRecording = action({
+export const generateFromRecording = authedAction({
   args: {
     name: v.string(),
     events: v.array(v.object({ eventType: v.optional(v.string()), data: v.optional(v.any()) })),
@@ -64,7 +65,7 @@ export const generateFromRecording = action({
   },
 });
 
-export const generateFromApiSteps = action({
+export const generateFromApiSteps = authedAction({
   args: {
     name: v.string(),
     steps: v.array(v.any()),
@@ -74,7 +75,7 @@ export const generateFromApiSteps = action({
   },
 });
 
-export const parse = action({
+export const parse = authedAction({
   args: { gherkin: v.string() },
   handler: async (_ctx, args) => {
     const lines = args.gherkin

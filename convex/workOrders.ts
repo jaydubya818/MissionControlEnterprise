@@ -97,7 +97,7 @@ import {
   validateTaskAttemptSelection,
   validateTaskAttemptStart,
 } from "./lib/taskAttemptScheduler";
-import { COMPANY_PERMISSIONS, FACTORY_PERMISSIONS, requireWorkspaceAccess, requireWorkspacePermission } from "./lib/companyAccess";
+import { COMPANY_PERMISSIONS, FACTORY_PERMISSIONS, assertAuthenticated, requireWorkspaceAccess, requireWorkspacePermission } from "./lib/companyAccess";
 import { assertAuthorizedDeliveryRecord, canAccessDeliveryRecord, requireAuthorizedDeliveryScope } from "./lib/deliveryAuthorization";
 import { combineCodeScopePolicies, validateDispatchScope } from "./lib/softwareFactoryControlPlane";
 import {
@@ -4928,6 +4928,10 @@ export const expireGovernanceRecords = mutation({
 export const seedDemo = mutation({
   args: {},
   handler: async (ctx) => {
+    if (process.env.MC_ALLOW_ANONYMOUS_COMPANY_CONTEXT !== "1") {
+      throw new Error("Demo seeding is disabled outside the explicit demo environment.");
+    }
+    await assertAuthenticated(ctx);
     const existing = await ctx.db
       .query("workOrders")
       .order("desc")

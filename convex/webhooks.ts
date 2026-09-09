@@ -7,6 +7,7 @@
 import { v } from "convex/values";
 import { mutation, query, action, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { authedAction, authedMutation } from "./lib/authedFunctions";
 
 /** HMAC-SHA256 hex using Web Crypto (Convex default runtime). */
 async function hmacSha256Hex(secret: string, data: string): Promise<string> {
@@ -74,7 +75,7 @@ export const getDeliveries = query({
 // MUTATIONS
 // ============================================================================
 
-export const create = mutation({
+export const create = authedMutation({
   args: {
     projectId: v.optional(v.id("projects")),
     name: v.string(),
@@ -113,7 +114,7 @@ export const create = mutation({
   },
 });
 
-export const update = mutation({
+export const update = authedMutation({
   args: {
     webhookId: v.id("webhooks"),
     name: v.optional(v.string()),
@@ -145,7 +146,7 @@ export const update = mutation({
   },
 });
 
-export const remove = mutation({
+export const remove = authedMutation({
   args: { webhookId: v.id("webhooks") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.webhookId);
@@ -222,7 +223,7 @@ export const triggerEvent = internalMutation({
 // DELIVERY (Actions) — uses Web Crypto for HMAC (no Node runtime)
 // ============================================================================
 
-export const deliverPending = action({
+export const deliverPending = authedAction({
   args: {},
   handler: async (ctx): Promise<{ delivered: number }> => {
     const deliveries = await ctx.runMutation(internal.webhooks.getPendingDeliveries, {});

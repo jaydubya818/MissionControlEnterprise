@@ -5,6 +5,7 @@ import type { MutationCtx } from "./_generated/server";
 import { AUTOMATION_ACTOR_IDENTITY_SOURCE } from "./lib/automationGovernance";
 import { sha256Hex } from "./lib/harnessPrChecks";
 import { getEffectiveOperatorControl } from "./lib/operatorControls";
+import { authedMutation } from "./lib/authedFunctions";
 import {
   activeReadOnlyExecutionLeaseMatches,
   evaluateReadOnlyExecutionClaim,
@@ -208,7 +209,7 @@ async function quarantine(ctx: MutationCtx, input: {
   });
 }
 
-export const claim = mutation({
+export const claim = authedMutation({
   args: {
     workOrderId: v.id("workOrders"),
     claimId: v.string(),
@@ -349,7 +350,7 @@ export const claim = mutation({
   },
 });
 
-export const renew = mutation({
+export const renew = authedMutation({
   args: {
     workOrderId: v.id("workOrders"),
     claimId: v.string(),
@@ -387,7 +388,7 @@ export const renew = mutation({
   },
 });
 
-export const requestCancellation = mutation({
+export const requestCancellation = authedMutation({
   args: {
     workOrderId: v.id("workOrders"),
     actorId: v.string(),
@@ -469,7 +470,7 @@ export const requestCancellation = mutation({
   },
 });
 
-export const finish = mutation({
+export const finish = authedMutation({
   args: {
     workOrderId: v.id("workOrders"),
     claimId: v.string(),

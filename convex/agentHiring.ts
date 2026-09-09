@@ -7,6 +7,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
+import { authedMutation } from "./lib/authedFunctions";
 
 const scopeValidator = v.object({
   includes: v.array(v.string()),
@@ -168,7 +169,7 @@ export const getDecisionRecord = query({
 // MUTATIONS
 // ============================================================================
 
-export const createRoleSpec = mutation({
+export const createRoleSpec = authedMutation({
   args: {
     projectId: v.id("projects"),
     name: v.string(),
@@ -218,7 +219,7 @@ export const createRoleSpec = mutation({
   },
 });
 
-export const updateRoleSpec = mutation({
+export const updateRoleSpec = authedMutation({
   args: {
     id: v.id("agentRoleSpecs"),
     name: v.optional(v.string()),
@@ -247,7 +248,7 @@ export const updateRoleSpec = mutation({
   },
 });
 
-export const createCandidate = mutation({
+export const createCandidate = authedMutation({
   args: {
     projectId: v.id("projects"),
     roleSpecId: v.id("agentRoleSpecs"),
@@ -268,7 +269,7 @@ export const createCandidate = mutation({
   },
 });
 
-export const updateCandidateStatus = mutation({
+export const updateCandidateStatus = authedMutation({
   args: {
     id: v.id("hiringCandidates"),
     status: candidateStatusValidator,
@@ -281,7 +282,7 @@ export const updateCandidateStatus = mutation({
   },
 });
 
-export const saveScreenReport = mutation({
+export const saveScreenReport = authedMutation({
   args: {
     candidateId: v.id("hiringCandidates"),
     roleSpecId: v.id("agentRoleSpecs"),
@@ -314,7 +315,7 @@ export const saveScreenReport = mutation({
   },
 });
 
-export const saveAssessmentPacket = mutation({
+export const saveAssessmentPacket = authedMutation({
   args: {
     candidateId: v.id("hiringCandidates"),
     roleSpecId: v.id("agentRoleSpecs"),
@@ -343,7 +344,7 @@ export const saveAssessmentPacket = mutation({
   },
 });
 
-export const savePanelPacket = mutation({
+export const savePanelPacket = authedMutation({
   args: {
     candidateId: v.id("hiringCandidates"),
     roleSpecId: v.id("agentRoleSpecs"),
@@ -372,7 +373,7 @@ export const savePanelPacket = mutation({
   },
 });
 
-export const saveDecisionRecord = mutation({
+export const saveDecisionRecord = authedMutation({
   args: {
     candidateId: v.id("hiringCandidates"),
     roleSpecId: v.id("agentRoleSpecs"),

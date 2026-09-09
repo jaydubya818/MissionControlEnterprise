@@ -6,6 +6,17 @@ import { v } from "convex/values";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
+import { FACTORY_PERMISSIONS, assertAuthenticated, requireWorkspacePermission } from "./lib/companyAccess";
+
+async function requireGraphRead(ctx: QueryCtx, projectId?: Id<"projects">) {
+  if (projectId) return await requireWorkspacePermission(ctx, projectId, FACTORY_PERMISSIONS.VIEW);
+  await assertAuthenticated(ctx);
+}
+
+async function requireGraphWrite(ctx: MutationCtx, projectId?: Id<"projects">) {
+  if (projectId) return await requireWorkspacePermission(ctx, projectId, FACTORY_PERMISSIONS.IMPROVE);
+  await assertAuthenticated(ctx);
+}
 import {
   getNeighborhoodForNode,
   normalizeGraphifyPayload,
@@ -263,6 +274,7 @@ export const getSnapshot = query({
     source: v.optional(graphSource),
   },
   handler: async (ctx, args) => {
+    await requireGraphRead(ctx, args.projectId);
     const source: KnowledgeGraphSource = args.source ?? "agentic-kb";
     const snapshot = await loadSnapshotForSource(ctx, source, args.projectId);
     return {
@@ -280,6 +292,7 @@ export const getNeighborhood = query({
     source: v.optional(graphSource),
   },
   handler: async (ctx, args) => {
+    await requireGraphRead(ctx, args.projectId);
     const source: KnowledgeGraphSource = args.source ?? "agentic-kb";
     const snapshot = await loadSnapshotForSource(ctx, source, args.projectId);
     return getNeighborhoodForNode(args.externalId, snapshot);
@@ -296,6 +309,7 @@ export const importSnapshot = mutation({
     idempotencyKey: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireGraphWrite(ctx, args.projectId);
     return applySnapshotImport(ctx, args);
   },
 });
@@ -309,6 +323,7 @@ export const importGraphifyJson = mutation({
     idempotencyKey: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireGraphWrite(ctx, args.projectId);
     const normalized = normalizeGraphifyPayload(args.payload ?? {});
     const source: KnowledgeGraphSource = args.source ?? "agentic-kb";
 

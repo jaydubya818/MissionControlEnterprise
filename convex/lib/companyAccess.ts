@@ -2,6 +2,7 @@ import type { MutationCtx, QueryCtx } from "../_generated/server";
 import type { Doc, Id } from "../_generated/dataModel";
 
 type CompanyCtx = QueryCtx | MutationCtx;
+type AuthenticatedCtx = Pick<QueryCtx, "auth">;
 
 export type CompanyAccessMode = "AUTHENTICATED" | "DEMO";
 
@@ -43,6 +44,19 @@ export interface CompanyMembership {
 
 function anonymousDemoEnabled(): boolean {
   return process.env.MC_ALLOW_ANONYMOUS_COMPANY_CONTEXT === "1";
+}
+
+/**
+ * Require a validated human identity for public operations that are
+ * intentionally global and therefore have no workspace object to authorize.
+ * The explicit local demo override remains available for deterministic demo
+ * deployments; production must leave it unset.
+ */
+export async function assertAuthenticated(ctx: AuthenticatedCtx) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (identity) return identity;
+  if (anonymousDemoEnabled()) return null;
+  throw new Error("Authentication is required.");
 }
 
 export function isCompanyAdminRole(role: Doc<"roles">): boolean {

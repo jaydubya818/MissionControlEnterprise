@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { authedMutation } from "./lib/authedFunctions";
 
 const entityTypeValidator = v.union(
   v.literal("TASK"),
@@ -45,7 +46,7 @@ export const listWatchers = query({
   },
 });
 
-export const toggle = mutation({
+export const toggle = authedMutation({
   args: {
     userId: v.string(),
     projectId: v.optional(v.id("projects")),

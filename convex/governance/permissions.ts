@@ -1,7 +1,8 @@
 import { mutation, query } from "../_generated/server";
 import { v } from "convex/values";
+import { authedMutation } from "../lib/authedFunctions";
 
-export const createPermission = mutation({
+export const createPermission = authedMutation({
   args: {
     resource: v.string(),
     action: v.string(),

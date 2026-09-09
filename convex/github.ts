@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query, action, internalQuery } from "./_generated/server";
 import { api, internal } from "./_generated/api";
+import { authedAction, authedMutation } from "./lib/authedFunctions";
 
 /**
  * GitHub Integration
@@ -86,7 +87,7 @@ export const findTaskByIdempotencyKey = internalQuery({
 // MUTATIONS
 // ============================================================================
 
-export const linkTaskToGitHubIssue = mutation({
+export const linkTaskToGitHubIssue = authedMutation({
   args: {
     taskId: v.id("tasks"),
     issueNumber: v.number(),
@@ -123,7 +124,7 @@ export const linkTaskToGitHubIssue = mutation({
   },
 });
 
-export const linkTaskToGitHubPR = mutation({
+export const linkTaskToGitHubPR = authedMutation({
   args: {
     taskId: v.id("tasks"),
     prNumber: v.number(),
@@ -165,7 +166,7 @@ export const linkTaskToGitHubPR = mutation({
  * - Updates title/description/metadata if existing (does NOT change status).
  * - Tracks GitHub state separately in metadata.githubState.
  */
-export const upsertTaskFromIssue = mutation({
+export const upsertTaskFromIssue = authedMutation({
   args: {
     projectId: v.id("projects"),
     repoOwner: v.string(),
@@ -326,7 +327,7 @@ export const syncGitHubIssues = action({
  * Called by an HTTP endpoint (or Convex httpAction) when GitHub sends a webhook.
  * Supports: opened, edited, closed, reopened, labeled, unlabeled.
  */
-export const handleIssueWebhook = action({
+export const handleIssueWebhook = authedAction({
   args: {
     projectId: v.id("projects"),
     repoOwner: v.string(),

@@ -4,6 +4,7 @@ import { v } from "convex/values";
 import { internalMutation, mutation, query } from "../_generated/server";
 import type { Id } from "../_generated/dataModel";
 import { loadRepetitiveTaskCandidates } from "../lib/repetitiveTaskCandidates";
+import { authedMutation } from "../lib/authedFunctions";
 
 async function createProposals(ctx: { db: any }, projectId?: Id<"projects">) {
   const candidates = await loadRepetitiveTaskCandidates(ctx, projectId);
@@ -57,7 +58,7 @@ export const listCandidates = query({
 });
 
 /** Explicit operator action: collect evidence and create reviewable proposals. */
-export const createProposalsNow = mutation({
+export const createProposalsNow = authedMutation({
   args: { projectId: v.optional(v.id("projects")) },
   handler: async (ctx, args) => createProposals(ctx, args.projectId),
 });

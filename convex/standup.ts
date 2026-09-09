@@ -4,6 +4,8 @@
 
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
+import { authedMutation } from "./lib/authedFunctions";
 
 /** Generate standup report (query — no side effects). */
 export const generate = query({
@@ -12,6 +14,8 @@ export const generate = query({
     at: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("A workspace is required for standup reports.");
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     const now = args.at ?? Date.now();
     
     // Get data scoped by project if provided
@@ -113,7 +117,7 @@ export const generate = query({
 });
 
 /** Store standup report (mutation — for cron to save daily). */
-export const save = mutation({
+export const save = authedMutation({
   args: {
     report: v.any(),
     savedAt: v.number(),
@@ -131,7 +135,7 @@ export const save = mutation({
 });
 
 /** Run daily standup (mutation — for cron). Builds report and saves to activities. */
-export const runDaily = mutation({
+export const runDaily = authedMutation({
   args: {},
   handler: async (ctx) => {
     const now = Date.now();

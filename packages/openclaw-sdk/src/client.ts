@@ -28,6 +28,7 @@ export class MissionControlClient {
   constructor(config: SDKConfig) {
     this.config = {
       heartbeatIntervalMs: 15 * 60 * 1000, // 15 minutes
+      serviceAuthToken: "",
       autoRetry: true,
       maxRetries: 3,
       retryDelayMs: 1000,
@@ -40,6 +41,9 @@ export class MissionControlClient {
     };
 
     this.client = new ConvexHttpClient(this.config.convexUrl);
+    if (this.config.serviceAuthToken.trim()) {
+      this.client.setAuth(this.config.serviceAuthToken.trim());
+    }
   }
 
   /**

@@ -11,6 +11,28 @@ import type { Id } from "./_generated/dataModel";
 import { sanitizeMessageContent } from "./lib/sanitize";
 import { resolveAgentRef } from "./lib/agentResolver";
 import { appendOpEvent } from "./lib/armAudit";
+import { requireAuthorizedDeliveryScope } from "./lib/deliveryAuthorization";
+import { authedMutation } from "./lib/authedFunctions";
+
+async function requireMessageTaskScope(
+  ctx: Parameters<typeof requireAuthorizedDeliveryScope>[0],
+  taskId: Id<"tasks">,
+) {
+  const task = await ctx.db.get(taskId);
+  if (!task?.projectId) throw new Error("Task is unavailable or unauthorized.");
+  await requireAuthorizedDeliveryScope(ctx, task.projectId);
+  return task;
+}
+
+async function requireMessageScope(
+  ctx: Parameters<typeof requireAuthorizedDeliveryScope>[0],
+  messageId: Id<"messages">,
+) {
+  const message = await ctx.db.get(messageId);
+  if (!message?.projectId) throw new Error("Message is unavailable or unauthorized.");
+  await requireAuthorizedDeliveryScope(ctx, message.projectId);
+  return message;
+}
 
 // ============================================================================
 // QUERIES
@@ -22,6 +44,7 @@ export const listByTask = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireMessageTaskScope(ctx, args.taskId);
     return await ctx.db
       .query("messages")
       .withIndex("by_task", (q) => q.eq("taskId", args.taskId))
@@ -33,7 +56,7 @@ export const listByTask = query({
 export const get = query({
   args: { messageId: v.id("messages") },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.messageId);
+    return await requireMessageScope(ctx, args.messageId);
   },
 });
 
@@ -44,6 +67,8 @@ export const listRecent = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("An authorized workspace is required.");
+    await requireAuthorizedDeliveryScope(ctx, args.projectId);
     if (args.projectId) {
       return await ctx.db
         .query("messages")
@@ -184,7 +209,7 @@ async function postMessageInternal(
   return { message, created: true };
 }
 
-export const post = mutation({
+export const post = authedMutation({
   args: {
     taskId: v.id("tasks"),
     authorType: v.string(),
@@ -209,7 +234,7 @@ export const post = mutation({
   },
 });
 
-export const postWorkPlan = mutation({
+export const postWorkPlan = authedMutation({
   args: {
     taskId: v.id("tasks"),
     agentId: v.id("agents"),
@@ -243,7 +268,7 @@ export const postWorkPlan = mutation({
   },
 });
 
-export const postProgress = mutation({
+export const postProgress = authedMutation({
   args: {
     taskId: v.id("tasks"),
     agentId: v.id("agents"),
@@ -275,7 +300,7 @@ export const postProgress = mutation({
   },
 });
 
-export const postReview = mutation({
+export const postReview = authedMutation({
   args: {
     taskId: v.id("tasks"),
     authorType: v.string(),

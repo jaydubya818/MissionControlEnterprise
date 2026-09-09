@@ -7,6 +7,8 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
+import { authedMutation } from "./lib/authedFunctions";
 
 // ============================================================================
 // QUERIES
@@ -21,6 +23,8 @@ export const list = query({
     active: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("A workspace is required to list QC rulesets.");
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     if (args.projectId && args.active !== undefined) {
       return await ctx.db
         .query("qcRulesets")
@@ -64,7 +68,7 @@ export const get = query({
 /**
  * Create a ruleset
  */
-export const create = mutation({
+export const create = authedMutation({
   args: {
     projectId: v.optional(v.id("projects")),
     name: v.string(),
@@ -114,7 +118,7 @@ export const create = mutation({
 /**
  * Update a ruleset
  */
-export const update = mutation({
+export const update = authedMutation({
   args: {
     id: v.id("qcRulesets"),
     name: v.optional(v.string()),
@@ -163,7 +167,7 @@ export const update = mutation({
 /**
  * Delete a ruleset
  */
-export const remove = mutation({
+export const remove = authedMutation({
   args: { id: v.id("qcRulesets") },
   handler: async (ctx, args) => {
     const ruleset = await ctx.db.get(args.id);
@@ -184,7 +188,7 @@ export const remove = mutation({
 /**
  * Seed default rulesets
  */
-export const seedDefaults = mutation({
+export const seedDefaults = authedMutation({
   args: {},
   handler: async (ctx, args) => {
     const presets = [

@@ -9,6 +9,7 @@
 
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { authedMutation } from "./lib/authedFunctions";
 
 const orgPositionValidator = v.union(
   v.literal("CEO"),
@@ -142,7 +143,7 @@ export const getLeads = query({
  * Assign an agent to a project with an org position.
  * Enforces: only one CEO per project.
  */
-export const assign = mutation({
+export const assign = authedMutation({
   args: {
     agentId: v.id("agents"),
     projectId: v.id("projects"),
@@ -226,7 +227,7 @@ export const assign = mutation({
 /**
  * Remove an org assignment.
  */
-export const unassign = mutation({
+export const unassign = authedMutation({
   args: {
     assignmentId: v.id("orgAssignments"),
   },

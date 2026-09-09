@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
+import { authedMutation } from "./lib/authedFunctions";
 
 const CANARY_CONFIRMATION = "research-lab-workflow-recovery-v1";
 const FIXTURE_KEYS = ["lifecycle", "concurrency", "budget", "quarantine"] as const;
@@ -129,7 +130,7 @@ async function seedFixture(ctx: MutationCtx, input: {
   return { key: input.key, created: true, runId, workflowRunId, workOrderId };
 }
 
-export const seed = mutation({
+export const seed = authedMutation({
   args: {
     projectId: v.id("projects"),
     confirmation: v.literal(CANARY_CONFIRMATION),
@@ -198,7 +199,7 @@ export const status = query({
   },
 });
 
-export const verify = mutation({
+export const verify = authedMutation({
   args: {
     projectId: v.id("projects"),
     confirmation: v.literal(CANARY_CONFIRMATION),

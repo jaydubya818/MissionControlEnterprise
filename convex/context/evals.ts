@@ -7,7 +7,7 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "../_generated/server";
+import { authedMutation, authedQuery } from "../lib/authedFunctions";
 import { internal } from "../_generated/api";
 import {
   aggregateEvalRun,
@@ -79,7 +79,7 @@ async function insertAudit(
 // Queries
 // ---------------------------------------------------------------------------
 
-export const listScenarios = query({
+export const listScenarios = authedQuery({
   args: {
     packageId: v.id("contextPackages"),
     activeOnly: v.optional(v.boolean()),
@@ -96,7 +96,7 @@ export const listScenarios = query({
   },
 });
 
-export const listRuns = query({
+export const listRuns = authedQuery({
   args: {
     packageId: v.optional(v.id("contextPackages")),
     versionId: v.optional(v.id("contextPackageVersions")),
@@ -129,7 +129,7 @@ export const listRuns = query({
   },
 });
 
-export const getRun = query({
+export const getRun = authedQuery({
   args: { runId: v.id("contextEvalRuns") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.runId);
@@ -137,7 +137,7 @@ export const getRun = query({
 });
 
 /** Full eval profile for a package — scenarios + enriched latest run. */
-export const getEvalProfile = query({
+export const getEvalProfile = authedQuery({
   args: { packageId: v.id("contextPackages") },
   handler: async (ctx, args) => {
     const pkg = await ctx.db.get(args.packageId);
@@ -199,7 +199,7 @@ export const getEvalProfile = query({
 });
 
 /** Recent eval activity across all packages — powers the Registry Evals tab. */
-export const listRecentRuns = query({
+export const listRecentRuns = authedQuery({
   args: {
     limit: v.optional(v.number()),
     projectId: v.optional(v.id("projects")),
@@ -231,7 +231,7 @@ export const listRecentRuns = query({
 // Mutations
 // ---------------------------------------------------------------------------
 
-export const createScenario = mutation({
+export const createScenario = authedMutation({
   args: {
     packageId: v.id("contextPackages"),
     name: v.string(),
@@ -274,7 +274,7 @@ export const createScenario = mutation({
 });
 
 /** Seed the three default SKILL scenarios when a package has none. */
-export const seedDefaultScenarios = mutation({
+export const seedDefaultScenarios = authedMutation({
   args: {
     packageId: v.id("contextPackages"),
     actorId: v.optional(v.string()),
@@ -403,7 +403,7 @@ function buildProxyResults(
  * qualityScore as candidate proxy, completes the run, and writes impactScore.
  * Used by the Registry UI and CLI until an external agent runner is wired.
  */
-export const runProxyEval = mutation({
+export const runProxyEval = authedMutation({
   args: {
     packageId: v.id("contextPackages"),
     versionId: v.optional(v.id("contextPackageVersions")),
@@ -515,7 +515,7 @@ export const runProxyEval = mutation({
   },
 });
 
-export const createRun = mutation({
+export const createRun = authedMutation({
   args: {
     packageId: v.id("contextPackages"),
     versionId: v.id("contextPackageVersions"),
@@ -608,7 +608,7 @@ export const createRun = mutation({
   },
 });
 
-export const submitRunResults = mutation({
+export const submitRunResults = authedMutation({
   args: {
     runId: v.id("contextEvalRuns"),
     results: v.array(scenarioResultArg),
@@ -707,7 +707,7 @@ export const submitRunResults = mutation({
 });
 
 /** Seed scenarios (if needed) and run proxy eval when a package has no completed run. */
-export const ensurePackageEval = mutation({
+export const ensurePackageEval = authedMutation({
   args: {
     packageId: v.id("contextPackages"),
     actorId: v.optional(v.string()),
@@ -784,7 +784,7 @@ export const ensurePackageEval = mutation({
   },
 });
 
-export const failRun = mutation({
+export const failRun = authedMutation({
   args: {
     runId: v.id("contextEvalRuns"),
     errorMessage: v.string(),

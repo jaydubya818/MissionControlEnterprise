@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { AUTOMATION_ACTOR_IDENTITY_SOURCE } from "./lib/automationGovernance";
-import { COMPANY_PERMISSIONS } from "./lib/companyAccess";
+import { COMPANY_PERMISSIONS, FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
 import { requireAuthorizedDeliveryScope } from "./lib/deliveryAuthorization";
 import { sha256Hex } from "./lib/harnessPrChecks";
 import {
@@ -20,7 +20,13 @@ const candidateId = (projectId: string, packageId: string, versionId: string) =>
   `skill:${projectId}:${packageId}:${versionId}`;
 const sourceRef = (id: string) => `skill-automation:${id}`;
 
-async function skillContext(ctx: any, projectId: any, packageId: any) {
+async function skillContext(
+  ctx: any,
+  projectId: any,
+  packageId: any,
+  permission: typeof FACTORY_PERMISSIONS.VIEW | typeof FACTORY_PERMISSIONS.MANAGE_AUTOMATION = FACTORY_PERMISSIONS.VIEW,
+) {
+  await requireWorkspacePermission(ctx, projectId, permission);
   const [project, skill] = await Promise.all([ctx.db.get(projectId), ctx.db.get(packageId)]);
   if (!project) throw new Error("Workspace not found or access is unavailable");
   if (!skill || skill.projectId !== projectId || skill.type !== "SKILL") {
@@ -66,6 +72,7 @@ async function recordDecision(ctx: any, input: {
 export const listCandidates = query({
   args: { projectId: v.id("projects") },
   handler: async (ctx, args) => {
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     const packages = await ctx.db.query("contextPackages").withIndex("by_type", q => q.eq("type", "SKILL")).collect();
     const scoped = packages.filter(item => item.projectId === args.projectId && item.currentVersionId);
     const [suggestions, definitions, drafts] = await Promise.all([
@@ -105,7 +112,7 @@ export const decideCandidate = mutation({
   },
   handler: async (ctx, args) => {
     if (!args.reason.trim()) throw new Error("A reason is required");
-    const data = await skillContext(ctx, args.projectId, args.packageId);
+    const data = await skillContext(ctx, args.projectId, args.packageId, FACTORY_PERMISSIONS.MANAGE_AUTOMATION);
     const existing = (await ctx.db.query("metaLoopSuggestions").withIndex("by_project", q => q.eq("projectId", args.projectId)).collect())
       .find(item => item.sourceRef === sourceRef(data.id));
     const status = args.decision === "RESTORE" ? "OPEN" : args.decision === "DEFER" ? "ACCEPTED" : "DISMISSED";
@@ -128,7 +135,7 @@ export const decideCandidate = mutation({
 export const startDraft = mutation({
   args: { projectId: v.id("projects"), packageId: v.id("contextPackages"), actorId: v.string() },
   handler: async (ctx, args) => {
-    const data = await skillContext(ctx, args.projectId, args.packageId);
+    const data = await skillContext(ctx, args.projectId, args.packageId, FACTORY_PERMISSIONS.MANAGE_AUTOMATION);
     if (data.eligibility.status !== "ELIGIBLE") throw new Error("Only eligible deterministic skills can be converted");
     const existing = (await ctx.db.query("automationConversionDrafts").withIndex("by_project_skill", q =>
       q.eq("projectId", args.projectId).eq("sourceSkillId", args.packageId)).collect())
@@ -164,6 +171,7 @@ export const updateDraft = mutation({
   handler: async (ctx, args) => {
     const draft = await ctx.db.get(args.draftId);
     if (!draft || draft.status !== "IN_PROGRESS") throw new Error("Conversion draft is not editable");
+    await requireWorkspacePermission(ctx, draft.projectId, FACTORY_PERMISSIONS.MANAGE_AUTOMATION);
     await ctx.db.patch(draft._id, { currentStep: Math.max(1, Math.min(7, args.currentStep)), adapterType: args.adapterType, configuration: args.configuration, updatedAt: Date.now() });
     return await ctx.db.get(draft._id);
   },
@@ -174,6 +182,7 @@ export const previewArtifact = mutation({
   handler: async (ctx, args) => {
     const draft = await ctx.db.get(args.draftId);
     if (!draft?.adapterType) throw new Error("Select an adapter before generating an artifact");
+    await requireWorkspacePermission(ctx, draft.projectId, FACTORY_PERMISSIONS.MANAGE_AUTOMATION);
     const skill = await ctx.db.get(draft.sourceSkillId);
     const config = draft.configuration ?? {};
     const content = config.artifactContent ?? generateArtifact({
@@ -202,6 +211,7 @@ export const validateDraft = mutation({
   handler: async (ctx, args) => {
     const draft = await ctx.db.get(args.draftId);
     if (!draft?.adapterType) throw new Error("Adapter is required");
+    await requireWorkspacePermission(ctx, draft.projectId, FACTORY_PERMISSIONS.MANAGE_AUTOMATION);
     const config = draft.configuration ?? {};
     const skill = await ctx.db.get(draft.sourceSkillId);
     const project = await ctx.db.get(draft.projectId);
@@ -233,6 +243,7 @@ export const createDefinition = mutation({
     if (!args.reason.trim()) throw new Error("A reason is required");
     const draft = await ctx.db.get(args.draftId);
     if (!draft || draft.validationResult?.status !== "PASSED" || !draft.adapterType) throw new Error("Draft must pass validation");
+    await requireWorkspacePermission(ctx, draft.projectId, FACTORY_PERMISSIONS.MANAGE_AUTOMATION);
     const [skill, version, project] = await Promise.all([ctx.db.get(draft.sourceSkillId), ctx.db.get(draft.sourceSkillVersionId), ctx.db.get(draft.projectId)]);
     if (!skill || !version || !project) throw new Error("Conversion source is unavailable");
     const config = draft.configuration;
@@ -303,6 +314,7 @@ export const submitForReview = mutation({
     if (!args.reason.trim()) throw new Error("A reason is required");
     const definition = await ctx.db.get(args.definitionId);
     if (!definition || definition.validationStatus !== "PASSED") throw new Error("Definition is not reviewable");
+    await requireWorkspacePermission(ctx, definition.projectId, FACTORY_PERMISSIONS.MANAGE_AUTOMATION);
     await ctx.db.patch(definition._id, { reviewStatus: "READY_FOR_REVIEW", updatedAt: Date.now() });
     await recordDecision(ctx, { projectId: definition.projectId, definitionId: definition._id, type: "REVIEW_REQUESTED", actorId: args.actorId, reason: args.reason, version: definition.definitionVersion, previousState: definition.reviewStatus, newState: "READY_FOR_REVIEW", correlationId: definition.correlationId });
   },
@@ -314,6 +326,7 @@ export const approve = mutation({
     if (!args.reason.trim()) throw new Error("A reason is required");
     const definition = await ctx.db.get(args.definitionId);
     if (!definition || definition.reviewStatus !== "READY_FOR_REVIEW") throw new Error("Definition must be ready for review");
+    await requireWorkspacePermission(ctx, definition.projectId, FACTORY_PERMISSIONS.APPROVE);
     const now = Date.now();
     await ctx.db.patch(definition._id, { reviewStatus: "APPROVED", approvedBy: args.actorId, approvedAt: now, updatedAt: now });
     await recordDecision(ctx, { projectId: definition.projectId, definitionId: definition._id, type: "APPROVED", actorId: args.actorId, reason: args.reason, version: definition.definitionVersion, previousState: definition.reviewStatus, newState: "APPROVED", correlationId: definition.correlationId });
@@ -326,6 +339,7 @@ export const validateDefinition = mutation({
     if (args.reason.trim().length < 5) throw new Error("A reason of at least five characters is required");
     const definition = await ctx.db.get(args.definitionId);
     if (!definition) throw new Error("Automation Definition not found");
+    await requireWorkspacePermission(ctx, definition.projectId, FACTORY_PERMISSIONS.MANAGE_AUTOMATION);
     const artifact = definition.artifactId
       ? await ctx.db.get(definition.artifactId as Id<"automationArtifacts">)
       : null;
@@ -367,6 +381,7 @@ export const updateDefinition = mutation({
     if (args.maxCostUsd < 0 || args.maxCostUsd > 100) throw new Error("Cost limit must be between $0 and $100");
     const definition = await ctx.db.get(args.definitionId);
     if (!definition) throw new Error("Automation Definition not found");
+    await requireWorkspacePermission(ctx, definition.projectId, FACTORY_PERMISSIONS.MANAGE_AUTOMATION);
     if (!["DISABLED", "DRAFT"].includes(definition.status) || !["DRAFT", "REJECTED"].includes(definition.reviewStatus ?? "DRAFT")) {
       throw new Error("Only a non-approved draft Definition can be edited; create a new version for approved Definitions");
     }
@@ -397,6 +412,7 @@ export const transitionDefinition = mutation({
     if (args.reason.trim().length < 5) throw new Error("A reason of at least five characters is required");
     const definition = await ctx.db.get(args.definitionId);
     if (!definition) throw new Error("Automation Definition not found");
+    await requireWorkspacePermission(ctx, definition.projectId, FACTORY_PERMISSIONS.MANAGE_AUTOMATION);
     const allowed: Record<string, string[]> = {
       PAUSE: ["ACTIVE"], RESUME: ["PAUSED"], SUSPEND: ["ACTIVE", "PAUSED"],
       DISABLE: ["ACTIVE", "PAUSED", "SUSPENDED"], ARCHIVE: ["DISABLED", "RETIRED"],
@@ -441,6 +457,7 @@ export const cloneDefinition = mutation({
     if (args.reason.trim().length < 5) throw new Error("A reason is required");
     const source = await ctx.db.get(args.definitionId);
     if (!source) throw new Error("Automation Definition not found");
+    await requireWorkspacePermission(ctx, source.projectId, FACTORY_PERMISSIONS.MANAGE_AUTOMATION);
     const now = Date.now();
     const { _id, _creationTime, ...copy } = source;
     const definitionVersion = args.mode === "NEW_VERSION" ? source.definitionVersion + 1 : 1;

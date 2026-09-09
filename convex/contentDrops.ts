@@ -4,6 +4,7 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { authedMutation } from "./lib/authedFunctions";
 
 const contentTypeValidator = v.union(
   v.literal("BLOG_POST"),
@@ -87,7 +88,7 @@ export const listByAgent = query({
 // MUTATIONS
 // ============================================================================
 
-export const submit = mutation({
+export const submit = authedMutation({
   args: {
     projectId: v.optional(v.id("projects")),
     agentId: v.optional(v.id("agents")),
@@ -150,7 +151,7 @@ export const getStats = query({
   },
 });
 
-export const seedContentDrops = mutation({
+export const seedContentDrops = authedMutation({
   args: { projectId: v.optional(v.id("projects")) },
   handler: async (ctx, args) => {
     const existing = args.projectId
@@ -261,7 +262,7 @@ export const seedContentDrops = mutation({
   },
 });
 
-export const updateStatus = mutation({
+export const updateStatus = authedMutation({
   args: {
     id: v.id("contentDrops"),
     status: statusValidator,

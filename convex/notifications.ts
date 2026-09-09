@@ -5,8 +5,10 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { assertAuthenticated } from "./lib/companyAccess";
+import { authedMutation } from "./lib/authedFunctions";
 
-export const create = mutation({
+export const create = authedMutation({
   args: {
     agentId: v.id("agents"),
     type: v.union(
@@ -44,7 +46,7 @@ export const create = mutation({
 });
 
 /** Create notifications for multiple agents (e.g. assignees or @mentions). */
-export const createForAgents = mutation({
+export const createForAgents = authedMutation({
   args: {
     agentIds: v.array(v.id("agents")),
     type: v.union(
@@ -103,7 +105,7 @@ export const listByAgent = query({
   },
 });
 
-export const markRead = mutation({
+export const markRead = authedMutation({
   args: {
     notificationId: v.id("notifications"),
     agentId: v.id("agents"),
@@ -116,7 +118,7 @@ export const markRead = mutation({
   },
 });
 
-export const markAllReadForAgent = mutation({
+export const markAllReadForAgent = authedMutation({
   args: { agentId: v.id("agents") },
   handler: async (ctx, args) => {
     const list = await ctx.db
@@ -150,6 +152,7 @@ export const listPendingForAgent = query({
 export const listRecent = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
+    await assertAuthenticated(ctx);
     const limit = args.limit ?? 50;
     return await ctx.db.query("notifications").order("desc").take(limit);
   },

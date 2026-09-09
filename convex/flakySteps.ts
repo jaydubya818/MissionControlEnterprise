@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { authedMutation } from "./lib/authedFunctions";
 
 export const list = query({
   args: {
@@ -20,7 +21,7 @@ export const get = query({
   handler: async (ctx, args) => await ctx.db.get(args.id),
 });
 
-export const recordRun = mutation({
+export const recordRun = authedMutation({
   args: {
     projectId: v.optional(v.id("projects")),
     stepName: v.string(),
@@ -70,7 +71,7 @@ export const recordRun = mutation({
   },
 });
 
-export const markResolved = mutation({
+export const markResolved = authedMutation({
   args: { id: v.id("flakySteps") },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.id, { isActive: false });
