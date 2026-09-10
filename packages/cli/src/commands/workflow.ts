@@ -16,13 +16,19 @@ import Table from "cli-table3";
 import { anyApi as api } from "convex/server";
 
 const CONVEX_URL = process.env.CONVEX_URL || process.env.VITE_CONVEX_URL;
+const CONVEX_SERVICE_AUTH_TOKEN = process.env.CONVEX_SERVICE_AUTH_TOKEN?.trim();
 
 if (!CONVEX_URL) {
   console.error(chalk.red("Error: CONVEX_URL environment variable not set"));
   process.exit(1);
 }
+if (!CONVEX_SERVICE_AUTH_TOKEN) {
+  console.error(chalk.red("Error: CONVEX_SERVICE_AUTH_TOKEN environment variable not set"));
+  process.exit(1);
+}
 
 const client = new ConvexHttpClient(CONVEX_URL);
+client.setAuth(CONVEX_SERVICE_AUTH_TOKEN);
 
 export const workflowCommand = new Command("workflow")
   .description("Manage multi-agent workflows")
@@ -140,25 +146,12 @@ function runCommand() {
 function statusCommand() {
   return new Command("status")
     .description("Check workflow run status")
-    .argument("<run-id>", "Run ID or search query")
+    .argument("<run-id>", "Exact workflow run ID")
     .action(async (runId) => {
       const spinner = ora("Loading workflow run...").start();
       
       try {
-        // Try exact match first
-        let run = await client.query(api.workflowRuns.get, { runId });
-        
-        // If not found, try search
-        if (!run) {
-          const results = await client.query(api.workflowRuns.search, {
-            query: runId,
-            limit: 1,
-          });
-          
-          if (results.length > 0) {
-            run = results[0];
-          }
-        }
+        const run = await client.query(api.workflowRuns.get, { runId });
         
         if (!run) {
           spinner.fail(`Workflow run not found: ${runId}`);

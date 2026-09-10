@@ -6,7 +6,7 @@ the result before anything reaches a pull request.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Status: active V1](https://img.shields.io/badge/status-active%20V1-orange.svg)](#project-status)
-[![Runtime contract](https://img.shields.io/badge/runtime%20contract-v35-informational.svg)](docs/OVERVIEW.md)
+[![Runtime contract](https://img.shields.io/badge/runtime%20contract-v36-informational.svg)](docs/OVERVIEW.md)
 [![Built with TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
 ![Mission Control Command Center showing portfolio metrics and ranked exceptions](docs/software-factory/screenshots/readme/mission-control-command-center.png)
@@ -91,7 +91,7 @@ That is implementation proof. It is **not** a claim of fleet-scale production
 operation or general Remote Sandbox certification. Remote Sandbox is
 **Production-pilot eligible; Preview** based on the bounded 3/3 live exe.dev cohort;
 this is not general production certification. The current public
-client/backend runtime contract is **v35**.
+client/backend runtime contract is **v36**.
 
 Per-capability status, evidence, and promotion gates live in the
 [Capability Maturity Ledger](docs/product/software-factory-capability-maturity.md).

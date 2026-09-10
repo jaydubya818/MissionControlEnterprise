@@ -1,8 +1,8 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { authedMutation } from "./lib/authedFunctions";
 
-export const list = query({
+export const list = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     activeOnly: v.optional(v.boolean()),
@@ -16,7 +16,7 @@ export const list = query({
   },
 });
 
-export const get = query({
+export const get = internalQuery({
   args: { id: v.id("flakySteps") },
   handler: async (ctx, args) => await ctx.db.get(args.id),
 });

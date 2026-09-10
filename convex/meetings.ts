@@ -6,7 +6,7 @@
  */
 
 import { v } from "convex/values";
-import { query, mutation, action } from "./_generated/server";
+import { query, mutation, action, internalQuery } from "./_generated/server";
 import { authedMutation } from "./lib/authedFunctions";
 
 const meetingStatusValidator = v.union(
@@ -42,7 +42,7 @@ const actionItemValidator = v.object({
 /**
  * List meetings for a project.
  */
-export const list = query({
+export const list = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     status: v.optional(meetingStatusValidator),
@@ -76,7 +76,7 @@ export const list = query({
 /**
  * Get a single meeting with full details.
  */
-export const get = query({
+export const get = internalQuery({
   args: {
     meetingId: v.id("meetings"),
   },
@@ -88,7 +88,7 @@ export const get = query({
 /**
  * Get upcoming meetings (scheduled, not yet completed/cancelled).
  */
-export const getUpcoming = query({
+export const getUpcoming = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     limit: v.optional(v.number()),

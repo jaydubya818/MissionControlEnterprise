@@ -15,7 +15,7 @@ import { Id } from "./_generated/dataModel";
 /**
  * List artifacts for a QC run
  */
-export const listByRun = query({
+export const listByRun = internalQuery({
   args: { qcRunId: v.id("qcRuns") },
   handler: async (ctx, args) => {
     return await ctx.db

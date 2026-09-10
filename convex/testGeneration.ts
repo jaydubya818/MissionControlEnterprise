@@ -1,6 +1,6 @@
 import { v } from "convex/values";
-import { mutation, query, action } from "./_generated/server";
-import { api } from "./_generated/api";
+import { mutation, query, action, internalQuery } from "./_generated/server";
+import { api, internal } from "./_generated/api";
 import { authedAction, authedMutation } from "./lib/authedFunctions";
 
 function buildSuiteId(): string {
@@ -25,7 +25,7 @@ function generateUiSteps(sourceData: SourcePayload): string[] {
   return interactions.map((entry) => `await page.${String((entry as { action?: string }).action ?? "waitForTimeout")}(100);`);
 }
 
-export const list = query({
+export const list = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     testType: v.optional(v.string()),
@@ -39,7 +39,7 @@ export const list = query({
   },
 });
 
-export const get = query({
+export const get = internalQuery({
   args: { id: v.id("testSuites") },
   handler: async (ctx, args) => await ctx.db.get(args.id),
 });
@@ -169,7 +169,7 @@ export const execute = authedAction({
     executedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const suite = await ctx.runQuery(api.testGeneration.get, { id: args.id });
+    const suite = await ctx.runQuery(internal.testGeneration.get, { id: args.id });
     if (!suite) throw new Error("Test suite not found");
 
     let executionResult: Record<string, unknown>;

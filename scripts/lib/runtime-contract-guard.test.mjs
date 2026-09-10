@@ -48,6 +48,20 @@ describe("runtime contract extraction", () => {
     expect(contracts.get("alerts:list")).toMatchObject({ kind: "query", returns: null });
   });
 
+  it("normalizes authorized and declared-public wrappers to their Convex kinds", () => {
+    const contracts = extractPublicConvexContracts(`
+      export const one = authedQuery({ args: {}, handler: async () => null });
+      export const two = workspaceMutation({ args: {}, handler: async () => null });
+      export const three = publicQuery({ args: {}, reason: "A bounded health response.", handler: async () => null });
+    `, "convex/wrapped.ts");
+
+    expect([...contracts.entries()]).toEqual([
+      ["wrapped:one", expect.objectContaining({ kind: "query" })],
+      ["wrapped:two", expect.objectContaining({ kind: "mutation" })],
+      ["wrapped:three", expect.objectContaining({ kind: "query" })],
+    ]);
+  });
+
   it("normalizes formatting while retaining validator structure", () => {
     const compact = extractPublicConvexContracts(
       publicQuery({ args: "v.object({limit:v.number()})" }),

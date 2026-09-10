@@ -26,9 +26,9 @@ available in the repository.
 | Authentication — two-company browser isolation | Server-side two-company denial passes; real two-session browser proof absent | Cross-company data exposure through browser/session integration | Yes | Yes | User A/Company A and User B/Company B direct URL, query, mutation, zero-write proof | Enterprise operator / Clerk | BLOCKED — EXTERNAL |
 | Authorization — admitted Live surfaces | Existing Live closure is authorized; writes/actions have zero unauthenticated findings | Regression could expose an admitted surface | Yes | Yes | Authorization ratchet, route closure gate, object and cross-company negative tests | Application security | PASS |
 | Authorization — admitted Preview surfaces | All 14 Preview closures now reach only authorized Convex functions | Preview promotion could outpace object-scope proof | Yes for admitted Preview | Yes | `security:enterprise-routes`; focused unauthenticated, invalid-object, contradictory-scope, and cross-company tests | Application security | PASS |
-| Authorization — remaining public reads | 78 inherited unauthenticated reads remain after 79 safe internalizations; all 157 original decisions remain in the checked ledger | All remaining reads are directly network-reachable through the public Convex API even without a product route | Yes; all must be remediated or explicitly declared safe | Yes | Machine-checked active/resolved ledger plus authorize, internalize, explicitly declare minimal public, or remove | Application security / product | OPEN |
-| Dependencies — production advisories | 0 critical, 0 high, 2 accepted moderate | Accepted advisory behavior may become exploitable after dependency use changes | Yes | Yes | Frozen `pnpm audit` gate with advisory IDs and dependency paths | Platform engineering / package maintainers | CONTROLLED |
-| Dependencies — development/transitive advisories | 0 critical, 0 high, 7 accepted moderate, 2 low across all dependencies | Tooling exposure or future production promotion | No, if development-only remains proven | Yes | Full dependency audit and direct/transitive classification | Platform engineering | CONTROLLED |
+| Authorization — inherited public reads | All 157 inherited unauthenticated reads are resolved: 149 internalized, 6 workspace-authorized, 2 bounded declared-public health probes | Regression could re-expose an internal capability or weaken object scope | Yes | Yes | Machine-checked zero baseline, active/resolved ledger, route closure, and focused anonymous/cross-company tests | Application security / product | PASS |
+| Dependencies — production advisories | Current frozen audit reports 0 critical/high, 2 moderate findings covered by time-bounded reviewed acceptances, and 0 low | Accepted React Router risks must be upgraded or re-reviewed before expiry | Yes | Yes | Frozen `pnpm audit` gate with advisory IDs, versions, controls, and expiry | Platform engineering / package maintainers | PASS — ACCEPTED RISK |
+| Dependencies — development/transitive advisories | Current all-dependency audit reports 0 critical/high, 7 moderate and 2 low path findings covered by reviewed acceptances | Tooling exposure and acceptance expiry can change the release decision | No | Yes | Full dependency audit and direct/transitive classification | Platform engineering | PASS — ACCEPTED RISK |
 | Test infrastructure — root integration runner | Workspace-aware runner implemented; configuration regression passes | Root execution could bypass jsdom, aliases, or Node package roots | Yes | Yes | `pnpm run test:integration` plus architecture regression | Developer productivity | PASS |
 | Test infrastructure — live governed-context bridge | Explicit environment-backed command exists; not executed in this environment | Deployed Convex/bridge drift can remain undetected | No if capability stays outside pilot; otherwise yes | Yes | `test:integration:governed-context-live` against isolated seeded deployment | Platform engineering / Convex | BLOCKED — EXTERNAL |
 | Reliability — restart recovery | Deterministic lease/recovery contracts pass; deployed process/database restart proof not current | In-flight work may stall or duplicate after restart | Yes | Yes | Kill/restart injection across worker and Convex, then verify exact lineage and no duplicate publication | Runtime engineering / Convex | OPEN |
@@ -58,24 +58,22 @@ available in the repository.
 - Live authorization: 17/17 admitted Live closures pass, including the global
   Task drawer used by the Live Tasks surface.
 - Preview authorization: 14/14 admitted Preview closures pass.
-- Convex authorization ratchet: 838 public functions, 760 authorized, 78
-  exhaustively classified unauthenticated read functions, 0 unauthenticated
-  mutations/actions.
+- Convex authorization ratchet: 762 public functions, 760 authorized, 2
+  bounded declared-public health probes, and 0 unauthorized reads, mutations,
+  or actions. All 157 inherited findings remain in resolved history.
 - Repository tests: 2,024 pass, one explicitly external live-deployment scenario
   not admitted as deterministic proof.
 - Root integration runner: 4 architecture regressions plus the canonical
   repository suite pass under workspace-owned configurations.
-- Factory V2 qualification, build, lint, runtime contract v35, secret scan, and
+- Factory V2 qualification, build, lint, runtime contract v36, secret scan, and
   dependency thresholds pass.
 
 ## Immediate release order
 
-1. Remediate all 78 remaining public unauthenticated reads, starting with
-   runtime/service and health contracts.
-2. Execute production Clerk and two-company browser proof when external state is
+1. Execute production Clerk and two-company browser proof when external state is
    available; retain the external blocker until then.
-3. Complete failure injection and deployed restart/recovery proof.
-4. Establish a measured pilot capacity envelope and internal service objectives.
-5. Qualify live providers, health/incident response, release, and rollback.
-6. Reassess Level 1 only after every pilot-required row is PASS or explicitly
+2. Complete failure injection and deployed restart/recovery proof.
+3. Establish a measured pilot capacity envelope and internal service objectives.
+4. Qualify live providers, health/incident response, release, and rollback.
+5. Reassess Level 1 only after every pilot-required row is PASS or explicitly
    bounded by an approved pilot control.

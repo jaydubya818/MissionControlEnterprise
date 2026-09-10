@@ -3,6 +3,7 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { scanConvexAuthorization } from "./lib/convex-authorization-scan.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const baselinePath = path.join(repoRoot, "scripts", "convex-authorization-baseline.json");
@@ -12,6 +13,9 @@ const baseline = JSON.parse(readFileSync(baselinePath, "utf8")).unauthorized ?? 
 const document = JSON.parse(readFileSync(classificationPath, "utf8"));
 const entries = document.entries ?? [];
 const resolvedEntries = document.resolvedEntries ?? [];
+const publicFunctionsById = new Map(
+  scanConvexAuthorization(repoRoot).functions.map((entry) => [`${entry.module}:${entry.name}`, entry]),
+);
 
 const sourceFiles = [];
 const sourceText = new Map();
@@ -76,6 +80,7 @@ const allowedAdmissions = new Set([
   "LEGACY_COMPONENT_ONLY",
   "RUNTIME_SERVICE",
 ]);
+const allowedResolutions = new Set(["AUTHORIZED", "DECLARED_PUBLIC", "INTERNALIZED"]);
 
 const errors = [];
 const classified = [];
@@ -162,8 +167,8 @@ for (const [index, entry] of resolvedEntries.entries()) {
   if (!allowedAdmissions.has(entry.admission)) {
     errors.push(`${label} (${entry.module}): unsupported admission '${entry.admission}'`);
   }
-  if (entry.resolution !== "INTERNALIZED") {
-    errors.push(`${label} (${entry.module}): resolution must describe the applied internalization`);
+  if (!allowedResolutions.has(entry.resolution)) {
+    errors.push(`${label} (${entry.module}): unsupported resolution '${entry.resolution}'`);
   }
   if (entry.readOnly !== true || entry.pilotBlocker !== false || entry.unrestrictedReleaseBlocker !== false) {
     errors.push(`${label} (${entry.module}): resolved reads must be read-only and non-blocking`);
@@ -173,7 +178,23 @@ for (const [index, entry] of resolvedEntries.entries()) {
       errors.push(`${label} (${entry.module}): ${field} must be a meaningful explanation`);
     }
   }
-  for (const functionName of entry.functions) resolved.push(`${entry.module}:${functionName}`);
+  for (const functionName of entry.functions) {
+    const identifier = `${entry.module}:${functionName}`;
+    resolved.push(identifier);
+    const publicFunction = publicFunctionsById.get(identifier);
+    if (entry.resolution === "INTERNALIZED" && publicFunction) {
+      errors.push(`${label} (${identifier}): INTERNALIZED resolution is still in the public Convex contract`);
+    }
+    if (entry.resolution === "AUTHORIZED" && !publicFunction?.authorized) {
+      errors.push(`${label} (${identifier}): AUTHORIZED resolution is not an authorized public function`);
+    }
+    if (
+      entry.resolution === "DECLARED_PUBLIC" &&
+      (!publicFunction?.declaredPublic || typeof publicFunction.publicReason !== "string" || publicFunction.publicReason.trim().length < 20)
+    ) {
+      errors.push(`${label} (${identifier}): DECLARED_PUBLIC resolution lacks a valid publicQuery declaration`);
+    }
+  }
 }
 
 const duplicateIds = classified.filter((id, index) => classified.indexOf(id) !== index);
@@ -214,6 +235,12 @@ console.log(
     `unauthorized public reads have explicit dispositions across ${entries.length} active records; ` +
     `${resolved.length} reads are retained in the resolved history.`,
 );
+for (const resolution of [...allowedResolutions].sort()) {
+  const count = resolvedEntries
+    .filter((entry) => entry.resolution === resolution)
+    .reduce((sum, entry) => sum + entry.functions.length, 0);
+  console.log(`  Resolved ${resolution}: ${count}`);
+}
 for (const [classification, count] of [...counts.entries()].sort(([a], [b]) => a.localeCompare(b))) {
   console.log(`  ${classification}: ${count}`);
 }

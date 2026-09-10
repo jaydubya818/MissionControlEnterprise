@@ -1,105 +1,79 @@
 ---
-title: Phase 3 Authorization Debt Classification
-status: classified-remediation-required
+title: Phase 3 Authorization Debt Remediation
+status: complete
 upstream_baseline: ffd58077989a23004819a85f529ca74c955b1422
-updated: 2026-09-09
+updated: 2026-09-10
 ---
 
-# Phase 3 authorization debt classification
+# Phase 3 authorization debt remediation
 
 ## Decision
 
-The initial ledger classified 157 public unauthenticated Convex reads. The
-first remediation tranche converted 79 reads with no admitted or known
-repository caller to `internalQuery`, preserving their backend implementation
-while removing their public entry points.
+All 157 inherited public unauthenticated Convex reads are resolved. No active
+authorization-debt entry remains and no inherited unauthenticated read remains
+network-reachable through the public Convex contract.
 
-The remaining **78 public unauthenticated Convex reads are all network
-reachable** to a caller that knows the deployment URL and function identifier.
-Removing a route or navigation entry does not secure a public Convex function.
+The implementation preserves backend capability unless dependency analysis
+proved that the public entry point was unnecessary:
 
-None is reachable from the statically enforced closure of the 17 Live or 14
-Preview routes. That limits accidental product admission, but it does not make
-the backend safe for an enterprise pilot. All 78 therefore remain pilot and
-unrestricted-release blockers until they are authorized, converted to an
-explicitly reviewed minimal public contract, internalized, or removed after
-dependency proof.
+- 149 reads were converted to `internalQuery`; their handlers and persisted
+  data remain available to explicit server-side composition;
+- 6 reads remain public with server-side authentication, object-derived
+  company/workspace authorization, and negative-path coverage; and
+- 2 deployment health probes use the reviewed `publicQuery` contract, require
+  a literal justification, and return only bounded non-tenant status fields.
 
-The authoritative function-by-function ledger is
-`scripts/authorization-debt-classification.json`, including active and resolved
-history. The release gate executes
-`scripts/check-authorization-debt-classification.mjs` and fails if the ledger
-omits a baseline function, retains a stale function, duplicates a function, or
-lacks any required decision field.
+The authoritative function-by-function history is
+`scripts/authorization-debt-classification.json`. The release gate fails if a
+resolved function becomes unauthenticated again, if an internalized function
+reappears in the public contract, or if a declared-public query lacks its
+reviewed reason.
 
-## Required fields
+## Resolution result
 
-Each ledger record applies its decision to every named function and records:
+| Original classification | Initially classified | Authorized | Declared public | Internalized | Active |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Legacy | 69 | 0 | 0 | 69 | 0 |
+| Future product surface | 27 | 0 | 0 | 27 | 0 |
+| Internalization candidate | 25 | 5 | 0 | 20 | 0 |
+| Developer tool | 19 | 0 | 2 | 17 | 0 |
+| Preview | 17 | 1 | 0 | 16 | 0 |
+| **Total** | **157** | **6** | **2** | **149** | **0** |
 
-- why the function remains;
-- known repository callers (`calledFunctions`; absence means no caller was
-  found by exact static reference scanning, not that the public API is
-  unreachable);
-- whether a product/runtime entry point is admitted;
-- confirmation that the function is read-only;
-- pilot and unrestricted-release blocking status; and
-- the exact remediation path.
+## Runtime and service boundary
 
-## Classification result
+The six retained authorized reads are the scoped Captures listing plus runtime
+reads across `skillAutomations`, `workflowRuns`, and `workflows`.
 
-| Classification | Initially classified | Internalized | Remaining public |
-| --- | ---: | ---: | ---: |
-| Legacy | 69 | 40 | 29 |
-| Future product surface | 27 | 20 | 7 |
-| Internalization candidate | 25 | 18 | 7 |
-| Developer tool | 19 | 0 | 19 |
-| Preview | 17 | 1 | 16 |
-| **Total** | **157** | **79** | **78** |
-
-Exact static references exist for 46 of the 78 remaining functions. The other
-32 are deliberately held-back Labs or developer-tool contracts that require
-separate decisions; lack of a repository caller does not prove that an
-external health, migration, or diagnostic consumer does not exist.
-
-## Admitted runtime blockers
-
-The ledger identifies six reads with known runtime/CLI ownership across
-`skillAutomations`, `workflowRuns`, and `workflows`. They require special care:
-
-- service execution must use the signed, workspace/repository-scoped service
-  command boundary or a demonstrably equivalent scoped service identity;
-- server-to-server composition should use `internalQuery` rather than the
-  public API;
-- CLI calls require an authenticated operator and explicit project scope; and
-- artifact content and execution manifests must never be returned solely on
-  possession of an object ID.
-
-These endpoints must not be bulk-wrapped with identity-only authentication.
-Identity without company/workspace filtering would hide the scanner finding
-without closing cross-company exposure.
-
-## Remediation order
-
-1. Close runtime/service reads used by the canonical golden path.
-2. Establish the minimal health/readiness contract required by deployment.
-3. Internalize functions with no external caller, starting with server-only
-   composition.
-4. Add object-derived tenant/workspace authorization where retained Labs or
-   future capabilities justify a public contract.
-5. Remove legacy components and backend functions only after the Phase 3
-   dependency-deletion gate proves them unnecessary.
+- Workflow run events and artifacts derive authority from the run's workspace
+  and, when present, its authoritative WorkOrder ownership.
+- Execution manifests require the same WorkOrder authority before artifact
+  content or secret references can be returned.
+- Project-owned workflow definitions are omitted or denied across company
+  boundaries; global workflow definitions still require an authenticated
+  identity.
+- The CLI, orchestration server, workflow executor, and factory worker require
+  `CONVEX_SERVICE_AUTH_TOKEN` before creating an authenticated Convex client.
+- Fuzzy unscoped workflow-run search is internal-only; CLI status requires an
+  exact run identifier.
 
 ## Automated evidence
 
 ```text
-Authorization debt classification: PASS — 78/78 active reads classified; 79 resolved reads retained
-Public Convex functions: 838
+Authorization debt classification: PASS — 0/0 active; 157 resolved
+Resolved AUTHORIZED: 6
+Resolved DECLARED_PUBLIC: 2
+Resolved INTERNALIZED: 149
+Public Convex functions: 762
 Authorized: 760
-Unauthorized reads: 78
+Declared public: 2
+Unauthorized reads: 0
 Unauthorized mutations/actions: 0
 Live route authorization closure: 17/17 PASS
 Preview route authorization closure: 14/14 PASS
 ```
 
-Classification is complete. The first internalization tranche is complete;
-the remaining remediation is not.
+Focused tests prove anonymous denial, cross-company denial, valid
+same-workspace access, invalid-object failure, and WorkOrder-bound runtime
+manifest access. This closes the repository authorization-debt blocker; it does
+not substitute for production Clerk or two-session browser qualification.

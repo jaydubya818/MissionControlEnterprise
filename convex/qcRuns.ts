@@ -98,7 +98,7 @@ function computeRiskGrade(gates: QCEvidencePack["deliveryGates"]): "GREEN" | "YE
 /**
  * List QC runs
  */
-export const list = query({
+export const list = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     status: v.optional(v.string()),
@@ -140,7 +140,7 @@ export const list = query({
 /**
  * Get a single QC run
  */
-export const get = query({
+export const get = internalQuery({
   args: { id: v.id("qcRuns") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.id);
@@ -190,7 +190,7 @@ export const projectScores = internalQuery({
 /**
  * List QC runs filtered by environment
  */
-export const listByEnvironment = query({
+export const listByEnvironment = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     environment: v.optional(v.union(
@@ -245,7 +245,7 @@ export const listByEnvironment = query({
 /**
  * Aggregate stats per environment for dashboard health matrix
  */
-export const environmentSummary = query({
+export const environmentSummary = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
   },
@@ -604,7 +604,7 @@ export const execute = authedAction({
   },
   handler: async (ctx, args): Promise<{ success: boolean; runId: string; alreadyCompleted?: boolean; riskGrade?: string; qualityScore?: number }> => {
     // Get run
-    const run: any = await ctx.runQuery(api.qcRuns.get, { id: args.id });
+    const run: any = await ctx.runQuery(internal.qcRuns.get, { id: args.id });
     if (!run) {
       throw new Error("QC run not found");
     }
@@ -630,7 +630,7 @@ export const execute = authedAction({
       };
       
       if (run.rulesetId) {
-        const ruleset = await ctx.runQuery(api.qcRulesets.get, { id: run.rulesetId });
+        const ruleset = await ctx.runQuery(internal.qcRulesets.get, { id: run.rulesetId });
         if (ruleset) {
           rulesetConfig = {
             requiredDocs: ruleset.requiredDocs,

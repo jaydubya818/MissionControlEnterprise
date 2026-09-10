@@ -2,7 +2,7 @@
 title: Phase 3 Enterprise Route Consolidation Map
 status: implemented
 upstream_baseline: ffd58077989a23004819a85f529ca74c955b1422
-updated: 2026-09-09
+updated: 2026-09-10
 ---
 
 # Phase 3 enterprise route consolidation map
@@ -72,6 +72,8 @@ distinct classification:
 ## Removed routes
 
 The 13 removed product entry points resolve to Command Center with an explicit
-unavailable notice. Their view components and backend modules are not deleted
-by this checkpoint. Unknown `/v2/*` locations receive the same explicit
-handling and cannot fall through to a persisted unrelated view.
+unavailable notice. Route-specific view components were pruned where import
+analysis proved them unreachable; shared backend modules and capabilities were
+preserved and their unused public reads were internalized. Unknown `/v2/*`
+locations receive the same explicit handling and cannot fall through to a
+persisted unrelated view.

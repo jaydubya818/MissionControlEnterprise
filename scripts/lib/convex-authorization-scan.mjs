@@ -177,6 +177,19 @@ function handlerNode(initializer, helpers) {
   return undefined;
 }
 
+function declaredPublicReason(initializer) {
+  if (!ts.isCallExpression(initializer)) return undefined;
+  const options = initializer.arguments[0];
+  if (!options || !ts.isObjectLiteralExpression(options)) return undefined;
+  for (const property of options.properties) {
+    if (!ts.isPropertyAssignment(property) || property.name.getText() !== "reason") continue;
+    if (ts.isStringLiteral(property.initializer) || ts.isNoSubstitutionTemplateLiteral(property.initializer)) {
+      return property.initializer.text;
+    }
+  }
+  return undefined;
+}
+
 /**
  * Scan one file.
  *
@@ -208,7 +221,15 @@ export function scanFile(filePath, repoRoot) {
         continue;
       }
       if (DECLARED_PUBLIC_WRAPPERS.includes(kind)) {
-        results.push({ module: moduleName, name, kind, authorized: false, declaredPublic: true, line });
+        results.push({
+          module: moduleName,
+          name,
+          kind,
+          authorized: false,
+          declaredPublic: true,
+          publicReason: declaredPublicReason(declaration.initializer),
+          line,
+        });
         continue;
       }
       const handler = handlerNode(declaration.initializer, helpers);

@@ -22,7 +22,7 @@ const environmentUnion = v.optional(v.union(
 /**
  * List metrics for an environment in a time range
  */
-export const listByEnvironment = query({
+export const listByEnvironment = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     environment: environmentUnion,
@@ -74,7 +74,7 @@ export const listByEnvironment = query({
 /**
  * Aggregate stats (min, max, avg, p95) per metric name and environment
  */
-export const aggregate = query({
+export const aggregate = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     environment: environmentUnion,

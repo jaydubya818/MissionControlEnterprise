@@ -5,7 +5,7 @@
  */
 
 import { v } from "convex/values";
-import { query, internalMutation } from "./_generated/server";
+import { query, internalMutation, internalQuery } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 
 // ============================================================================
@@ -15,7 +15,7 @@ import { Id } from "./_generated/dataModel";
 /**
  * List findings for a QC run
  */
-export const listByRun = query({
+export const listByRun = internalQuery({
   args: {
     qcRunId: v.id("qcRuns"),
     severity: v.optional(v.string()),
@@ -41,7 +41,7 @@ export const listByRun = query({
 /**
  * List recent findings across runs (for findings browser)
  */
-export const listRecent = query({
+export const listRecent = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     environment: v.optional(v.union(

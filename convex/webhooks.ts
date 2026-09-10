@@ -5,9 +5,35 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query, action, internalMutation, internalQuery } from "./_generated/server";
+import { internalAction, internalMutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { authedAction, authedMutation } from "./lib/authedFunctions";
+import { isPublicResearchHostname } from "./lib/researchSourcePolicy";
+
+export function validateWebhookUrl(value: string): string {
+  let url: URL;
+  try {
+    url = new URL(value.trim());
+  } catch {
+    throw new Error("Webhook URL must be a complete HTTPS URL.");
+  }
+
+  if (url.protocol !== "https:") {
+    throw new Error("Webhook URL must use HTTPS.");
+  }
+  if (url.username || url.password) {
+    throw new Error("Webhook URL must not contain credentials.");
+  }
+  if (url.port && url.port !== "443") {
+    throw new Error("Webhook URL must use the standard HTTPS port.");
+  }
+  if (!isPublicResearchHostname(url.hostname)) {
+    throw new Error("Webhook URL must use a public network host.");
+  }
+
+  url.hash = "";
+  if (url.port === "443") url.port = "";
+  return url.toString();
+}
 
 /** HMAC-SHA256 hex using Web Crypto (Convex default runtime). */
 async function hmacSha256Hex(secret: string, data: string): Promise<string> {
@@ -75,7 +101,7 @@ export const getDeliveries = internalQuery({
 // MUTATIONS
 // ============================================================================
 
-export const create = authedMutation({
+export const create = internalMutation({
   args: {
     projectId: v.optional(v.id("projects")),
     name: v.string(),
@@ -90,17 +116,12 @@ export const create = authedMutation({
     createdBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // Validate URL
-    try {
-      new URL(args.url);
-    } catch {
-      throw new Error("Invalid URL");
-    }
+    const url = validateWebhookUrl(args.url);
     
     const webhookId = await ctx.db.insert("webhooks", {
       projectId: args.projectId,
       name: args.name,
-      url: args.url,
+      url,
       secret: args.secret,
       events: args.events,
       filters: args.filters,
@@ -114,7 +135,7 @@ export const create = authedMutation({
   },
 });
 
-export const update = authedMutation({
+export const update = internalMutation({
   args: {
     webhookId: v.id("webhooks"),
     name: v.optional(v.string()),
@@ -131,13 +152,8 @@ export const update = authedMutation({
   handler: async (ctx, args) => {
     const { webhookId, ...updates } = args;
     
-    // Validate URL if provided
     if (updates.url) {
-      try {
-        new URL(updates.url);
-      } catch {
-        throw new Error("Invalid URL");
-      }
+      updates.url = validateWebhookUrl(updates.url);
     }
     
     await ctx.db.patch(webhookId, updates);
@@ -146,7 +162,7 @@ export const update = authedMutation({
   },
 });
 
-export const remove = authedMutation({
+export const remove = internalMutation({
   args: { webhookId: v.id("webhooks") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.webhookId);
@@ -223,7 +239,7 @@ export const triggerEvent = internalMutation({
 // DELIVERY (Actions) — uses Web Crypto for HMAC (no Node runtime)
 // ============================================================================
 
-export const deliverPending = authedAction({
+export const deliverPending = internalAction({
   args: {},
   handler: async (ctx): Promise<{ delivered: number }> => {
     const deliveries = await ctx.runMutation(internal.webhooks.getPendingDeliveries, {});

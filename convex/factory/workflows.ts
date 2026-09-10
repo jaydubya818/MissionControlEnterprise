@@ -3,7 +3,7 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "../_generated/server";
+import { mutation, query, internalQuery } from "../_generated/server";
 import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "../lib/companyAccess";
 
 const statusArg = v.union(
@@ -71,7 +71,7 @@ export const schedule = mutation({
   },
 });
 
-export const maintenanceCatalog = query({
+export const maintenanceCatalog = internalQuery({
   args: {},
   handler: async () => [
     { id: "architecture-sweep", label: "Architecture review", cadence: "weekly", description: "Duplication and weak seams" },

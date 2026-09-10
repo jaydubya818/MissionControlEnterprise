@@ -52,6 +52,10 @@ import {
   type ExecutionIntentShadowStore,
 } from "./executionIntentShadow.js";
 import os from "node:os";
+import {
+  assertOrchestrationProductionConfiguration,
+  orchestrationAllowedOrigins,
+} from "./productionConfiguration.js";
 
 const envSearchPaths = [
   path.resolve(process.cwd(), ".env.local"),
@@ -99,6 +103,8 @@ const FACTORY_WORKER_EXECUTION_BACKENDS = REMOTE_SANDBOX_BACKEND_READY
   ? ["persistent-worker", "remote-sandbox"] as const
   : ["persistent-worker"] as const;
 
+assertOrchestrationProductionConfiguration(process.env);
+
 if (SHADOW_PROVIDER_ONLY && EXECUTION_INTENT_SHADOW_CONFIG.mode !== "shadow") {
   throw new Error("SHADOW_PROVIDER_ONLY requires AVF_EXECUTION_INTENT_MODE=shadow");
 }
@@ -116,10 +122,8 @@ if (!CONVEX_URL) {
 // ============================================================================
 
 const client = new ConvexHttpClient(CONVEX_URL);
-const CONVEX_SERVICE_AUTH_TOKEN = process.env.CONVEX_SERVICE_AUTH_TOKEN?.trim();
-if (CONVEX_SERVICE_AUTH_TOKEN) {
-  client.setAuth(CONVEX_SERVICE_AUTH_TOKEN);
-}
+const CONVEX_SERVICE_AUTH_TOKEN = requiredRuntimeSetting("CONVEX_SERVICE_AUTH_TOKEN");
+client.setAuth(CONVEX_SERVICE_AUTH_TOKEN);
 const executionIntentShadowStore: ExecutionIntentShadowStore = {
   intake: async (input) => await client.mutation(
     ConvexMutations.executionIntents.intake as any,
@@ -415,8 +419,13 @@ app.use("*", async (context, next) => {
   return context.json({ error: "Shadow provider only" }, 404);
 });
 
-// CORS so UI (different origin/port) can call gateway/status and other endpoints
-app.use("*", cors());
+// Browser callers are limited to explicit production origins or the known
+// local UI ports. CORS never grants route authority; bearer/service checks
+// below remain mandatory.
+const allowedOrigins = orchestrationAllowedOrigins(process.env);
+app.use("*", cors({
+  origin: (origin) => allowedOrigins.includes(origin) ? origin : undefined,
+}));
 
 // Default-deny every orchestration route except the explicit public health and
 // connection-status probes declared in auth.ts. This avoids silently exposing
@@ -1578,7 +1587,7 @@ export function startServer() {
 
 function requiredRuntimeSetting(name: string) {
   const value = process.env[name]?.trim();
-  if (!value) throw new Error(`${name} is required when a durable Factory harness worker is enabled.`);
+  if (!value) throw new Error(`${name} is required for the orchestration runtime.`);
   return value;
 }
 

@@ -222,6 +222,9 @@ describe("convex authorization scan", () => {
     const scan = scanConvexAuthorization(root);
     expect(scan.authorizedCount).toBe(1);
     expect(scan.declaredPublicCount).toBe(1);
+    expect(scan.functions.find((entry) => entry.name === "check")?.publicReason).toBe(
+      "Load-balancer liveness probe; returns no tenant data.",
+    );
     expect(scan.unauthorized).toEqual([]);
   });
 

@@ -3,15 +3,16 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { authedMutation } from "./lib/authedFunctions";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
 
 /**
  * List all captures for a project
  */
 export const list = query({
   args: {
-    projectId: v.optional(v.id("projects")),
+    projectId: v.id("projects"),
     taskId: v.optional(v.id("tasks")),
     agentId: v.optional(v.id("agents")),
     type: v.optional(
@@ -27,25 +28,12 @@ export const list = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     const limit = args.limit ?? 100;
 
-    // Select index based on priority: projectId > taskId > agentId
-    let query;
-    if (args.projectId) {
-      query = ctx.db
-        .query("captures")
-        .withIndex("by_project", (q) => q.eq("projectId", args.projectId!));
-    } else if (args.taskId) {
-      query = ctx.db
-        .query("captures")
-        .withIndex("by_task", (q) => q.eq("taskId", args.taskId!));
-    } else if (args.agentId) {
-      query = ctx.db
-        .query("captures")
-        .withIndex("by_agent", (q) => q.eq("agentId", args.agentId!));
-    } else {
-      query = ctx.db.query("captures");
-    }
+    let query = ctx.db
+      .query("captures")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId));
 
     // Apply type filter separately if provided
     if (args.type) {
@@ -56,10 +44,10 @@ export const list = query({
     let results = await query.order("desc").take(limit * 2); // Fetch more to account for additional filtering
 
     // Apply additional filters in memory for secondary constraints
-    if (args.taskId && args.projectId) {
+    if (args.taskId) {
       results = results.filter((c) => c.taskId === args.taskId);
     }
-    if (args.agentId && (args.projectId || args.taskId)) {
+    if (args.agentId) {
       results = results.filter((c) => c.agentId === args.agentId);
     }
 
@@ -70,7 +58,7 @@ export const list = query({
 /**
  * Get a single capture by ID
  */
-export const get = query({
+export const get = internalQuery({
   args: {
     id: v.id("captures"),
   },
@@ -152,7 +140,7 @@ export const remove = authedMutation({
 /**
  * Get captures grouped by type
  */
-export const getByType = query({
+export const getByType = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
   },

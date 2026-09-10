@@ -264,7 +264,7 @@ export const resolve = action({
       if (!planReleaseEnabled) {
         throw new Error("Enable missions.plan-release-v1 before promoting an improvement into governed Mission work");
       }
-      const workflow = await ctx.runQuery(api.workflows.get, { workflowId: "feature-dev" });
+      const workflow = await ctx.runQuery(internal.workflows.getInternal, { workflowId: "feature-dev" });
       if (!workflow?.active) {
         throw new Error("The active feature-dev workflow is required before promoting an improvement");
       }

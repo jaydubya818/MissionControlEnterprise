@@ -3,7 +3,7 @@
  */
 
 import { v } from "convex/values";
-import { query } from "../_generated/server";
+import { query, internalQuery } from "../_generated/server";
 
 export type FleetAgentStatus =
   | "RUNNING"
@@ -42,7 +42,7 @@ function inferStatus(
   return "RUNNING";
 }
 
-export const snapshot = query({
+export const snapshot = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     limit: v.optional(v.number()),

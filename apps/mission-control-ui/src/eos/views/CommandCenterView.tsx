@@ -1,17 +1,10 @@
-/**
- * EOS Command Center — causal system of record and operating control plane.
- *
- * Composition: demo-provenance projections (mission anchor, health band,
- * insights, curated timeline from demoData) beside live Convex data
- * (attention queue, workforce, capacity). Every demo-sourced element renders
- * its ProvenanceBadge; Convex data renders none (see src/eos/types.ts).
- */
+/** EOS Command Center — authoritative operating control plane. */
 
 import { useEffect, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import type { Doc, Id } from "../../../../../convex/_generated/dataModel";
-import { ArrowRight, Bot, ChevronRight, Clock3, Plus, Sparkles } from "lucide-react";
+import { ArrowRight, Bot, Clock3, Plus, Sparkles } from "lucide-react";
 import { PageHeader } from "../../components/factory/DetailLayout";
 import { StatusBadge } from "../../components/factory/badges";
 import { AttentionQueuePanel } from "../../components/AttentionQueuePanel";
@@ -26,19 +19,9 @@ import {
   EosSection,
   HealthSignalCard,
   InsightCard,
-  PageProvenanceNote,
-  ProvenanceBadge,
 } from "../components";
-import {
-  AGENT_ROLES,
-  demoHealthSignals,
-  demoInsights,
-  demoMission,
-  demoMissionAnchor,
-  demoTimeline,
-} from "../demoData";
 import { adaptHealthSignals, adaptRecommendations } from "../liveAdapters";
-import type { HealthStatus, HealthSignal, Insight } from "../types";
+import type { HealthSignal, Insight } from "../types";
 import { OperatingControlPlane } from "../components/OperatingControlPlane";
 
 export interface CommandCenterViewProps {
@@ -159,181 +142,6 @@ const AGENT_BADGE_TONE: Record<string, "success" | "warning" | "error" | "neutra
   OFFLINE: "neutral",
 };
 
-const HEALTH_DOT: Record<HealthStatus, string> = {
-  HEALTHY: "bg-ok",
-  WATCH: "bg-warn",
-  AT_RISK: "bg-warn",
-  CRITICAL: "bg-err",
-  INSUFFICIENT_EVIDENCE: "bg-ink-muted",
-};
-
-const HEALTH_LABEL: Record<HealthStatus, string> = {
-  HEALTHY: "Healthy",
-  WATCH: "Watch",
-  AT_RISK: "At risk",
-  CRITICAL: "Critical",
-  INSUFFICIENT_EVIDENCE: "Insufficient evidence",
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Mission anchor (demo projection) — operational status brief at page top
-// ─────────────────────────────────────────────────────────────────────────────
-
-function MissionAnchorCard({
-  onNavigate,
-}: {
-  onNavigate: (view: string) => void;
-}): JSX.Element {
-  const facts: { label: string; value: React.ReactNode }[] = [
-    {
-      label: "State",
-      value: (
-        <span className="flex items-center gap-2">
-          <StatusBadge tone="info">Active</StatusBadge>
-          <span className="flex items-center gap-1.5">
-            <span
-              className={cn("h-1.5 w-1.5 shrink-0 rounded-full", HEALTH_DOT[demoMission.health])}
-              aria-hidden
-            />
-            <span className="text-[13px] text-ink">{HEALTH_LABEL[demoMission.health]}</span>
-          </span>
-        </span>
-      ),
-    },
-    {
-      label: "Work orders",
-      value: (
-        <span className="flex flex-col gap-1">
-          <span className="text-[13px] text-ink">
-            {demoMission.progressPct}% · {demoMission.workOrderTitles.length} active
-          </span>
-          <ThinBar fraction={demoMission.progressPct / 100} />
-        </span>
-      ),
-    },
-    {
-      label: "Blocking",
-      value: <span className="text-[13px] text-warn">{demoMissionAnchor.blocking}</span>,
-    },
-    {
-      label: "Delivery",
-      value: <span className="text-[13px] text-ink">{demoMissionAnchor.milestone}</span>,
-    },
-    {
-      label: "Verification",
-      value: <span className="text-[13px] text-warn">{demoMissionAnchor.verification}</span>,
-    },
-    {
-      label: "Cost",
-      value: (
-        <span className="font-mono text-[13px] text-ink">
-          ${demoMission.actualCostUsd.toFixed(2)} of ${demoMission.plannedBudgetUsd.toFixed(2)}{" "}
-          planned
-        </span>
-      ),
-    },
-  ];
-  return (
-    <section className={cn(CARD_CLASS, "p-5")} aria-label="Active mission">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="min-w-0 max-w-[72ch] flex-1">
-          <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-ok">
-            Active mission
-          </div>
-          <button
-            type="button"
-            onClick={() => onNavigate("mission-detail")}
-            className="mt-1 block text-left text-[19px] font-semibold tracking-tight text-ink transition-opacity duration-150 hover:opacity-80"
-          >
-            {demoMission.name}
-          </button>
-          <p className="mt-1 text-[13.5px] leading-relaxed text-ink-secondary">
-            {demoMission.objective}
-          </p>
-          <dl className="mt-4 grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
-            {facts.map((fact) => (
-              <div key={fact.label} className="min-w-0">
-                <dt className="text-[11.5px] text-ink-muted">{fact.label}</dt>
-                <dd className="mt-0.5">{fact.value}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-        <div className="flex shrink-0 flex-col items-start gap-3 lg:items-end">
-          <ProvenanceBadge provenance={demoMission.provenance} />
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => onNavigate("mission-detail")}
-              className="inline-flex h-9 items-center rounded-lg bg-act px-3 text-[13px] font-medium text-act-ink transition-opacity duration-150 hover:opacity-90"
-            >
-              Open mission
-            </button>
-            <button
-              type="button"
-              onClick={() => onNavigate("dossier")}
-              className="inline-flex h-9 items-center rounded-lg border border-line px-3 text-[13px] font-medium text-ink-secondary transition-colors duration-150 hover:border-line-strong hover:text-ink"
-            >
-              Decide waiver
-            </button>
-          </div>
-        </div>
-      </div>
-      <div className="mt-4 flex items-center justify-between gap-3 border-t border-line pt-3">
-        <span className="text-[12.5px] text-ink-muted">
-          Next action: {demoMissionAnchor.nextAction}
-        </span>
-        <ViewAllLink label="View all missions" onClick={() => onNavigate("missions")} />
-      </div>
-    </section>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Live factory activity (curated demo timeline — the story, not a log)
-// ─────────────────────────────────────────────────────────────────────────────
-
-const TIMELINE_DOT: Record<(typeof demoTimeline)[number]["state"], string> = {
-  ok: "bg-ok",
-  warn: "bg-warn",
-  err: "bg-err",
-  info: "bg-info-accent",
-};
-
-function TimelineList({ onNavigate }: { onNavigate: (view: string) => void }): JSX.Element {
-  return (
-    <ul className={CARD_CLASS}>
-      {demoTimeline.map((event, i) => (
-        <li key={`${event.rel}-${i}`} className="border-b border-line last:border-b-0">
-          <button
-            type="button"
-            onClick={() => onNavigate(event.drillView)}
-            className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-150 hover:bg-surface-2"
-          >
-            <span className="w-10 shrink-0 font-mono text-[11.5px] text-ink-muted">
-              {event.rel}
-            </span>
-            <span
-              className={cn("h-1.5 w-1.5 shrink-0 rounded-full", TIMELINE_DOT[event.state])}
-              aria-hidden
-            />
-            <span className="min-w-0 max-w-[72ch] flex-1">
-              <span className="flex flex-wrap items-baseline gap-x-2">
-                <span className="shrink-0 text-[12.5px] text-ink-secondary">{event.actor}</span>
-                <span className="text-[13px] text-ink">{event.event}</span>
-              </span>
-              <span className="mt-0.5 block truncate font-mono text-[11.5px] text-ink-muted">
-                {event.object}
-              </span>
-            </span>
-            <ChevronRight size={14} strokeWidth={1.75} className="shrink-0 text-ink-muted" aria-hidden />
-          </button>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // AI workforce (real Convex agents + task join; functional role titles)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -388,7 +196,7 @@ function WorkforceList({
                 <span className="flex items-baseline gap-2">
                   <span className="truncate text-[13px] font-medium text-ink">{agent.name}</span>
                   <span className="shrink-0 text-[11.5px] text-ink-muted">
-                    {AGENT_ROLES[agent.name] ?? agent.role.toLowerCase()}
+                    {agent.role.toLowerCase()}
                   </span>
                 </span>
                 <span className="mt-0.5 block truncate text-[12px] text-ink-muted">
@@ -397,7 +205,6 @@ function WorkforceList({
                 {agent.status === "QUARANTINED" && (
                   <span className="mt-0.5 flex items-center gap-1.5 text-[12px] text-err">
                     <span className="truncate">Escalation: credential rotation required</span>
-                    <ProvenanceBadge provenance="demo" variant="dot" />
                   </span>
                 )}
               </span>
@@ -440,12 +247,10 @@ function FactoryReadinessCard({
   gatewayConfigured,
   agents,
   nextJobLabel,
-  showDemoContent,
 }: {
   gatewayConfigured: boolean | null;
   agents: Doc<"agents">[];
   nextJobLabel: string;
-  showDemoContent: boolean;
 }): JSX.Element {
   const activeAgents = agents.filter((a) => a.status === "ACTIVE").length;
   const quarantined = agents.filter((a) => a.status === "QUARANTINED").length;
@@ -466,12 +271,6 @@ function FactoryReadinessCard({
       value: `${activeAgents} active / ${agents.length}${quarantined > 0 ? ` · ${quarantined} quarantined` : ""}`,
     },
     { label: "Scheduler", value: nextJobLabel },
-    ...(showDemoContent
-      ? [
-          { label: "GitHub", value: <ProvenanceBadge provenance="disconnected" /> },
-          { label: "CI", value: <ProvenanceBadge provenance="disconnected" /> },
-        ]
-      : []),
   ];
   return (
     <div className={cn(CARD_CLASS, "p-4")}>
@@ -496,9 +295,6 @@ export function CommandCenterView({
   onNavigate,
 }: CommandCenterViewProps): JSX.Element {
   const [gatewayConfigured, setGatewayConfigured] = useState<boolean | null>(null);
-  // Labs may be enabled for evaluation, but demo projections never enter a
-  // Live enterprise route or its readiness claims.
-  const showDemoContent = false;
   const showOperatingControlPlane = useFlag("control-plane.role-lenses");
 
   useEffect(() => {
@@ -527,15 +323,11 @@ export function CommandCenterView({
   const healthSignals: HealthSignal[] =
     liveSignals && liveSignals.length > 0
       ? adaptHealthSignals(liveSignals as HealthSignal[])
-      : showDemoContent
-        ? demoHealthSignals
-        : [];
+      : [];
   const insights: Insight[] =
     liveRecs && liveRecs.length > 0
       ? adaptRecommendations(liveRecs as Insight[])
-      : showDemoContent
-        ? demoInsights
-        : [];
+      : [];
 
   const alertsList = openAlerts ?? [];
   const blockedTasksList = (tasks ?? []).filter((t) => t.status === "BLOCKED");
@@ -601,8 +393,6 @@ export function CommandCenterView({
           }
         />
 
-        {showDemoContent ? <PageProvenanceNote /> : null}
-
         {showOperatingControlPlane ? (
           <OperatingControlPlane projectId={projectId} onNavigate={onNavigate} />
         ) : null}
@@ -613,22 +403,6 @@ export function CommandCenterView({
           scannedAt={scannedAt}
           title="Factory overview"
         />
-
-        {showDemoContent ? <section className={cn(CARD_CLASS, "flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between")}>
-          <div>
-            <div className="text-[15px] font-semibold text-ink">Run the demo</div>
-            <p className="mt-1 max-w-xl text-[13px] text-ink-secondary">
-              Seed mc-demo-v2 data and walk through WorkOrders, registry evals, and harness loops from the docs site.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => onNavigate("docs")}
-            className="inline-flex h-9 shrink-0 items-center rounded-lg border border-line px-3 text-[13px] font-medium text-ink-secondary transition-colors duration-150 hover:border-line-strong hover:text-ink"
-          >
-            Open docs → Run the demo
-          </button>
-        </section> : null}
 
         {attentionLoading ? (
           <LoadingRows count={4} />
@@ -644,8 +418,6 @@ export function CommandCenterView({
         )}
 
         {!automationData ? <LoadingRows count={2} /> : <AutomationPostureCard data={automationData} onNavigate={onNavigate} />}
-
-        {showDemoContent ? <MissionAnchorCard onNavigate={onNavigate} /> : null}
 
         {healthSignals.length > 0 ? (
           <div
@@ -682,18 +454,6 @@ export function CommandCenterView({
               )}
             </EosSection>
 
-            {showDemoContent ? <EosSection
-              eyebrow="EXECUTION"
-              title="Live factory activity"
-              action={
-                <div className="flex items-center gap-3">
-                  <ProvenanceBadge provenance="demo" />
-                  <ViewAllLink onClick={() => onNavigate("audit")} />
-                </div>
-              }
-            >
-              <TimelineList onNavigate={onNavigate} />
-            </EosSection> : null}
           </div>
 
           {/* Right rail */}
@@ -722,7 +482,6 @@ export function CommandCenterView({
                 gatewayConfigured={gatewayConfigured}
                 agents={agents ?? []}
                 nextJobLabel={nextJobLabel}
-                showDemoContent={showDemoContent}
               />
             </EosSection>
           </div>

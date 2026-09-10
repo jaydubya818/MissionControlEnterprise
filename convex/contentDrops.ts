@@ -29,7 +29,7 @@ const statusValidator = v.union(
 // QUERIES
 // ============================================================================
 
-export const list = query({
+export const list = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     status: v.optional(v.string()),
@@ -63,7 +63,7 @@ export const list = query({
   },
 });
 
-export const get = query({
+export const get = internalQuery({
   args: { id: v.id("contentDrops") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.id);
@@ -134,7 +134,7 @@ export const submit = authedMutation({
   },
 });
 
-export const getStats = query({
+export const getStats = internalQuery({
   args: { projectId: v.optional(v.id("projects")) },
   handler: async (ctx, args) => {
     const drops = args.projectId

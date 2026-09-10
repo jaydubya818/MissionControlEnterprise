@@ -5,7 +5,7 @@
  * Run with: npx convex run seed:seedV0
  */
 
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { authedMutation } from "./lib/authedFunctions";
 
 export const seedV0 = authedMutation({
@@ -1050,7 +1050,7 @@ export const backfillSofieDocs = authedMutation({
   },
 });
 
-export const getSeededStatus = query({
+export const getSeededStatus = internalQuery({
   args: {},
   handler: async (ctx) => {
     const projects = await ctx.db.query("projects").take(1);

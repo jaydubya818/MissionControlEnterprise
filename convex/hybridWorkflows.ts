@@ -1,13 +1,13 @@
 import { v } from "convex/values";
-import { mutation, query, action } from "./_generated/server";
-import { api } from "./_generated/api";
+import { mutation, query, action, internalQuery } from "./_generated/server";
+import { api, internal } from "./_generated/api";
 import { authedAction, authedMutation } from "./lib/authedFunctions";
 
 function buildWorkflowId(): string {
   return `hyb_${Math.random().toString(36).slice(2, 10)}`;
 }
 
-export const list = query({
+export const list = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     activeOnly: v.optional(v.boolean()),
@@ -21,12 +21,12 @@ export const list = query({
   },
 });
 
-export const get = query({
+export const get = internalQuery({
   args: { id: v.id("hybridWorkflows") },
   handler: async (ctx, args) => await ctx.db.get(args.id),
 });
 
-export const getResults = query({
+export const getResults = internalQuery({
   args: { id: v.id("hybridWorkflows"), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     const rows = await ctx.db
@@ -83,7 +83,7 @@ export const execute: any = authedAction({
     executedBy: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<any> => {
-    const workflow = await ctx.runQuery(api.hybridWorkflows.get, { id: args.id });
+    const workflow = await ctx.runQuery(internal.hybridWorkflows.get, { id: args.id });
     if (!workflow) throw new Error("Hybrid workflow not found");
 
     const apiSteps = workflow.apiSetupSteps.map((step: any, index: number) => ({

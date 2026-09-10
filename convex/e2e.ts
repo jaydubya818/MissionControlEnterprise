@@ -6,14 +6,13 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
-import { authedMutation } from "./lib/authedFunctions";
+import { internalMutation, internalQuery } from "./_generated/server";
 
 /**
  * Seed E2E test data
  * Creates agents, tasks, content drops, and budget entries for validation.
  */
-export const seed = authedMutation({
+export const seed = internalMutation({
   args: {
     runId: v.string(),
   },
@@ -311,7 +310,7 @@ export const seed = authedMutation({
  * Cleanup E2E test data
  * Deletes or archives all objects with matching runId.
  */
-export const cleanup = authedMutation({
+export const cleanup = internalMutation({
   args: {
     runId: v.string(),
   },
@@ -398,7 +397,7 @@ export const cleanup = authedMutation({
  * Validate E2E seed data
  * Checks that all expected objects exist and are valid.
  */
-export const validate = query({
+export const validate = internalQuery({
   args: {
     runId: v.string(),
   },

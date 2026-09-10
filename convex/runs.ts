@@ -107,7 +107,7 @@ export const listRecent = query({
 });
 
 /** Aggregated usage by model for a time window (e.g. 24h). For dashboard AI usage cards. */
-export const getUsageByModel = query({
+export const getUsageByModel = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     windowHours: v.optional(v.number()),
@@ -146,7 +146,7 @@ export const getUsageByModel = query({
 });
 
 /** Top runs by total tokens (input + output) for dashboard "Top runs by tokens" section. */
-export const getTopRunsByTokens = query({
+export const getTopRunsByTokens = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     limit: v.optional(v.number()),

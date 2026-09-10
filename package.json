@@ -32,6 +32,8 @@
     "lint": "pnpm run typecheck && node scripts/skill-lint.mjs",
     "docs:factory-check": "node scripts/check-factory-docs.mjs",
     "pilot:preflight": "node scripts/check-production-pilot-preflight.mjs",
+    "production:config:check": "node scripts/check-production-configuration.mjs",
+    "qualify:production-startup": "pnpm --filter @mission-control/orchestration-server build && node scripts/qualify-production-startup.mjs",
     "pilot:assess": "node scripts/check-production-pilot-evidence.mjs",
     "typecheck": "pnpm run ci:prepare && pnpm -r --if-present run typecheck",
     "clean": "turbo run clean && rm -rf node_modules",

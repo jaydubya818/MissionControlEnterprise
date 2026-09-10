@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "mission-control-production-startup/v1",
+  "recordedAt": "2026-09-10T07:59:13.170Z",
+  "environment": "built Node ESM artifact; startup disabled before network/listen",
+  "result": "PASS WITH BOUNDED LIMITATION",
+  "scenarios": [
+    {
+      "name": "configured-production-import",
+      "expectedExit": 0,
+      "observedExit": 0,
+      "expectedMessage": null,
+      "passed": true
+    },
+    {
+      "name": "missing-service-identity",
+      "expectedExit": 1,
+      "observedExit": 1,
+      "expectedMessage": "CONVEX_SERVICE_AUTH_TOKEN is required",
+      "passed": true
+    },
+    {
+      "name": "missing-inbound-auth",
+      "expectedExit": 1,
+      "observedExit": 1,
+      "expectedMessage": "ORCHESTRATION_API_TOKEN or MC_API_TOKEN is required",
+      "passed": true
+    },
+    {
+      "name": "wildcard-cors",
+      "expectedExit": 1,
+      "observedExit": 1,
+      "expectedMessage": "only explicit https origins",
+      "passed": true
+    }
+  ],
+  "credentialValuesLogged": false,
+  "limitation": "This proves production-mode configuration admission and built-artifact import. It does not prove a deployed Convex connection, health probe, or hosting rollout."
+}

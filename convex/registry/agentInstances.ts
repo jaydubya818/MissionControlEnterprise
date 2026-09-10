@@ -87,7 +87,7 @@ export const getInstance = internalQuery({
   },
 });
 
-export const listInstances = query({
+export const listInstances = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     templateId: v.optional(v.id("agentTemplates")),

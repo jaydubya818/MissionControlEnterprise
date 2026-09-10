@@ -2,7 +2,6 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 import type { MainView } from "../TopNav";
 import { CapturesView } from "../CapturesView";
 import { ProjectsView } from "../ProjectsView";
-import { ContentPipelineView } from "../ContentPipelineView";
 
 interface ContentSectionProps {
   currentView: MainView;
@@ -13,7 +12,6 @@ interface ContentSectionProps {
 }
 
 export function ContentSection({ currentView, projectId, onProjectSelect, tenantId, companyContextEnabled }: ContentSectionProps) {
-  if (currentView === "content-pipeline") return <ContentPipelineView projectId={projectId} />;
   if (currentView === "captures") return <CapturesView projectId={projectId} />;
   if (currentView === "projects") {
     return (

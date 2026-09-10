@@ -7,6 +7,7 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
 import { FACTORY_PERMISSIONS, assertAuthenticated, requireWorkspacePermission } from "./lib/companyAccess";
+import { publicQuery } from "./lib/authedFunctions";
 
 // ============================================================================
 // HEALTH CHECK
@@ -15,8 +16,9 @@ import { FACTORY_PERMISSIONS, assertAuthenticated, requireWorkspacePermission } 
 /**
  * Basic health check - returns OK if database is accessible.
  */
-export const check = query({
+export const check = publicQuery({
   args: {},
+  reason: "Anonymous load-balancer liveness probe; returns no tenant or provider data.",
   handler: async (ctx) => {
     const now = Date.now();
     
@@ -30,12 +32,12 @@ export const check = query({
         database: "connected",
         message: "Mission Control is operational",
       };
-    } catch (error) {
+    } catch {
       return {
         status: "unhealthy",
         timestamp: now,
         database: "error",
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: "Mission Control health check failed",
       };
     }
   },
@@ -52,8 +54,9 @@ export const check = query({
  * - At least one project exists
  * - At least one agent registered
  */
-export const ready = query({
+export const ready = publicQuery({
   args: {},
+  reason: "Anonymous load-balancer readiness probe; returns only bounded initialization booleans.",
   handler: async (ctx) => {
     const now = Date.now();
     const checks: Record<string, boolean> = {};
@@ -84,12 +87,12 @@ export const ready = query({
           ? "System is ready to serve traffic"
           : "System is not fully initialized",
       };
-    } catch (error) {
+    } catch {
       return {
         status: "error",
         timestamp: now,
         checks,
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: "Mission Control readiness check failed",
       };
     }
   },

@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { action, internalMutation, mutation, query } from "../_generated/server";
+import { action, internalMutation, mutation, query, internalQuery } from "../_generated/server";
 import { api } from "../_generated/api";
 import { resolveAgentRef } from "../lib/agentResolver";
 import { preferInstanceRefs } from "../lib/armCompat";
@@ -66,7 +66,7 @@ async function collectMigrationHealthSnapshot(ctx: { db: any }) {
   };
 }
 
-export const listTasksNeedingBackfill = query({
+export const listTasksNeedingBackfill = internalQuery({
   args: {},
   handler: async (ctx) => {
     const rows = await ctx.db.query("tasks").collect();
@@ -76,7 +76,7 @@ export const listTasksNeedingBackfill = query({
   },
 });
 
-export const listRunsNeedingBackfill = query({
+export const listRunsNeedingBackfill = internalQuery({
   args: {},
   handler: async (ctx) => {
     const rows = await ctx.db.query("runs").collect();
@@ -86,7 +86,7 @@ export const listRunsNeedingBackfill = query({
   },
 });
 
-export const listToolCallsNeedingBackfill = query({
+export const listToolCallsNeedingBackfill = internalQuery({
   args: {},
   handler: async (ctx) => {
     const rows = await ctx.db.query("toolCalls").collect();
@@ -96,7 +96,7 @@ export const listToolCallsNeedingBackfill = query({
   },
 });
 
-export const listMessagesNeedingBackfill = query({
+export const listMessagesNeedingBackfill = internalQuery({
   args: {},
   handler: async (ctx) => {
     const rows = await ctx.db.query("messages").collect();
@@ -106,7 +106,7 @@ export const listMessagesNeedingBackfill = query({
   },
 });
 
-export const getMigrationHealth = query({
+export const getMigrationHealth = internalQuery({
   args: {},
   handler: async (ctx) => {
     const snapshot = await collectMigrationHealthSnapshot(ctx);
@@ -183,7 +183,7 @@ export const guardMigrationHealth = internalMutation({
   },
 });
 
-export const listProjectsNeedingTenantBackfill = query({
+export const listProjectsNeedingTenantBackfill = internalQuery({
   args: {},
   handler: async (ctx) => {
     const rows = await ctx.db.query("projects").collect();
@@ -191,7 +191,7 @@ export const listProjectsNeedingTenantBackfill = query({
   },
 });
 
-export const listAgentsNeedingTenantBackfill = query({
+export const listAgentsNeedingTenantBackfill = internalQuery({
   args: {},
   handler: async (ctx) => {
     const rows = await ctx.db.query("agents").collect();
@@ -199,7 +199,7 @@ export const listAgentsNeedingTenantBackfill = query({
   },
 });
 
-export const listTasksNeedingTenantBackfill = query({
+export const listTasksNeedingTenantBackfill = internalQuery({
   args: {},
   handler: async (ctx) => {
     const rows = await ctx.db.query("tasks").collect();
@@ -207,7 +207,7 @@ export const listTasksNeedingTenantBackfill = query({
   },
 });
 
-export const listRunsNeedingTenantBackfill = query({
+export const listRunsNeedingTenantBackfill = internalQuery({
   args: {},
   handler: async (ctx) => {
     const rows = await ctx.db.query("runs").collect();
@@ -215,7 +215,7 @@ export const listRunsNeedingTenantBackfill = query({
   },
 });
 
-export const listToolCallsNeedingTenantBackfill = query({
+export const listToolCallsNeedingTenantBackfill = internalQuery({
   args: {},
   handler: async (ctx) => {
     const rows = await ctx.db.query("toolCalls").collect();
@@ -223,7 +223,7 @@ export const listToolCallsNeedingTenantBackfill = query({
   },
 });
 
-export const listMessagesNeedingTenantBackfill = query({
+export const listMessagesNeedingTenantBackfill = internalQuery({
   args: {},
   handler: async (ctx) => {
     const rows = await ctx.db.query("messages").collect();
@@ -231,7 +231,7 @@ export const listMessagesNeedingTenantBackfill = query({
   },
 });
 
-export const listApprovalsNeedingTenantBackfill = query({
+export const listApprovalsNeedingTenantBackfill = internalQuery({
   args: {},
   handler: async (ctx) => {
     const rows = await ctx.db.query("approvals").collect();

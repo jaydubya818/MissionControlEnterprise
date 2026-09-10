@@ -1,7 +1,103 @@
 {
   "$schemaVersion": 1,
   "$comment": "Exhaustive disposition of every public Convex read that lacks server-side authorization. Fields apply to every function in an entry; calledFunctions overrides the no-known-caller default. Public Convex functions remain network-reachable even when no enterprise product entry point admits them.",
-  "entries": [
+  "entries": [],
+  "originalClassifiedCount": 157,
+  "resolvedEntries": [
+    {
+      "module": "skillAutomations",
+      "functions": [
+        "getExecutionManifest"
+      ],
+      "classification": "INTERNALIZATION CANDIDATE",
+      "whyItRemains": "The orchestration server reads the approved Level 1 automation manifest during runtime execution.",
+      "calledFunctions": {
+        "getExecutionManifest": [
+          "apps/orchestration-server/src/convexCalls.ts"
+        ]
+      },
+      "admission": "RUNTIME_SERVICE",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Move manifest retrieval behind the signed service-command envelope or require a scoped service identity and validate the WorkOrder project before returning artifact content.",
+      "resolution": "AUTHORIZED",
+      "resolutionEvidence": "Added server-side workspace authorization and constrained the query to records owned by that workspace."
+    },
+    {
+      "module": "workflowRuns",
+      "functions": [
+        "get",
+        "listArtifacts",
+        "listEvents"
+      ],
+      "classification": "INTERNALIZATION CANDIDATE",
+      "whyItRemains": "Runtime services, the workflow engine, CLI, and an old panel use these Attempt reads; canonical UI uses the authorized inspector.",
+      "calledFunctions": {
+        "get": [
+          "apps/mission-control-ui/src/WorkflowRunPanel.tsx",
+          "apps/orchestration-server/src/convexCalls.ts",
+          "packages/cli/src/commands/workflow.ts",
+          "packages/workflow-engine/src/executor.ts"
+        ],
+        "listArtifacts": [
+          "apps/orchestration-server/src/convexCalls.ts"
+        ],
+        "listEvents": [
+          "apps/orchestration-server/src/convexCalls.ts"
+        ]
+      },
+      "admission": "RUNTIME_SERVICE",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Split service reads behind signed scoped service commands, move server composition internal, and require operator/project scope for CLI search/status.",
+      "resolution": "AUTHORIZED",
+      "resolutionEvidence": "Added server-side workspace authorization and constrained the query to records owned by that workspace."
+    },
+    {
+      "module": "workflowRuns",
+      "functions": [
+        "search"
+      ],
+      "classification": "INTERNALIZATION CANDIDATE",
+      "whyItRemains": "Runtime services, the workflow engine, CLI, and an old panel use these Attempt reads; canonical UI uses the authorized inspector.",
+      "calledFunctions": {
+        "search": [
+          "packages/cli/src/commands/workflow.ts"
+        ]
+      },
+      "admission": "RUNTIME_SERVICE",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Split service reads behind signed scoped service commands, move server composition internal, and require operator/project scope for CLI search/status.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
+    },
+    {
+      "module": "workflows",
+      "functions": [
+        "get"
+      ],
+      "classification": "INTERNALIZATION CANDIDATE",
+      "whyItRemains": "Workflow definitions are read by runtime, CLI, an old panel, and internal meta-loop composition; getById has no known caller.",
+      "calledFunctions": {
+        "get": [
+          "apps/mission-control-ui/src/WorkflowRunPanel.tsx",
+          "packages/cli/src/commands/workflow.ts",
+          "packages/workflow-engine/src/executor.ts",
+          "convex/factory/metaLoop.ts"
+        ]
+      },
+      "admission": "RUNTIME_SERVICE",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Use internalQuery for server composition, a signed scoped service contract for runtime, and authenticated operator access for CLI; internalize getById.",
+      "resolution": "AUTHORIZED",
+      "resolutionEvidence": "Added server-side workspace authorization and constrained the query to records owned by that workspace."
+    },
     {
       "module": "agentHiring",
       "functions": [
@@ -28,30 +124,15 @@
       },
       "admission": "NOT_ADMITTED",
       "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Remove the obsolete product component after dependency proof, then internalize or delete these reads; if any hiring capability is retained, add tenant-scoped authorization before re-exposure."
-    },
-    {
-      "module": "apiCollections",
-      "functions": [
-        "get",
-        "list"
-      ],
-      "classification": "PREVIEW",
-      "whyItRemains": "The API-import implementation is retained for the isolated Labs workflow.",
-      "calledFunctions": {},
-      "admission": "LABS_ONLY",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Add object-derived workspace authorization and keep the caller behind Labs, or internalize until the Labs client is restored."
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Remove the obsolete product component after dependency proof, then internalize or delete these reads; if any hiring capability is retained, add tenant-scoped authorization before re-exposure.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
     },
     {
       "module": "captures",
       "functions": [
-        "get",
-        "getByType",
         "list"
       ],
       "classification": "PREVIEW",
@@ -63,24 +144,11 @@
       },
       "admission": "LABS_ONLY",
       "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Scope reads to an authorized workspace before Labs use; internalize unused object/type lookups."
-    },
-    {
-      "module": "codegen",
-      "functions": [
-        "get",
-        "list"
-      ],
-      "classification": "PREVIEW",
-      "whyItRemains": "Code generation is isolated in Labs and retained pending capability qualification.",
-      "calledFunctions": {},
-      "admission": "LABS_ONLY",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Internalize while unused or require project scope and factory.read before any Labs client calls it."
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Scope reads to an authorized workspace before Labs use; internalize unused object/type lookups.",
+      "resolution": "AUTHORIZED",
+      "resolutionEvidence": "Added server-side workspace authorization and constrained the query to records owned by that workspace."
     },
     {
       "module": "contentDrops",
@@ -105,9 +173,11 @@
       },
       "admission": "NOT_ADMITTED",
       "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Retire the diagnostic dependency, remove the obsolete component after proof, and internalize or delete the backend reads."
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Retire the diagnostic dependency, remove the obsolete component after proof, and internalize or delete the backend reads.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
     },
     {
       "module": "e2e",
@@ -124,9 +194,11 @@
       },
       "admission": "DEVELOPER_TOOL",
       "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Require a scoped operator/service identity and return only bounded diagnostic fields, or replace it with authenticated qualification queries."
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Require a scoped operator/service identity and return only bounded diagnostic fields, or replace it with authenticated qualification queries.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
     },
     {
       "module": "factory/agentFleet",
@@ -142,9 +214,11 @@
       },
       "admission": "LEGACY_COMPONENT_ONLY",
       "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Either merge the useful projection into the authorized Agents backend or retire and internalize the old snapshot."
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Either merge the useful projection into the authorized Agents backend or retire and internalize the old snapshot.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
     },
     {
       "module": "factory/health",
@@ -160,9 +234,11 @@
       },
       "admission": "LEGACY_COMPONENT_ONLY",
       "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Authorize and merge only signals that improve Command Center; otherwise internalize the obsolete projection."
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Authorize and merge only signals that improve Command Center; otherwise internalize the obsolete projection.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
     },
     {
       "module": "factory/repetitiveTasks",
@@ -178,9 +254,11 @@
       },
       "admission": "LEGACY_COMPONENT_ONLY",
       "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Require project factory.read and surface through Preview Automations only after product ownership is explicit."
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Require project factory.read and surface through Preview Automations only after product ownership is explicit.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
     },
     {
       "module": "factory/workflows",
@@ -196,38 +274,11 @@
       },
       "admission": "LEGACY_COMPONENT_ONLY",
       "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Merge qualified maintenance definitions into the authorized Automations model or internalize the duplicate catalog."
-    },
-    {
-      "module": "featureFlags",
-      "functions": [
-        "list"
-      ],
-      "classification": "DEVELOPER TOOL",
-      "whyItRemains": "A legacy global feature-flag inventory remains for diagnostics; admitted UI uses scoped flag resolution elsewhere.",
-      "calledFunctions": {},
-      "admission": "DEVELOPER_TOOL",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Restrict to company administrators or internalize behind a bounded configuration diagnostic."
-    },
-    {
-      "module": "flakySteps",
-      "functions": [
-        "get",
-        "list"
-      ],
-      "classification": "PREVIEW",
-      "whyItRemains": "Flaky-step analysis is isolated to Labs.",
-      "calledFunctions": {},
-      "admission": "LABS_ONLY",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Add project/object authorization before Labs activation or internalize while no client exists."
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Merge qualified maintenance definitions into the authorized Automations model or internalize the duplicate catalog.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
     },
     {
       "module": "goals",
@@ -247,40 +298,11 @@
       },
       "admission": "LEGACY_COMPONENT_ONLY",
       "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Migrate any required intent lineage to Missions, then internalize or delete the legacy Goals reads and component."
-    },
-    {
-      "module": "health",
-      "functions": [
-        "check",
-        "ready"
-      ],
-      "classification": "DEVELOPER TOOL",
-      "whyItRemains": "Deployment liveness/readiness probes need a narrow anonymous or service-readable contract.",
-      "calledFunctions": {},
-      "admission": "DEVELOPER_TOOL",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Review returned fields, then declare an explicit minimal anonymous health contract or require service authentication; never expose tenant data."
-    },
-    {
-      "module": "hybridWorkflows",
-      "functions": [
-        "get",
-        "getResults",
-        "list"
-      ],
-      "classification": "PREVIEW",
-      "whyItRemains": "Hybrid workflows are isolated to Labs and not part of the canonical WorkOrder execution path.",
-      "calledFunctions": {},
-      "admission": "LABS_ONLY",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Add project/object authorization if Labs remains active; otherwise internalize or retire after dependency proof."
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Migrate any required intent lineage to Missions, then internalize or delete the legacy Goals reads and component.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
     },
     {
       "module": "meetings",
@@ -304,25 +326,16 @@
       },
       "admission": "NOT_ADMITTED",
       "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Remove the obsolete component after dependency proof and internalize or delete the meeting reads."
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Remove the obsolete component after dependency proof and internalize or delete the meeting reads.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
     },
     {
       "module": "migrations/backfillInstanceRefs",
       "functions": [
-        "getMigrationHealth",
-        "listAgentsNeedingTenantBackfill",
-        "listApprovalsNeedingTenantBackfill",
-        "listMessagesNeedingBackfill",
-        "listMessagesNeedingTenantBackfill",
-        "listProjectsNeedingTenantBackfill",
-        "listRunsNeedingBackfill",
-        "listRunsNeedingTenantBackfill",
-        "listTasksNeedingBackfill",
-        "listTasksNeedingTenantBackfill",
-        "listToolCallsNeedingBackfill",
-        "listToolCallsNeedingTenantBackfill"
+        "getMigrationHealth"
       ],
       "classification": "DEVELOPER TOOL",
       "whyItRemains": "Backfill inspection supports historical data migration and one old Directory diagnostic.",
@@ -333,9 +346,11 @@
       },
       "admission": "DEVELOPER_TOOL",
       "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Move all backfill inspection to internal/admin-only maintenance functions and remove the Directory dependency."
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Move all backfill inspection to internal/admin-only maintenance functions and remove the Directory dependency.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
     },
     {
       "module": "orgMembers",
@@ -359,23 +374,11 @@
       },
       "admission": "NOT_ADMITTED",
       "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Preserve any authorization-linked membership records, but remove legacy public projections or add strict tenant scope before reuse."
-    },
-    {
-      "module": "phaseZeroCanary",
-      "functions": [
-        "status"
-      ],
-      "classification": "DEVELOPER TOOL",
-      "whyItRemains": "A historical rollout canary remains as diagnostic code.",
-      "calledFunctions": {},
-      "admission": "DEVELOPER_TOOL",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Internalize or remove the obsolete canary; use the approved health/readiness contract for deployment probes."
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Preserve any authorization-linked membership records, but remove legacy public projections or add strict tenant scope before reuse.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
     },
     {
       "module": "qcArtifacts",
@@ -391,9 +394,11 @@
       },
       "admission": "LEGACY_COMPONENT_ONLY",
       "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Map needed artifacts to authorized Attempt evidence, then internalize or delete legacy QC download/list reads."
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Map needed artifacts to authorized Attempt evidence, then internalize or delete legacy QC download/list reads.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
     },
     {
       "module": "qcFindings",
@@ -415,9 +420,11 @@
       },
       "admission": "LEGACY_COMPONENT_ONLY",
       "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Verify canonical evidence preserves severity and remediation, then retire or internalize these legacy projections."
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Verify canonical evidence preserves severity and remediation, then retire or internalize these legacy projections.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
     },
     {
       "module": "qcMetrics",
@@ -437,27 +444,11 @@
       },
       "admission": "LEGACY_COMPONENT_ONLY",
       "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Move any needed verification trends into the authorized Analytics projection, then internalize or remove this duplicate API."
-    },
-    {
-      "module": "qcRulesets",
-      "functions": [
-        "get"
-      ],
-      "classification": "INTERNALIZATION CANDIDATE",
-      "whyItRemains": "The legacy QC run module composes this query through the public API even though it is server-internal behavior.",
-      "calledFunctions": {
-        "get": [
-          "convex/qcRuns.ts"
-        ]
-      },
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Convert to internalQuery and update qcRuns to internal.qcRulesets.get, then retain Policies as the product owner."
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Move any needed verification trends into the authorized Analytics projection, then internalize or remove this duplicate API.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
     },
     {
       "module": "qcRuns",
@@ -488,9 +479,11 @@
       },
       "admission": "LEGACY_COMPONENT_ONLY",
       "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Confirm every useful run/evidence relationship exists in the authorized WorkOrder/Attempt model, then internalize or delete the legacy QC reads."
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Confirm every useful run/evidence relationship exists in the authorized WorkOrder/Attempt model, then internalize or delete the legacy QC reads.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
     },
     {
       "module": "registry/agentInstances",
@@ -506,9 +499,11 @@
       },
       "admission": "LEGACY_COMPONENT_ONLY",
       "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Authorize by tenant/project and merge into Agents if justified; otherwise remove the legacy caller and internalize."
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Authorize by tenant/project and merge into Agents if justified; otherwise remove the legacy caller and internalize.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
     },
     {
       "module": "runs",
@@ -528,41 +523,11 @@
       },
       "admission": "LEGACY_COMPONENT_ONLY",
       "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Preserve canonical Attempt lineage, then internalize or delete broad legacy reads and remove the old dashboard dependency."
-    },
-    {
-      "module": "seed",
-      "functions": [
-        "getSeededStatus"
-      ],
-      "classification": "DEVELOPER TOOL",
-      "whyItRemains": "Demo/research-lab seed inspection is retained for local setup.",
-      "calledFunctions": {},
-      "admission": "DEVELOPER_TOOL",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Internalize or restrict to an explicit demo/admin environment; exclude from enterprise production deployment."
-    },
-    {
-      "module": "skillAutomations",
-      "functions": [
-        "getExecutionManifest"
-      ],
-      "classification": "INTERNALIZATION CANDIDATE",
-      "whyItRemains": "The orchestration server reads the approved Level 1 automation manifest during runtime execution.",
-      "calledFunctions": {
-        "getExecutionManifest": [
-          "apps/orchestration-server/src/convexCalls.ts"
-        ]
-      },
-      "admission": "RUNTIME_SERVICE",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Move manifest retrieval behind the signed service-command envelope or require a scoped service identity and validate the WorkOrder project before returning artifact content."
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Preserve canonical Attempt lineage, then internalize or delete broad legacy reads and remove the old dashboard dependency.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
     },
     {
       "module": "telegraph",
@@ -582,39 +547,11 @@
       },
       "admission": "NOT_ADMITTED",
       "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Remove the obsolete inbox after dependency proof and internalize or delete the messaging reads."
-    },
-    {
-      "module": "testGeneration",
-      "functions": [
-        "get",
-        "list"
-      ],
-      "classification": "PREVIEW",
-      "whyItRemains": "Test generation is an isolated Labs capability.",
-      "calledFunctions": {},
-      "admission": "LABS_ONLY",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Require project/object authorization before Labs use or internalize while unused."
-    },
-    {
-      "module": "testRecordings",
-      "functions": [
-        "getBySession",
-        "list"
-      ],
-      "classification": "PREVIEW",
-      "whyItRemains": "Browser recording is isolated to Labs.",
-      "calledFunctions": {},
-      "admission": "LABS_ONLY",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Authorize by project/session owner before Labs use and bound recording metadata exposure."
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Remove the obsolete inbox after dependency proof and internalize or delete the messaging reads.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
     },
     {
       "module": "voice",
@@ -630,9 +567,11 @@
       },
       "admission": "NOT_ADMITTED",
       "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Remove the old panel after dependency proof and internalize or delete artifact reads, preserving any artifacts required by canonical evidence."
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Remove the old panel after dependency proof and internalize or delete artifact reads, preserving any artifacts required by canonical evidence.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
     },
     {
       "module": "workflowMetrics",
@@ -652,9 +591,242 @@
       },
       "admission": "LEGACY_COMPONENT_ONLY",
       "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Add project scope and bounded aggregation before merging into Preview Analytics/Observability, or internalize."
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Add project scope and bounded aggregation before merging into Preview Analytics/Observability, or internalize.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
+    },
+    {
+      "module": "apiCollections",
+      "functions": [
+        "get",
+        "list"
+      ],
+      "classification": "PREVIEW",
+      "whyItRemains": "The API-import implementation is retained for the isolated Labs workflow.",
+      "calledFunctions": {},
+      "admission": "LABS_ONLY",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Add object-derived workspace authorization and keep the caller behind Labs, or internalize until the Labs client is restored.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
+    },
+    {
+      "module": "captures",
+      "functions": [
+        "get",
+        "getByType"
+      ],
+      "classification": "PREVIEW",
+      "whyItRemains": "Capture ingestion and review remain available only as an experimental Labs capability.",
+      "calledFunctions": {},
+      "admission": "LABS_ONLY",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Scope reads to an authorized workspace before Labs use; internalize unused object/type lookups.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
+    },
+    {
+      "module": "codegen",
+      "functions": [
+        "get",
+        "list"
+      ],
+      "classification": "PREVIEW",
+      "whyItRemains": "Code generation is isolated in Labs and retained pending capability qualification.",
+      "calledFunctions": {},
+      "admission": "LABS_ONLY",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Internalize while unused or require project scope and factory.read before any Labs client calls it.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
+    },
+    {
+      "module": "featureFlags",
+      "functions": [
+        "list"
+      ],
+      "classification": "DEVELOPER TOOL",
+      "whyItRemains": "A legacy global feature-flag inventory remains for diagnostics; admitted UI uses scoped flag resolution elsewhere.",
+      "calledFunctions": {},
+      "admission": "DEVELOPER_TOOL",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Restrict to company administrators or internalize behind a bounded configuration diagnostic.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
+    },
+    {
+      "module": "flakySteps",
+      "functions": [
+        "get",
+        "list"
+      ],
+      "classification": "PREVIEW",
+      "whyItRemains": "Flaky-step analysis is isolated to Labs.",
+      "calledFunctions": {},
+      "admission": "LABS_ONLY",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Add project/object authorization before Labs activation or internalize while no client exists.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
+    },
+    {
+      "module": "health",
+      "functions": [
+        "check",
+        "ready"
+      ],
+      "classification": "DEVELOPER TOOL",
+      "whyItRemains": "Deployment liveness/readiness probes need a narrow anonymous or service-readable contract.",
+      "calledFunctions": {},
+      "admission": "DEVELOPER_TOOL",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Review returned fields, then declare an explicit minimal anonymous health contract or require service authentication; never expose tenant data.",
+      "resolution": "DECLARED_PUBLIC",
+      "resolutionEvidence": "Converted to a reviewed publicQuery contract with a literal justification and bounded non-tenant response fields."
+    },
+    {
+      "module": "hybridWorkflows",
+      "functions": [
+        "get",
+        "getResults",
+        "list"
+      ],
+      "classification": "PREVIEW",
+      "whyItRemains": "Hybrid workflows are isolated to Labs and not part of the canonical WorkOrder execution path.",
+      "calledFunctions": {},
+      "admission": "LABS_ONLY",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Add project/object authorization if Labs remains active; otherwise internalize or retire after dependency proof.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
+    },
+    {
+      "module": "migrations/backfillInstanceRefs",
+      "functions": [
+        "listAgentsNeedingTenantBackfill",
+        "listApprovalsNeedingTenantBackfill",
+        "listMessagesNeedingBackfill",
+        "listMessagesNeedingTenantBackfill",
+        "listProjectsNeedingTenantBackfill",
+        "listRunsNeedingBackfill",
+        "listRunsNeedingTenantBackfill",
+        "listTasksNeedingBackfill",
+        "listTasksNeedingTenantBackfill",
+        "listToolCallsNeedingBackfill",
+        "listToolCallsNeedingTenantBackfill"
+      ],
+      "classification": "DEVELOPER TOOL",
+      "whyItRemains": "Backfill inspection supports historical data migration and one old Directory diagnostic.",
+      "calledFunctions": {},
+      "admission": "DEVELOPER_TOOL",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Move all backfill inspection to internal/admin-only maintenance functions and remove the Directory dependency.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
+    },
+    {
+      "module": "phaseZeroCanary",
+      "functions": [
+        "status"
+      ],
+      "classification": "DEVELOPER TOOL",
+      "whyItRemains": "A historical rollout canary remains as diagnostic code.",
+      "calledFunctions": {},
+      "admission": "DEVELOPER_TOOL",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Internalize or remove the obsolete canary; use the approved health/readiness contract for deployment probes.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
+    },
+    {
+      "module": "qcRulesets",
+      "functions": [
+        "get"
+      ],
+      "classification": "INTERNALIZATION CANDIDATE",
+      "whyItRemains": "The legacy QC run module composes this query through the public API even though it is server-internal behavior.",
+      "calledFunctions": {
+        "get": [
+          "convex/qcRuns.ts"
+        ]
+      },
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Convert to internalQuery and update qcRuns to internal.qcRulesets.get, then retain Policies as the product owner.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
+    },
+    {
+      "module": "seed",
+      "functions": [
+        "getSeededStatus"
+      ],
+      "classification": "DEVELOPER TOOL",
+      "whyItRemains": "Demo/research-lab seed inspection is retained for local setup.",
+      "calledFunctions": {},
+      "admission": "DEVELOPER_TOOL",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Internalize or restrict to an explicit demo/admin environment; exclude from enterprise production deployment.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
+    },
+    {
+      "module": "testGeneration",
+      "functions": [
+        "get",
+        "list"
+      ],
+      "classification": "PREVIEW",
+      "whyItRemains": "Test generation is an isolated Labs capability.",
+      "calledFunctions": {},
+      "admission": "LABS_ONLY",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Require project/object authorization before Labs use or internalize while unused.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
+    },
+    {
+      "module": "testRecordings",
+      "functions": [
+        "getBySession",
+        "list"
+      ],
+      "classification": "PREVIEW",
+      "whyItRemains": "Browser recording is isolated to Labs.",
+      "calledFunctions": {},
+      "admission": "LABS_ONLY",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Authorize by project/session owner before Labs use and bound recording metadata exposure.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
     },
     {
       "module": "workflowRecoveryCanary",
@@ -666,67 +838,12 @@
       "calledFunctions": {},
       "admission": "DEVELOPER_TOOL",
       "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Internalize or remove after the Phase 3 recovery qualification supersedes it."
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Internalize or remove after the Phase 3 recovery qualification supersedes it.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after dependency analysis found no product caller or migrated the only server caller to an internal reference."
     },
-    {
-      "module": "workflowRuns",
-      "functions": [
-        "get",
-        "listArtifacts",
-        "listEvents",
-        "search"
-      ],
-      "classification": "INTERNALIZATION CANDIDATE",
-      "whyItRemains": "Runtime services, the workflow engine, CLI, and an old panel use these Attempt reads; canonical UI uses the authorized inspector.",
-      "calledFunctions": {
-        "get": [
-          "apps/mission-control-ui/src/WorkflowRunPanel.tsx",
-          "apps/orchestration-server/src/convexCalls.ts",
-          "packages/cli/src/commands/workflow.ts",
-          "packages/workflow-engine/src/executor.ts"
-        ],
-        "listArtifacts": [
-          "apps/orchestration-server/src/convexCalls.ts"
-        ],
-        "listEvents": [
-          "apps/orchestration-server/src/convexCalls.ts"
-        ],
-        "search": [
-          "packages/cli/src/commands/workflow.ts"
-        ]
-      },
-      "admission": "RUNTIME_SERVICE",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Split service reads behind signed scoped service commands, move server composition internal, and require operator/project scope for CLI search/status."
-    },
-    {
-      "module": "workflows",
-      "functions": [
-        "get"
-      ],
-      "classification": "INTERNALIZATION CANDIDATE",
-      "whyItRemains": "Workflow definitions are read by runtime, CLI, an old panel, and internal meta-loop composition; getById has no known caller.",
-      "calledFunctions": {
-        "get": [
-          "apps/mission-control-ui/src/WorkflowRunPanel.tsx",
-          "packages/cli/src/commands/workflow.ts",
-          "packages/workflow-engine/src/executor.ts",
-          "convex/factory/metaLoop.ts"
-        ]
-      },
-      "admission": "RUNTIME_SERVICE",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Use internalQuery for server composition, a signed scoped service contract for runtime, and authenticated operator access for CLI; internalize getById."
-    }
-  ],
-  "originalClassifiedCount": 157,
-  "resolvedEntries": [
     {
       "module": "agentHiring",
       "functions": [

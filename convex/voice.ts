@@ -17,7 +17,7 @@ import { authedMutation } from "./lib/authedFunctions";
 /**
  * List voice artifacts for an agent or project.
  */
-export const listArtifacts = query({
+export const listArtifacts = internalQuery({
   args: {
     agentId: v.optional(v.string()),
     projectId: v.optional(v.id("projects")),

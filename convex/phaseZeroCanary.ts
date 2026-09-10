@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 import { sha256Hex } from "./lib/harnessPrChecks";
@@ -410,7 +410,7 @@ export const seed = authedMutation({
   },
 });
 
-export const status = query({
+export const status = internalQuery({
   args: {},
   handler: async (ctx) => {
     assertCanaryEnabled();

@@ -38,7 +38,7 @@ const projectAccessValidator = v.object({
 /**
  * List all org members for a project (or all if no projectId)
  */
-export const list = query({
+export const list = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
   },
@@ -108,7 +108,7 @@ export const getHierarchy = internalQuery({
 /**
  * Get unified org hierarchy combining humans and agents
  */
-export const getUnifiedHierarchy = query({
+export const getUnifiedHierarchy = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
   },
@@ -211,7 +211,7 @@ export const getUnifiedHierarchy = query({
 /**
  * Get a single org member by ID
  */
-export const get = query({
+export const get = internalQuery({
   args: {
     id: v.id("orgMembers"),
   },

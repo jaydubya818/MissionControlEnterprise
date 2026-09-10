@@ -39,6 +39,17 @@ const baselineRepositoryPath = "scripts/convex-authorization-baseline.json";
 
 const scan = scanConvexAuthorization(repoRoot);
 const current = toIdentifiers(scan.unauthorized);
+const invalidPublicDeclarations = scan.functions.filter(
+  (fn) => fn.declaredPublic && (typeof fn.publicReason !== "string" || fn.publicReason.trim().length < 20),
+);
+
+if (invalidPublicDeclarations.length > 0) {
+  console.error("Convex authorization ratchet: FAIL\nDeclared-public functions require a literal reason of at least 20 characters:");
+  for (const fn of invalidPublicDeclarations) {
+    console.error(`  - ${fn.module}:${fn.name} — convex/${fn.module}.ts:${fn.line}`);
+  }
+  process.exit(1);
+}
 
 if (process.argv.includes("--update")) {
   writeFileSync(

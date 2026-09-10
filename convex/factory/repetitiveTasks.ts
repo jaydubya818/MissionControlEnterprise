@@ -1,7 +1,7 @@
 /** Governed repetitive-work detection from Work Orders and verification receipts. */
 
 import { v } from "convex/values";
-import { internalMutation, mutation, query } from "../_generated/server";
+import { internalMutation, mutation, query, internalQuery } from "../_generated/server";
 import type { Id } from "../_generated/dataModel";
 import { loadRepetitiveTaskCandidates } from "../lib/repetitiveTaskCandidates";
 import { authedMutation } from "../lib/authedFunctions";
@@ -47,7 +47,7 @@ async function createProposals(ctx: { db: any }, projectId?: Id<"projects">) {
   return { created: createdIds.length, candidates: candidates.length, proposalIds: createdIds };
 }
 
-export const listCandidates = query({
+export const listCandidates = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     limit: v.optional(v.number()),

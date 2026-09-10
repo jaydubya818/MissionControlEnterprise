@@ -40,6 +40,7 @@ describe("release configuration", () => {
       "Content-Security-Policy": "frame-ancestors 'none'; base-uri 'self'; object-src 'none'",
       "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
       "Referrer-Policy": "strict-origin-when-cross-origin",
+      "Strict-Transport-Security": "max-age=31536000",
       "X-Content-Type-Options": "nosniff",
       "X-Frame-Options": "DENY",
     });

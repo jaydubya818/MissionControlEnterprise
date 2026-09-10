@@ -83,6 +83,14 @@ test("enterprise navigation exposes only the 15 primary Live destinations", asyn
   await expect(navigation.getByRole("button", { name: /CRM/ })).toHaveCount(0);
 });
 
+test("Live operating surfaces expose no demo entry points", async ({ page }) => {
+  for (const route of ["/v2/command-center", "/v2/control-work-orders"]) {
+    await page.goto(route);
+    await expect(page.getByText(/seed demo|run the demo/i)).toHaveCount(0);
+    await expect(page.getByText("Demo data", { exact: true })).toHaveCount(0);
+  }
+});
+
 test("consolidated, removed, Preview, Labs, and unknown deep links are handled explicitly", async ({ page }) => {
   const cases = [
     { source: "/v2/home?workspace=workspace-1", destination: "/v2/command-center", notice: /overview surface was consolidated/i },

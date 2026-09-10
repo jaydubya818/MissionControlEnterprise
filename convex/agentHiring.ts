@@ -52,7 +52,7 @@ const autonomyLevelValidator = v.union(v.literal(1), v.literal(2), v.literal(3))
 // QUERIES
 // ============================================================================
 
-export const listRoleSpecs = query({
+export const listRoleSpecs = internalQuery({
   args: { projectId: v.id("projects") },
   handler: async (ctx, args) => {
     return await ctx.db
@@ -63,14 +63,14 @@ export const listRoleSpecs = query({
   },
 });
 
-export const getRoleSpec = query({
+export const getRoleSpec = internalQuery({
   args: { id: v.id("agentRoleSpecs") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.id);
   },
 });
 
-export const listCandidates = query({
+export const listCandidates = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     roleSpecId: v.optional(v.id("agentRoleSpecs")),
@@ -94,7 +94,7 @@ export const listCandidates = query({
   },
 });
 
-export const getCandidate = query({
+export const getCandidate = internalQuery({
   args: { id: v.id("hiringCandidates") },
   handler: async (ctx, args) => {
     const candidate = await ctx.db.get(args.id);

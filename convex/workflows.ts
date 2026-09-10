@@ -56,14 +56,26 @@ export const list = query({
   },
   handler: async (ctx, args) => {
     await assertAuthenticated(ctx);
-    if (args.activeOnly) {
-      return await ctx.db
+    const workflows = args.activeOnly
+      ? await ctx.db
         .query("workflows")
         .withIndex("by_active", (q) => q.eq("active", true))
-        .collect();
+        .collect()
+      : await ctx.db.query("workflows").collect();
+    const visible = [];
+    for (const workflow of workflows) {
+      if (!workflow.projectId) {
+        visible.push(workflow);
+        continue;
+      }
+      try {
+        await requireWorkspacePermission(ctx, workflow.projectId, FACTORY_PERMISSIONS.VIEW);
+        visible.push(workflow);
+      } catch {
+        // Project-owned definitions outside the caller's workspace are omitted.
+      }
     }
-    
-    return await ctx.db.query("workflows").collect();
+    return visible;
   },
 });
 
@@ -73,10 +85,15 @@ export const list = query({
 export const get = query({
   args: { workflowId: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.db
+    await assertAuthenticated(ctx);
+    const workflow = await ctx.db
       .query("workflows")
       .withIndex("by_workflow_id", (q) => q.eq("workflowId", args.workflowId))
       .first();
+    if (workflow?.projectId) {
+      await requireWorkspacePermission(ctx, workflow.projectId, FACTORY_PERMISSIONS.VIEW);
+    }
+    return workflow;
   },
 });
 
@@ -87,6 +104,16 @@ export const getById = internalQuery({
   args: { id: v.id("workflows") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.id);
+  },
+});
+
+export const getInternal = internalQuery({
+  args: { workflowId: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("workflows")
+      .withIndex("by_workflow_id", (q) => q.eq("workflowId", args.workflowId))
+      .first();
   },
 });
 

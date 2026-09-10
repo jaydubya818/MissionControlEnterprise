@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { authedMutation } from "./lib/authedFunctions";
 
 function buildSessionId(): string {
@@ -35,7 +35,7 @@ function eventsToGherkin(name: string, events: { eventType?: string; data?: Reco
   return lines.join("\n");
 }
 
-export const list = query({
+export const list = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     userId: v.optional(v.string()),
@@ -61,7 +61,7 @@ export const list = query({
   },
 });
 
-export const getBySession = query({
+export const getBySession = internalQuery({
   args: { sessionId: v.string() },
   handler: async (ctx, args) => {
     return await ctx.db.query("testRecordings").withIndex("by_session", (q) => q.eq("sessionId", args.sessionId)).first();

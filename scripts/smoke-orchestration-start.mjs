@@ -16,6 +16,7 @@ const child = spawn(process.execPath, [artifact], {
   env: {
     ...process.env,
     CONVEX_URL: process.env.CONVEX_URL ?? "http://127.0.0.1:3210",
+    CONVEX_SERVICE_AUTH_TOKEN: process.env.CONVEX_SERVICE_AUTH_TOKEN ?? "qualification-only-service-token",
     ORCHESTRATION_DISABLE_STARTUP: "1",
   },
   stdio: ["ignore", "pipe", "pipe"],

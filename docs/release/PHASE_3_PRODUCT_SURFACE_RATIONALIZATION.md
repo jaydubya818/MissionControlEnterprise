@@ -2,7 +2,7 @@
 title: Phase 3 Enterprise Product Surface Rationalization
 status: implemented
 upstream_baseline: ffd58077989a23004819a85f529ca74c955b1422
-updated: 2026-09-09
+updated: 2026-09-10
 ---
 
 # Phase 3 enterprise product surface rationalization
@@ -217,12 +217,13 @@ to Live by this decision.
 The exact imported-baseline replay passed with 917 public functions scanned,
 733 authorized, 184 ratcheted unauthorized read-only functions, zero Live
 unauthorized functions, and zero unauthorized mutations/actions. Product-
-surface implementation then authorized 27 inherited reads. Dependency analysis
-subsequently internalized 79 reads with no admitted or known caller, leaving
-838 public functions: 760 authorized and 78 ratcheted unauthorized read-only
-functions. All 17 Live and 14 Preview UI closures now pass the dedicated
-server-authorization gate. This remains a rationalized
-boundary, not final Phase 3 release approval.
+surface implementation first closed the admitted route closures, then resolved
+all 157 remaining inherited findings through 149 internalizations, 6 explicit
+authorization boundaries, and 2 bounded declared-public health probes. The
+current contract contains 762 public functions: 760 authorized, 2 declared
+public, and zero unauthorized. All 17 Live and 14 Preview UI closures pass the
+dedicated server-authorization gate. This remains a rationalized boundary, not
+final Phase 3 release approval.
 
 The matrix identifies routes known to touch authorization debt. A route that is
 consolidated, moved to Labs, hidden, deprecated, or removed must not remain a

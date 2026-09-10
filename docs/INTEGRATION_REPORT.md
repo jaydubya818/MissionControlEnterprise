@@ -105,9 +105,9 @@ GitHub Actions pipeline:
 - Removes seed artifacts
 
 **convex/e2e.ts** — Convex mutations
-- `api.e2e.seed` — Create seed data
-- `api.e2e.cleanup` — Remove seed data
-- `api.e2e.validate` — Validate seed data exists
+- `e2e:seed` — Create seed data through the deployment-admin CLI
+- `e2e:cleanup` — Remove seed data through the deployment-admin CLI
+- `e2e:validate` — Validate seed data through the deployment-admin CLI
 
 **docs/BOOT_CONTRACT.md** — System startup guide
 

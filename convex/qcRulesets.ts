@@ -5,7 +5,7 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
 import { authedMutation } from "./lib/authedFunctions";
@@ -54,7 +54,7 @@ export const list = query({
 /**
  * Get a single ruleset
  */
-export const get = query({
+export const get = internalQuery({
   args: { id: v.id("qcRulesets") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.id);

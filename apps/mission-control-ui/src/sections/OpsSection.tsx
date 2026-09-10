@@ -9,7 +9,6 @@ import { CalendarView } from "../CalendarView";
 import { ScheduleView } from "../ScheduleView";
 import { AuditView } from "../AuditView";
 import { TelemetryView } from "../TelemetryView";
-import { GoalsView } from "../GoalsView";
 import { AutomationsView } from "../automations/AutomationsView";
 import { PageHeader } from "../components/PageHeader";
 import { TaskboardStats } from "../components/TaskboardStats";
@@ -158,18 +157,6 @@ export function OpsSection({
           onExecutionSelect={() => onNavigate("control-work-orders")}
         />
       </div>
-    );
-  }
-
-  if (currentView === "goals") {
-    return (
-      <GoalsView
-        projectId={projectId}
-        onTaskSelect={(taskId) => {
-          onTaskSelect(taskId);
-          onNavigate("tasks");
-        }}
-      />
     );
   }
 

@@ -2,7 +2,7 @@
 title: Phase 3 Preview Security Review
 status: pass
 upstream_baseline: ffd58077989a23004819a85f529ca74c955b1422
-updated: 2026-09-09
+updated: 2026-09-10
 ---
 
 # Phase 3 Preview security review
@@ -14,14 +14,12 @@ all 14 Preview routes through their local import closures to every referenced
 public Convex function. Every reachable function now establishes server-side
 authentication and, where records are scoped, company/workspace authorization.
 
-The Preview work closed 14 inherited unauthenticated reads. Subsequent Live
-closure work closed another 13, reducing the repository authorization baseline
-from 184 to 157. A subsequent dependency-safe tranche internalized 79 reads
-with no admitted or known repository caller, leaving 78 public unauthenticated
-reads. None is reachable from an admitted Live or Preview route according to
-the enforced closure gate, but all 78 remain directly callable through the
-public Convex API. They are classified Phase 3 authorization debt and are not
-waived for pilot or final enterprise readiness.
+The Preview work closed 14 inherited unauthenticated reads and the subsequent
+Live closure closed another 13. Product dependency analysis then resolved all
+157 remaining inherited findings: 149 were internalized, 6 received explicit
+server authorization, and 2 became bounded declared-public health probes.
+There are now zero unauthorized public reads, mutations, or actions across the
+repository.
 
 ## Findings and remediation
 
@@ -59,10 +57,11 @@ Current result:
 17 Live routes PASS
 14 Preview routes PASS
 0 admitted routes reach an unauthenticated public Convex function
-838 total public Convex functions
+762 total public Convex functions
 760 authorized
-78 active classified unauthenticated read-only functions
-79 internalized reads retained in resolved classification history
+2 bounded declared-public health probes
+0 active unauthorized functions
+157 reads retained in resolved classification history
 0 unauthorized mutations/actions
 ```
 
@@ -72,7 +71,7 @@ Current result:
 | --- | --- | --- |
 | Admitted Preview route reaches an unauthenticated function | None detected | Release gate; must remain zero. |
 | Cross-company access through remediated Preview reads | None detected | Negative tests required on every change. |
-| Remaining public unauthenticated reads outside admitted routes | High | Classification is complete; every function remains a pilot blocker until authorized, internalized, explicitly declared minimal public, or removed. |
+| Remaining public unauthenticated reads outside admitted routes | None detected | The zero baseline and resolved-history checker prevent silent re-exposure. |
 | Gateway service identity missing or invalid | Medium, fail-closed | Surface degraded/unconfigured status; production configuration proof remains pending. |
 
 ## Security checklist

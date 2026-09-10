@@ -10,7 +10,7 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import {
   isValidFlagKey,
   resolveAllFlags,
@@ -41,7 +41,7 @@ function isFactoryControlFlag(key: string) {
 }
 
 /** All flags (known registry + any ad-hoc rows), resolved for optional project scope. */
-export const list = query({
+export const list = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
   },

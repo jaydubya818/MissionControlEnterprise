@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/components/PageHeader";
-import { ArrowLeft, ClipboardList, ExternalLink, PlayCircle, Plus, ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
+import { ArrowLeft, ClipboardList, ExternalLink, PlayCircle, Plus, ShieldCheck, TriangleAlert } from "lucide-react";
 import {
   countByQuickFilter,
   DEFAULT_WORK_ORDER_FILTERS,
@@ -139,7 +139,6 @@ export function WorkOrdersView({ projectId }: { projectId: Id<"projects"> | null
   const [dispatchFactorySelections, setDispatchFactorySelections] = useState<Record<string, string>>({});
   const [governanceError, setGovernanceError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
-  const [seeding, setSeeding] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const workOrders = useQuery(api.workOrders.list, projectId ? { projectId } : {});
@@ -233,7 +232,6 @@ export function WorkOrdersView({ projectId }: { projectId: Id<"projects"> | null
   const supersedeWorkOrder = useMutation(api.workOrders.supersedeWorkOrder);
   const expireGovernanceRecords = useMutation(api.workOrders.expireGovernanceRecords);
   const recordReviewJudgment = useMutation(api.reviewIntelligence.recordReviewJudgment);
-  const seedDemo = useMutation(api.workOrders.seedDemo);
 
   const filtered = useMemo(() => filterWorkOrders(workOrders ?? [], filters), [workOrders, filters]);
 
@@ -302,15 +300,6 @@ export function WorkOrdersView({ projectId }: { projectId: Id<"projects"> | null
       QUICK_FILTERS.map((filter) => [filter.id, filter.id === "all" ? rows.length : countByQuickFilter(rows, filter.id)])
     ) as Record<WorkOrderQuickFilter, number>;
   }, [workOrders]);
-
-  async function handleSeed() {
-    setSeeding(true);
-    try {
-      await seedDemo({});
-    } finally {
-      setSeeding(false);
-    }
-  }
 
   const canDispatchSelected = !!selected && ["READY", "BLOCKED", "DISPATCHED", "IN_PROGRESS", "REOPENED", "AWAITING_APPROVAL", "AWAITING_VERIFICATION"].includes(selected.workOrder.state)
     && !!selected.workOrder.workflowId
@@ -418,10 +407,6 @@ export function WorkOrdersView({ projectId }: { projectId: Id<"projects"> | null
         icon={<ClipboardList className="h-5 w-5" />}
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleSeed} disabled={seeding}>
-              <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-              {seeding ? "Seeding…" : "Seed demo"}
-            </Button>
             {selected ? (
               <Button variant="outline" size="sm" onClick={() => setCreateTaskOpen(true)}>
                 <Plus className="mr-1.5 h-3.5 w-3.5" />

@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { kpiSummary } from "../analytics";
 import { activate } from "../automations";
+import { list as listCaptures } from "../captures";
 import { authedMutation } from "../lib/authedFunctions";
 import { getDependencyGraph } from "../coordinator";
 import { defaultRules } from "../context/changeRisk";
@@ -31,6 +32,13 @@ import { createVersion, getVersion, listVersions } from "../registry/agentVersio
 import { listEnvironments } from "../registry/environments";
 import { listTenants } from "../registry/tenants";
 import { listByUser as listWatchSubscriptionsByUser } from "../watchSubscriptions";
+import { getExecutionManifest } from "../skillAutomations";
+import {
+  get as getWorkflowRun,
+  listArtifacts as listWorkflowRunArtifacts,
+  listEvents as listWorkflowRunEvents,
+} from "../workflowRuns";
+import { get as getWorkflow, list as listWorkflows } from "../workflows";
 
 const legacyScopedWrite = authedMutation({
   args: { projectId: v.id("projects") },
@@ -60,6 +68,7 @@ function createContext({
   const projectId = "project-a" as Id<"projects">;
   const otherProjectId = "project-b" as Id<"projects">;
   const operatorId = "operator-a" as Id<"operators">;
+  const memberId = "member-a" as Id<"orgMembers">;
   const roleId = "role-a" as Id<"roles">;
   const definitionId = "automation-a" as Id<"automationDefinitions">;
   const tables: Record<string, any[]> = {
@@ -82,7 +91,13 @@ function createContext({
         : { type: "project", id: projectId },
     }],
     teamMemberships: [],
-    orgMembers: [],
+    orgMembers: [{
+      _id: memberId,
+      operatorId,
+      tenantId,
+      active: true,
+      projectAccess: [{ projectId }],
+    }],
     runs: [],
     tasks: [
       {
@@ -136,12 +151,99 @@ function createContext({
     automationDefinitions: [{
       _id: definitionId,
       projectId,
-      status: "DISABLED",
+      status: "ACTIVE",
       isMutating: false,
       autonomyLevel: "LEVEL_1",
       definitionVersion: 1,
+      reviewStatus: "APPROVED",
+      validationStatus: "PASSED",
+      artifactId: "artifact-definition-a",
+      adapterType: "TYPESCRIPT",
+      maxDurationSeconds: 30,
     }],
     automationDecisions: [],
+    automationArtifacts: [{
+      _id: "artifact-definition-a",
+      validationStatus: "PASSED",
+      repository: "sellerfi/enterprise",
+      workingDirectory: ".",
+      path: "automations/check.ts",
+      content: "export default async function check() { return true; }",
+      contentHash: "artifact-hash-a",
+      manifest: { mode: "read-only" },
+    }],
+    automationEvaluations: [{
+      _id: "evaluation-a",
+      workOrderId: "work-order-a",
+      correlationId: "correlation-a",
+    }],
+    workOrders: [
+      {
+        _id: "work-order-a",
+        tenantId,
+        projectId,
+        ownerMemberId: memberId,
+        currentExecutionRunId: "workflow-run-a",
+        metadata: { automationDefinitionId: definitionId },
+        acceptanceCriteria: [],
+      },
+      {
+        _id: "work-order-b",
+        tenantId: otherTenantId,
+        projectId: otherProjectId,
+        acceptanceCriteria: [],
+      },
+    ],
+    workflowRuns: [
+      {
+        _id: "workflow-run-a",
+        tenantId,
+        projectId,
+        workOrderId: "work-order-a",
+        runId: "run-a",
+        workflowId: "global-flow",
+        status: "PENDING",
+        currentStepIndex: 0,
+        totalSteps: 0,
+        steps: [],
+        context: {},
+        initialInput: "authorized input",
+        executionClaimId: "claim-a",
+        executionClaimedBy: "service-a",
+        executionLeaseExpiresAt: Date.now() + 60_000,
+      },
+      {
+        _id: "workflow-run-b",
+        tenantId: otherTenantId,
+        projectId: otherProjectId,
+        workOrderId: "work-order-b",
+        runId: "run-b",
+        workflowId: "scoped-b",
+        status: "PENDING",
+        currentStepIndex: 0,
+        totalSteps: 0,
+        steps: [],
+        context: {},
+        initialInput: "other company input",
+      },
+    ],
+    runEvents: [
+      { _id: "event-a", workflowRunId: "workflow-run-a", eventType: "RUN_STARTED", sequenceNumber: 1 },
+      { _id: "event-b", workflowRunId: "workflow-run-b", eventType: "RUN_STARTED", sequenceNumber: 1 },
+    ],
+    runArtifacts: [
+      { _id: "run-artifact-a", workflowRunId: "workflow-run-a", artifactType: "REPORT", name: "A", createdAt: 1 },
+      { _id: "run-artifact-b", workflowRunId: "workflow-run-b", artifactType: "REPORT", name: "B", createdAt: 1 },
+    ],
+    captures: [
+      { _id: "capture-a", projectId, title: "A", type: "SCREENSHOT" },
+      { _id: "capture-b", projectId: otherProjectId, title: "B", type: "SCREENSHOT" },
+    ],
+    workflows: [
+      { _id: "workflow-global", workflowId: "global-flow", active: true, name: "Global" },
+      { _id: "workflow-a", workflowId: "scoped-a", projectId, active: true, name: "A" },
+      { _id: "workflow-b", workflowId: "scoped-b", projectId: otherProjectId, active: true, name: "B" },
+    ],
     environments: [
       { _id: "environment-a", tenantId, name: "Production A", type: "prod" },
       { _id: "environment-b", tenantId: otherTenantId, name: "Production B", type: "prod" },
@@ -248,7 +350,7 @@ describe("authorization remediation", () => {
   });
 
   it("allows an authorized workspace viewer", async () => {
-    const { ctx, projectId } = createContext({ permissions: ["factory.read"] });
+    const { ctx, projectId, definitionId } = createContext({ permissions: ["factory.read"] });
     await expect(functionHandler(kpiSummary)(ctx, { projectId, periodDays: 7 }))
       .resolves.toMatchObject({
         runs: { value: 0 },
@@ -535,5 +637,79 @@ describe("authorization remediation", () => {
       .resolves.toMatchObject({ total: 1, byType: { PRAISE: 1 } });
     await expect(functionHandler(listWatchSubscriptionsByUser)(ctx, { userId: "operator", projectId }))
       .resolves.toEqual([expect.objectContaining({ entityId: "task-a" })]);
+  });
+
+  it("denies unauthenticated runtime and Labs reads", async () => {
+    const { ctx, projectId } = createContext({ identity: null });
+    const calls = [
+      () => functionHandler(listCaptures)(ctx, { projectId }),
+      () => functionHandler(getWorkflowRun)(ctx, { runId: "run-a" }),
+      () => functionHandler(listWorkflowRunEvents)(ctx, { workflowRunId: "workflow-run-a" }),
+      () => functionHandler(listWorkflowRunArtifacts)(ctx, { workflowRunId: "workflow-run-a" }),
+      () => functionHandler(getExecutionManifest)(ctx, {
+        workOrderId: "work-order-a",
+        claimId: "claim-a",
+        ownerId: "service-a",
+      }),
+      () => functionHandler(getWorkflow)(ctx, { workflowId: "global-flow" }),
+      () => functionHandler(listWorkflows)(ctx, { activeOnly: true }),
+    ];
+
+    for (const call of calls) {
+      await expect(call()).rejects.toThrow(/Authentication|required|unavailable|unauthorized/);
+    }
+  });
+
+  it("denies cross-company runtime and Labs objects", async () => {
+    const { ctx, otherProjectId } = createContext({ permissions: ["factory.read"] });
+    const calls = [
+      () => functionHandler(listCaptures)(ctx, { projectId: otherProjectId }),
+      () => functionHandler(getWorkflowRun)(ctx, { runId: "run-b" }),
+      () => functionHandler(listWorkflowRunEvents)(ctx, { workflowRunId: "workflow-run-b" }),
+      () => functionHandler(listWorkflowRunArtifacts)(ctx, { workflowRunId: "workflow-run-b" }),
+      () => functionHandler(getExecutionManifest)(ctx, { workOrderId: "work-order-b" }),
+      () => functionHandler(getWorkflow)(ctx, { workflowId: "scoped-b" }),
+    ];
+
+    for (const call of calls) {
+      await expect(call()).rejects.toThrow(/Company account|unavailable|unauthorized/);
+    }
+  });
+
+  it("serves runtime and Labs data only inside the authorized workspace", async () => {
+    const { ctx, projectId, definitionId } = createContext({ permissions: ["factory.read"] });
+
+    await expect(functionHandler(listCaptures)(ctx, { projectId }))
+      .resolves.toEqual([expect.objectContaining({ _id: "capture-a" })]);
+    await expect(functionHandler(getWorkflowRun)(ctx, { runId: "run-a" }))
+      .resolves.toMatchObject({ _id: "workflow-run-a", projectId });
+    await expect(functionHandler(listWorkflowRunEvents)(ctx, { workflowRunId: "workflow-run-a" }))
+      .resolves.toEqual([expect.objectContaining({ _id: "event-a" })]);
+    await expect(functionHandler(listWorkflowRunArtifacts)(ctx, { workflowRunId: "workflow-run-a" }))
+      .resolves.toEqual([expect.objectContaining({ _id: "run-artifact-a" })]);
+    await expect(functionHandler(getExecutionManifest)(ctx, {
+      workOrderId: "work-order-a",
+      claimId: "claim-a",
+      ownerId: "service-a",
+    })).resolves.toMatchObject({
+      workflowRunId: "workflow-run-a",
+      definitionId,
+      artifactContentHash: "artifact-hash-a",
+    });
+    await expect(functionHandler(getWorkflow)(ctx, { workflowId: "scoped-a" }))
+      .resolves.toMatchObject({ projectId });
+    await expect(functionHandler(listWorkflows)(ctx, { activeOnly: true }))
+      .resolves.toEqual([
+        expect.objectContaining({ workflowId: "global-flow" }),
+        expect.objectContaining({ workflowId: "scoped-a" }),
+      ]);
+  });
+
+  it("fails closed for an invalid runtime object", async () => {
+    const { ctx } = createContext({ permissions: ["factory.read"] });
+    await expect(functionHandler(getWorkflowRun)(ctx, { runId: "missing-run" }))
+      .rejects.toThrow("unavailable or unauthorized");
+    await expect(functionHandler(listWorkflowRunEvents)(ctx, { workflowRunId: "missing-run" }))
+      .rejects.toThrow("unavailable or unauthorized");
   });
 });

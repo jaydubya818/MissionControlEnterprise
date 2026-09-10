@@ -5,7 +5,6 @@ import { SystemView } from "../SystemView";
 import { RadarView } from "../RadarView";
 import { FactoryView } from "../FactoryView";
 import { PipelineView } from "../PipelineView";
-import { FeedbackView } from "../FeedbackView";
 import { AnalyticsView } from "../AnalyticsView";
 import { DataExplorerView } from "../eos/views/DataExplorerView";
 import { useFlag } from "../hooks/useFlag";
@@ -76,9 +75,6 @@ export function PlatformSection({
         onNavigate={onNavigate}
       />
     );
-  }
-  if (currentView === "feedback") {
-    return <FeedbackView projectId={projectId} onNavigate={onNavigate} />;
   }
   if (currentView === "analytics") {
     return projectId ? <AnalyticsView projectId={projectId} /> : null;

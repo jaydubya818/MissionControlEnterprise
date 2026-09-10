@@ -34,10 +34,15 @@ const FILTER_OPTIONS: { value: CaptureType; label: string }[] = [
 
 export function CapturesView({ projectId }: CapturesViewProps) {
   const [filterType, setFilterType] = useState<CaptureType>("all");
-  const captures = useQuery(api.captures.list, {
-    projectId: projectId ?? undefined,
-    type: filterType === "all" ? undefined : filterType,
-  });
+  const captures = useQuery(
+    api.captures.list,
+    projectId
+      ? {
+          projectId,
+          type: filterType === "all" ? undefined : filterType,
+        }
+      : "skip",
+  );
 
   if (captures === undefined) {
     return (

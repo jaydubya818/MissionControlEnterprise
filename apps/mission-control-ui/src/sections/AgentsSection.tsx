@@ -2,7 +2,6 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 import type { MainView } from "../TopNav";
 import { AgentRegistryView } from "../AgentRegistryView";
 import { AtcBoardView } from "../AtcBoardView";
-import { DirectoryView } from "../DirectoryView";
 import { IdentityDirectoryView } from "../IdentityDirectoryView";
 import { PoliciesView } from "../PoliciesView";
 import { DeploymentsView } from "../DeploymentsView";
@@ -41,7 +40,6 @@ export function AgentsSection({
       />
     );
   if (currentView === "agents") return <AgentRegistryView projectId={projectId} onNavigateToIdentity={onNavigateToIdentity} onOpenCreateAgent={onOpenCreateAgent} />;
-  if (currentView === "directory") return <DirectoryView projectId={projectId} />;
   if (currentView === "identity") return <IdentityDirectoryView projectId={projectId} />;
   if (currentView === "policies") return <PoliciesView projectId={projectId} />;
   if (currentView === "deployments") return <DeploymentsView projectId={projectId} />;

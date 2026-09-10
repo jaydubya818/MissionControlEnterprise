@@ -1,13 +1,13 @@
 import { v } from "convex/values";
-import { mutation, query, action } from "./_generated/server";
-import { api } from "./_generated/api";
+import { mutation, query, action, internalQuery } from "./_generated/server";
+import { api, internal } from "./_generated/api";
 import { authedAction, authedMutation } from "./lib/authedFunctions";
 
 function buildCollectionId(): string {
   return `col_${Math.random().toString(36).slice(2, 10)}`;
 }
 
-export const list = query({
+export const list = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     limit: v.optional(v.number()),
@@ -19,7 +19,7 @@ export const list = query({
   },
 });
 
-export const get = query({
+export const get = internalQuery({
   args: { id: v.id("apiCollections") },
   handler: async (ctx, args) => await ctx.db.get(args.id),
 });
@@ -73,7 +73,7 @@ export const convertToTests: any = authedAction({
     createdBy: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<any> => {
-    const collection = await ctx.runQuery(api.apiCollections.get, { id: args.id });
+    const collection = await ctx.runQuery(internal.apiCollections.get, { id: args.id });
     if (!collection) throw new Error("Collection not found");
     const suite = await ctx.runMutation(api.testGeneration.create, {
       projectId: collection.projectId,

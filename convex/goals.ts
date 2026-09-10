@@ -59,7 +59,7 @@ export const get = internalQuery({
   },
 });
 
-export const getHierarchy = query({
+export const getHierarchy = internalQuery({
   args: { projectId: v.id("projects") },
   handler: async (ctx, args) => {
     const allGoals = await ctx.db
@@ -88,7 +88,7 @@ export const getHierarchy = query({
   },
 });
 
-export const getLinkedTasks = query({
+export const getLinkedTasks = internalQuery({
   args: { goalId: v.id("goals") },
   handler: async (ctx, args) => {
     return await ctx.db

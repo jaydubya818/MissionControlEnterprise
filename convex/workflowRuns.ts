@@ -5,7 +5,7 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query, internalMutation } from "./_generated/server";
+import { mutation, query, internalMutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { appendOpEvent } from "./lib/armAudit";
 import { resolveAgentRef } from "./lib/agentResolver";
@@ -382,6 +382,19 @@ function redactExecutionPrompt<T extends Record<string, any> | null>(run: T): T 
   } as T;
 }
 
+async function requireAuthorizedWorkflowRun(ctx: any, run: any) {
+  const workOrder = run.workOrderId ? await ctx.db.get(run.workOrderId) : null;
+  if (workOrder && workOrder.projectId !== run.projectId) {
+    throw new Error("Execution lineage is unavailable or unauthorized.");
+  }
+  const access = await requireAuthorizedDeliveryScope(
+    ctx,
+    workOrder?.projectId ?? run.projectId,
+  );
+  if (workOrder) assertAuthorizedDeliveryRecord(access, workOrder);
+  return access;
+}
+
 // ============================================================================
 // QUERIES
 // ============================================================================
@@ -459,10 +472,13 @@ export const list = query({
 export const get = query({
   args: { runId: v.string() },
   handler: async (ctx, args) => {
-    return redactExecutionPrompt(await ctx.db
+    const run = await ctx.db
       .query("workflowRuns")
       .withIndex("by_run_id", (q) => q.eq("runId", args.runId))
-      .first());
+      .first();
+    if (!run) throw new Error("Execution run is unavailable or unauthorized.");
+    await requireAuthorizedWorkflowRun(ctx, run);
+    return redactExecutionPrompt(run);
   },
 });
 
@@ -473,8 +489,8 @@ export const getById = query({
   args: { id: v.id("workflowRuns") },
   handler: async (ctx, args) => {
     const run = await ctx.db.get(args.id);
-    if (!run) return null;
-    await requireAuthorizedDeliveryScope(ctx, run.projectId);
+    if (!run) throw new Error("Execution run is unavailable or unauthorized.");
+    await requireAuthorizedWorkflowRun(ctx, run);
     return redactExecutionPrompt(run);
   },
 });
@@ -482,6 +498,9 @@ export const getById = query({
 export const listEvents = query({
   args: { workflowRunId: v.id("workflowRuns") },
   handler: async (ctx, args) => {
+    const run = await ctx.db.get(args.workflowRunId);
+    if (!run) throw new Error("Execution run is unavailable or unauthorized.");
+    await requireAuthorizedWorkflowRun(ctx, run);
     const events = await ctx.db
       .query("runEvents")
       .withIndex("by_run_sequence", (q) => q.eq("workflowRunId", args.workflowRunId))
@@ -493,6 +512,9 @@ export const listEvents = query({
 export const listArtifacts = query({
   args: { workflowRunId: v.id("workflowRuns") },
   handler: async (ctx, args) => {
+    const run = await ctx.db.get(args.workflowRunId);
+    if (!run) throw new Error("Execution run is unavailable or unauthorized.");
+    await requireAuthorizedWorkflowRun(ctx, run);
     return await ctx.db
       .query("runArtifacts")
       .withIndex("by_run", (q) => q.eq("workflowRunId", args.workflowRunId))
@@ -637,7 +659,7 @@ export const getInspector = query({
 /**
  * Search workflow runs by query string (matches runId or initial input)
  */
-export const search = query({
+export const search = internalQuery({
   args: {
     query: v.string(),
     projectId: v.optional(v.id("projects")),

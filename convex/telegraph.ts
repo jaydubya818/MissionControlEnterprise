@@ -30,7 +30,7 @@ const messageStatusValidator = v.union(
 /**
  * List threads for a project, ordered by last activity.
  */
-export const listThreads = query({
+export const listThreads = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     channel: v.optional(channelValidator),
@@ -64,7 +64,7 @@ export const listThreads = query({
 /**
  * Get a thread with its messages.
  */
-export const getThread = query({
+export const getThread = internalQuery({
   args: {
     threadId: v.id("telegraphThreads"),
     messageLimit: v.optional(v.number()),

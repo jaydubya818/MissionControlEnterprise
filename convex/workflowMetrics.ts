@@ -36,7 +36,7 @@ export const getWorkflowMetrics = internalQuery({
 /**
  * Get metrics for all workflows
  */
-export const getAllMetrics = query({
+export const getAllMetrics = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
   },
@@ -65,7 +65,7 @@ export const getAllMetrics = query({
 /**
  * Get workflow performance summary
  */
-export const getSummary = query({
+export const getSummary = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
   },

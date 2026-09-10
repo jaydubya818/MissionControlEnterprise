@@ -3,7 +3,7 @@ import { mutation, query } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { AUTOMATION_ACTOR_IDENTITY_SOURCE } from "./lib/automationGovernance";
 import { COMPANY_PERMISSIONS, FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
-import { requireAuthorizedDeliveryScope } from "./lib/deliveryAuthorization";
+import { assertAuthorizedDeliveryRecord, requireAuthorizedDeliveryScope } from "./lib/deliveryAuthorization";
 import { sha256Hex } from "./lib/harnessPrChecks";
 import {
   ADAPTER_TYPES,
@@ -490,6 +490,8 @@ export const getExecutionManifest = query({
   handler: async (ctx, args) => {
     const workOrder = await ctx.db.get(args.workOrderId);
     if (!workOrder) throw new Error("WorkOrder not found");
+    const access = await requireAuthorizedDeliveryScope(ctx, workOrder.projectId);
+    assertAuthorizedDeliveryRecord(access, workOrder);
     const definitionId = workOrder.metadata?.automationDefinitionId as Id<"automationDefinitions"> | undefined;
     if (!definitionId) throw new Error("WorkOrder is not linked to an Automation Definition");
     const definition = await ctx.db.get(definitionId);

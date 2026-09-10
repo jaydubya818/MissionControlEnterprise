@@ -39,6 +39,7 @@ const steps = [
       "scripts/lib/factory-docs-consistency.test.mjs",
       "scripts/lib/production-pilot-preflight.test.mjs",
       "scripts/lib/production-pilot-evidence.test.mjs",
+      "scripts/lib/production-configuration.test.mjs",
       "scripts/lib/repository-secret-scan.test.mjs",
       "scripts/lib/release-config.test.mjs",
     ],
@@ -73,6 +74,7 @@ const steps = [
       "src/__tests__/githubAppPublisher.test.ts",
       "src/__tests__/auth.test.ts",
       "src/__tests__/orchestrationSecurity.test.ts",
+      "src/__tests__/productionConfiguration.test.ts",
       "src/__tests__/harnessAdapterRegistry.test.ts",
       "src/__tests__/deepseekHarnessExecutorAdapter.test.ts",
     ],
@@ -180,6 +182,11 @@ const steps = [
     name: "orchestration startup smoke",
     command: "pnpm",
     args: ["run", "smoke:orchestration-start"],
+  },
+  {
+    name: "production-mode startup configuration qualification",
+    command: "pnpm",
+    args: ["run", "qualify:production-startup"],
   },
   {
     name: "git whitespace integrity",

@@ -16,6 +16,10 @@ type FunctionDefinition = {
   [key: string]: unknown;
 };
 
+type DeclaredPublicQueryDefinition = FunctionDefinition & {
+  reason: string;
+};
+
 function authenticateDefinition(builder: (definition: any) => any, definition: FunctionDefinition) {
   return builder({
     ...definition,
@@ -106,6 +110,19 @@ async function authorizeMutationArguments(ctx: MutationCtx, args: Record<string,
 /** Public query for deployment-global data that still requires a human identity. */
 export const authedQuery = ((definition: FunctionDefinition) =>
   authenticateDefinition(query, definition)) as typeof query;
+
+/**
+ * Deliberately anonymous query for a bounded, non-tenant contract such as a
+ * load-balancer health probe. The reason is stripped before Convex receives
+ * the definition and is enforced by the authorization scanner.
+ */
+export const publicQuery = (definition: DeclaredPublicQueryDefinition) => {
+  const { reason, ...queryDefinition } = definition;
+  if (reason.trim().length < 20) {
+    throw new Error("A meaningful public-query reason is required.");
+  }
+  return query(queryDefinition as any);
+};
 
 /** Public mutation for deployment-global state that still requires a human identity. */
 export const authedMutation = ((definition: FunctionDefinition) =>

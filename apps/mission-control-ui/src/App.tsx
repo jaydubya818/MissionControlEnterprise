@@ -31,9 +31,6 @@ import { useAuthRuntime } from "./auth/AuthRuntimeContext";
 import { BootstrapOwner } from "./auth/BootstrapOwner";
 import { shouldBypassRuntimeCompatibility } from "./lib/runtimeCompatibility";
 
-const DashboardOverview = lazy(() =>
-  import("./DashboardOverview").then((module) => ({ default: module.DashboardOverview }))
-);
 const TaskDrawerTabs = lazy(() =>
   import("./TaskDrawerTabs").then((module) => ({ default: module.TaskDrawerTabs }))
 );
@@ -52,17 +49,11 @@ const ChatSection = lazy(() =>
 const ContentSection = lazy(() =>
   import("./sections/ContentSection").then((module) => ({ default: module.ContentSection }))
 );
-const CommsSection = lazy(() =>
-  import("./sections/CommsSection").then((module) => ({ default: module.CommsSection }))
-);
 const KnowledgeSection = lazy(() =>
   import("./sections/KnowledgeSection").then((module) => ({ default: module.KnowledgeSection }))
 );
 const CodeSection = lazy(() =>
   import("./sections/CodeSection").then((module) => ({ default: module.CodeSection }))
-);
-const QualitySection = lazy(() =>
-  import("./sections/QualitySection").then((module) => ({ default: module.QualitySection }))
 );
 const PlatformSection = lazy(() =>
   import("./sections/PlatformSection").then((module) => ({ default: module.PlatformSection }))
@@ -713,7 +704,6 @@ export default function App() {
     visible: boolean;
   } | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<Id<"tasks"> | null>(null);
-  const [selectedQcRunId, setSelectedQcRunId] = useState<Id<"qcRuns"> | null>(null);
 
   // ── Sidebar / ops-section state ─────────────────────────────────────────
   const [sidebarSelectedAgentId, setSidebarSelectedAgentId] = useState<Id<"agents"> | null>(null);
@@ -881,7 +871,6 @@ export default function App() {
 
   useEffect(() => {
     setSelectedTaskId(null);
-    setSelectedQcRunId(null);
     setSidebarSelectedAgentId(null);
     setKanbanFilters({ agents: [], priorities: [], types: [] });
     closeAll();
@@ -1105,29 +1094,6 @@ export default function App() {
     }
 
     switch (activeSection) {
-      case "home":
-        return (
-          <DashboardOverview
-            projectId={sectionProjectId}
-            onClose={() => {}}
-            onOpenMissionModal={() => open("missionModal")}
-            onOpenSuggestionsDrawer={() => open("suggestionsDrawer")}
-            onNavigate={setCurrentView}
-            onOpenApprovals={() => open("approvals")}
-            onOpenCostAnalytics={() => open("costAnalytics")}
-            onOpenAlertRules={() => open("alertRules")}
-            onTaskSelect={setSelectedTaskId}
-            onNavigateToGateway={() => {
-              handleSectionChange("agents");
-              handleTabChange("gateway");
-            }}
-            onOpenCreateTask={() => open("createTask")}
-            onSelectAgent={(id) => {
-              setSidebarSelectedAgentId(id);
-              open("agentsFlyout");
-            }}
-          />
-        );
       case "control":
         return (
           <ControlSection
@@ -1198,14 +1164,6 @@ export default function App() {
             companyContextEnabled={companyContextEnabled}
           />
         );
-      case "comms":
-        return (
-          <CommsSection
-            currentView={currentView}
-            projectId={sectionProjectId}
-            onNavigate={setCurrentView}
-          />
-        );
       case "knowledge":
         return (
           <KnowledgeSection
@@ -1227,17 +1185,6 @@ export default function App() {
               setSelectedTaskId(taskId);
               setCurrentView("tasks");
             }}
-          />
-        );
-      case "quality":
-        return (
-          <QualitySection
-            currentView={currentView}
-            projectId={sectionProjectId}
-            selectedQcRunId={selectedQcRunId}
-            setSelectedQcRunId={setSelectedQcRunId}
-            onNavigate={setCurrentView}
-            onOpenStartQcRun={() => open("startQcRun")}
           />
         );
       case "platform":
@@ -1430,7 +1377,7 @@ export default function App() {
           onOpenAdvancedAnalytics={() => open("advancedAnalytics")}
           onOpenHealthDashboard={() => open("healthDashboard")}
           onOpenMonitoringDashboard={() => open("monitoringDashboard")}
-          onOpenDashboardOverview={() => handleSectionChange("home")}
+          onOpenDashboardOverview={() => setCurrentView("command-center")}
           onOpenActivityFeed={() => open("activityFeed")}
           onOpenKeyboardHelp={() => open("keyboardHelp")}
           onOpenApprovals={() => open("approvals")}

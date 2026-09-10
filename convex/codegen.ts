@@ -1,6 +1,6 @@
 import { v } from "convex/values";
-import { mutation, query, action } from "./_generated/server";
-import { api } from "./_generated/api";
+import { mutation, query, action, internalQuery } from "./_generated/server";
+import { api, internal } from "./_generated/api";
 import { authedAction, authedMutation } from "./lib/authedFunctions";
 
 function buildRequestId(): string {
@@ -16,7 +16,7 @@ function makeMockDiff(filePath: string, prompt: string): string {
   ].join("\n");
 }
 
-export const list = query({
+export const list = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     status: v.optional(v.union(v.literal("PENDING"), v.literal("GENERATING"), v.literal("COMPLETED"), v.literal("FAILED"))),
@@ -30,7 +30,7 @@ export const list = query({
   },
 });
 
-export const get = query({
+export const get = internalQuery({
   args: { id: v.id("codegenRequests") },
   handler: async (ctx, args) => await ctx.db.get(args.id),
 });
@@ -61,7 +61,7 @@ export const requestPatch = authedMutation({
 export const generateDiff = authedAction({
   args: { id: v.id("codegenRequests") },
   handler: async (ctx, args) => {
-    const request = await ctx.runQuery(api.codegen.get, { id: args.id });
+    const request = await ctx.runQuery(internal.codegen.get, { id: args.id });
     if (!request) throw new Error("CodeGen request not found");
 
     await ctx.runMutation(api.codegen.updateStatus, { id: args.id, status: "GENERATING" });
@@ -82,12 +82,12 @@ export const generateDiff = authedAction({
 export const applyAndPR: any = authedAction({
   args: { id: v.id("codegenRequests") },
   handler: async (ctx, args): Promise<any> => {
-    const request = await ctx.runQuery(api.codegen.get, { id: args.id });
+    const request = await ctx.runQuery(internal.codegen.get, { id: args.id });
     if (!request) throw new Error("CodeGen request not found");
     if (!request.prUrl) {
       await ctx.runAction(api.codegen.generateDiff, { id: args.id });
     }
-    const latest = await ctx.runQuery(api.codegen.get, { id: args.id });
+    const latest = await ctx.runQuery(internal.codegen.get, { id: args.id });
     return { success: true, prUrl: latest?.prUrl, branchName: latest?.branchName };
   },
 });

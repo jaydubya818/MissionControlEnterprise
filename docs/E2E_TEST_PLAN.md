@@ -91,7 +91,7 @@ This test plan uses a **deterministic seed dataset** that is created, validated,
 | V1 | Convex Ping | `convex run api.health.ping` | HTTP 200 |
 | V2 | Agents Retrievable | `convex run api.agents.get` | Both agents exist with metadata |
 | V3 | Inbox Roundtrip | Task lifecycle transitions | INBOX→ASSIGNED→IN_PROGRESS→DONE |
-| V4 | Content Drops | `convex run api.e2e.validate` | 2 drops retrievable, metadata preserved |
+| V4 | Content Drops | `convex run e2e:validate` | 2 drops retrievable, metadata preserved |
 | V5 | Budget Total | Calculate from activities | +0.75 units for run_id |
 | V6 | Workflow Run | Check workflowRuns table | Run exists, reaches terminal state |
 | C1 | Cleanup | `mc-cleanup-e2e.sh $RUN_ID` | All E2E objects deleted |
@@ -161,7 +161,7 @@ npx convex run api.tasks.get --arg '{"taskId": "'$TASK_ID'"}'
 ### V4: Content Drops Retrievable
 
 ```bash
-npx convex run api.e2e.validate --arg '{"runId": "'$RUN_ID'"}'
+npx convex run e2e:validate '{"runId": "'$RUN_ID'"}'
 ```
 
 **Expected:**
@@ -180,7 +180,7 @@ npx convex run api.e2e.validate --arg '{"runId": "'$RUN_ID'"}'
 ### V5: Budget Total
 
 ```bash
-npx convex run api.e2e.validate --arg '{"runId": "'$RUN_ID'"}'
+npx convex run e2e:validate '{"runId": "'$RUN_ID'"}'
 ```
 
 **Expected:**
@@ -228,7 +228,7 @@ Workflow runs deleted: 1
 
 **Verify:**
 ```bash
-npx convex run api.e2e.validate --arg '{"runId": "'$RUN_ID'"}'
+npx convex run e2e:validate '{"runId": "'$RUN_ID'"}'
 # Should return all counts as 0
 ```
 
