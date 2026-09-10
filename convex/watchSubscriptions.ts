@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { authedMutation } from "./lib/authedFunctions";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
 
 const entityTypeValidator = v.union(
   v.literal("TASK"),
@@ -16,6 +17,8 @@ export const listByUser = query({
     entityType: v.optional(entityTypeValidator),
   },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("An authorized watch-subscription scope is required.");
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     let subs = await ctx.db
       .query("watchSubscriptions")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))

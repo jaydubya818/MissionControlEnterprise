@@ -5,10 +5,10 @@ import type { Id } from "../../../../../convex/_generated/dataModel";
 import { HarnessPage } from "../components/HarnessUi";
 
 export function HarnessWorkLedgerView({ projectId }: { projectId: Id<"projects"> | null }): JSX.Element {
-  const ledger = useQuery(api.factory.health.workLedger, {
-    projectId: projectId ?? undefined,
-    limit: 30,
-  });
+  const ledger = useQuery(
+    api.factory.health.workLedger,
+    projectId ? { projectId, limit: 30 } : "skip"
+  );
 
   return (
     <HarnessPage
@@ -16,7 +16,9 @@ export function HarnessWorkLedgerView({ projectId }: { projectId: Id<"projects">
       description="Work as substance — todo, in-progress (exploded), and finished digests. Beads-style lifecycle."
       icon={<BookOpen className="h-5 w-5 text-registry-accent" />}
     >
-      {!ledger ? (
+      {!projectId ? (
+        <p className="text-sm text-ink-muted">Select a workspace to view its work ledger.</p>
+      ) : !ledger ? (
         <p className="text-sm text-ink-muted">Loading work ledger…</p>
       ) : (
         <div className="mx-auto grid max-w-[1400px] gap-4 lg:grid-cols-3">

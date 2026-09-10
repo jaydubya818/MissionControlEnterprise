@@ -1,7 +1,6 @@
 import { useMutation, useQuery } from "convex/react";
 import { useState } from "react";
 import {
-  ArrowUpRight,
   CalendarClock,
   History,
   ShieldCheck,
@@ -186,9 +185,9 @@ export function AutomationDefinitionDetail({
             ["Active", definition.workflowActive ? "Yes" : "No"],
             ["Version posture", definition.workflowVersionMismatch ? "Mismatch — review required" : "Current"],
           ]} />
-          <a href={workspacePath(`/v2/harness-workshop?workflow=${definition.workflowId}`, projectId)} className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-registry-accent hover:text-foreground">
-            Open Workflow <ArrowUpRight className="h-3.5 w-3.5" />
-          </a>
+          <div className="mt-3 text-xs text-muted-foreground">
+            Workflow <span className="font-mono text-foreground">{definition.workflowId}</span>
+          </div>
         </DetailSection>
         <DetailSection icon={CalendarClock} title="Trigger">
           <DetailGrid items={[

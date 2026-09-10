@@ -69,10 +69,15 @@ export function DeploymentsView({ projectId }: { projectId: Id<"projects"> | nul
     api["registry/agentVersions"].listVersions,
     selectedTemplateId ? { templateId: selectedTemplateId } : "skip"
   );
-  const deployments = useQuery(api["governance/deployments"].listDeployments, {
-    tenantId: selectedTenantId ?? undefined,
-    templateId: selectedTemplateId ?? undefined,
-  });
+  const deployments = useQuery(
+    api["governance/deployments"].listDeployments,
+    selectedTenantId || selectedTemplateId
+      ? {
+          tenantId: selectedTenantId ?? undefined,
+          templateId: selectedTemplateId ?? undefined,
+        }
+      : "skip"
+  );
   const latestShadowGates = useQuery(
     api["governance/deployments"].listLatestShadowGates,
     deployments ? { deploymentIds: deployments.map((deployment) => deployment._id) } : "skip"

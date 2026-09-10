@@ -496,7 +496,9 @@ export function CommandCenterView({
   onNavigate,
 }: CommandCenterViewProps): JSX.Element {
   const [gatewayConfigured, setGatewayConfigured] = useState<boolean | null>(null);
-  const showDemoContent = useFlag("ui.navigation.demo-routes");
+  // Labs may be enabled for evaluation, but demo projections never enter a
+  // Live enterprise route or its readiness claims.
+  const showDemoContent = false;
   const showOperatingControlPlane = useFlag("control-plane.role-lenses");
 
   useEffect(() => {
@@ -555,7 +557,7 @@ export function CommandCenterView({
     openApproval: () => onNavigate("control-approvals"),
     openTask,
     openApprovalsModal: () => onNavigate("control-approvals"),
-    openAlertRules: () => onNavigate("telemetry"),
+    openAlertRules: () => onNavigate("trace-inspector"),
   });
 
   const exceptions = exceptionCounts({
@@ -637,7 +639,7 @@ export function CommandCenterView({
             counts={exceptions}
             onOpenApprovals={() => onNavigate("control-approvals")}
             onOpenTasks={() => onNavigate("tasks")}
-            onOpenAlerts={() => onNavigate("telemetry")}
+            onOpenAlerts={() => onNavigate("trace-inspector")}
           />
         )}
 

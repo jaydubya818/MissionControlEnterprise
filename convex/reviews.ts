@@ -8,6 +8,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { Doc } from "./_generated/dataModel";
 import { authedMutation } from "./lib/authedFunctions";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
 
 // ============================================================================
 // QUERIES
@@ -16,6 +17,9 @@ import { authedMutation } from "./lib/authedFunctions";
 export const listByTask = query({
   args: { taskId: v.id("tasks") },
   handler: async (ctx, args) => {
+    const task = await ctx.db.get(args.taskId);
+    if (!task?.projectId) throw new Error("Task is unavailable or unauthorized.");
+    await requireWorkspacePermission(ctx, task.projectId, FACTORY_PERMISSIONS.VIEW);
     return await ctx.db
       .query("reviews")
       .withIndex("by_task", (q) => q.eq("taskId", args.taskId))
@@ -69,17 +73,24 @@ export const getStats = query({
     let reviews: Doc<"reviews">[];
     
     if (args.agentId) {
+      const agent = await ctx.db.get(args.agentId);
+      if (!agent?.projectId) throw new Error("Agent is unavailable or unauthorized.");
+      if (args.projectId && args.projectId !== agent.projectId) {
+        throw new Error("Review scopes do not match.");
+      }
+      await requireWorkspacePermission(ctx, agent.projectId, FACTORY_PERMISSIONS.VIEW);
       reviews = await ctx.db
         .query("reviews")
         .withIndex("by_reviewer", (q) => q.eq("reviewerAgentId", args.agentId))
         .collect();
     } else if (args.projectId) {
+      await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
       reviews = await ctx.db
         .query("reviews")
         .withIndex("by_project", (q) => q.eq("projectId", args.projectId!))
         .collect();
     } else {
-      reviews = await ctx.db.query("reviews").collect();
+      throw new Error("An authorized review scope is required.");
     }
     
     const stats = {

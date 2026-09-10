@@ -4,6 +4,33 @@ import type { Id } from "../_generated/dataModel";
 import { kpiSummary } from "../analytics";
 import { activate } from "../automations";
 import { authedMutation } from "../lib/authedFunctions";
+import { getDependencyGraph } from "../coordinator";
+import { defaultRules } from "../context/changeRisk";
+import { gatherEvidence } from "../factory/codeReviewWizard";
+import { workLedger } from "../factory/health";
+import { get as getGatewayConnection } from "../gatewayConnection";
+import { explainTaskPolicy } from "../policy";
+import { generateIncidentReport } from "../reports";
+import { getStats as getReviewStats, listByTask as listReviewsByTask } from "../reviews";
+import {
+  createPolicyEnvelope,
+  evaluate,
+  listPolicyEnvelopes,
+} from "../governance/policyEnvelopes";
+import { listApprovals } from "../governance/approvalRecords";
+import { getChangeRecord, listChangeRecords } from "../governance/changeRecords";
+import {
+  listDeployments,
+  listLatestShadowGates,
+  listShadowGateHistory,
+  listShadowGates,
+} from "../governance/deployments";
+import { getOpEventStats, listOpEvents } from "../operations/opEvents";
+import { createTemplate, listTemplates, getTemplate } from "../registry/agentTemplates";
+import { createVersion, getVersion, listVersions } from "../registry/agentVersions";
+import { listEnvironments } from "../registry/environments";
+import { listTenants } from "../registry/tenants";
+import { listByUser as listWatchSubscriptionsByUser } from "../watchSubscriptions";
 
 const legacyScopedWrite = authedMutation({
   args: { projectId: v.id("projects") },
@@ -29,16 +56,20 @@ function createContext({
   assignmentScope?: "project" | "tenant";
 } = {}) {
   const tenantId = "tenant-a" as Id<"tenants">;
+  const otherTenantId = "tenant-b" as Id<"tenants">;
   const projectId = "project-a" as Id<"projects">;
   const otherProjectId = "project-b" as Id<"projects">;
   const operatorId = "operator-a" as Id<"operators">;
   const roleId = "role-a" as Id<"roles">;
   const definitionId = "automation-a" as Id<"automationDefinitions">;
   const tables: Record<string, any[]> = {
-    tenants: [{ _id: tenantId, active: true, name: "A", slug: "a" }],
+    tenants: [
+      { _id: tenantId, active: true, name: "A", slug: "a" },
+      { _id: otherTenantId, active: true, name: "B", slug: "b" },
+    ],
     projects: [
       { _id: projectId, tenantId, name: "A", slug: "a" },
-      { _id: otherProjectId, tenantId, name: "B", slug: "b" },
+      { _id: otherProjectId, tenantId: otherTenantId, name: "B", slug: "b" },
     ],
     operators: [{ _id: operatorId, tenantId, authId: "user-a", active: true }],
     roles: [{ _id: roleId, tenantId, name: "Factory member", permissions }],
@@ -53,8 +84,55 @@ function createContext({
     teamMemberships: [],
     orgMembers: [],
     runs: [],
-    tasks: [],
+    tasks: [
+      {
+        _id: "task-a",
+        _creationTime: 1,
+        projectId,
+        title: "Task A",
+        status: "READY",
+        type: "CODE",
+        priority: 1,
+      },
+      {
+        _id: "task-b",
+        _creationTime: 1,
+        projectId: otherProjectId,
+        title: "Task B",
+        status: "READY",
+        type: "CODE",
+        priority: 1,
+      },
+    ],
+    agents: [],
+    reviews: [
+      { _id: "review-a", projectId, taskId: "task-a", type: "PRAISE", status: "PENDING", score: 5 },
+      { _id: "review-b", projectId: otherProjectId, taskId: "task-b", type: "REFUTE", status: "PENDING" },
+    ],
+    watchSubscriptions: [
+      { _id: "watch-a", userId: "operator", projectId, entityType: "TASK", entityId: "task-a", createdAt: 2 },
+      { _id: "watch-b", userId: "operator", projectId: otherProjectId, entityType: "TASK", entityId: "task-b", createdAt: 1 },
+    ],
+    taskTransitions: [],
+    messages: [],
+    approvals: [],
+    policies: [],
     toolCalls: [],
+    taskDependencies: [],
+    opEvents: [],
+    policyEnvelopes: [],
+    harnessPrChecks: [],
+    qcRuns: [],
+    qcFindings: [],
+    gatewayConnection: [],
+    agentTemplates: [
+      { _id: "template-a", tenantId, projectId, name: "A", slug: "a", active: true, updatedAt: 1 },
+      { _id: "template-b", tenantId: otherTenantId, projectId: otherProjectId, name: "B", slug: "b", active: true, updatedAt: 1 },
+    ],
+    agentVersions: [
+      { _id: "version-a", tenantId, projectId, templateId: "template-a", version: 1 },
+      { _id: "version-b", tenantId: otherTenantId, projectId: otherProjectId, templateId: "template-b", version: 1 },
+    ],
     automationDefinitions: [{
       _id: definitionId,
       projectId,
@@ -64,6 +142,42 @@ function createContext({
       definitionVersion: 1,
     }],
     automationDecisions: [],
+    environments: [
+      { _id: "environment-a", tenantId, name: "Production A", type: "prod" },
+      { _id: "environment-b", tenantId: otherTenantId, name: "Production B", type: "prod" },
+    ],
+    deployments: [
+      {
+        _id: "deployment-a",
+        tenantId,
+        templateId: "template-a",
+        environmentId: "environment-a",
+        targetVersionId: "version-a",
+        status: "ACTIVE",
+        createdAt: 1,
+      },
+      {
+        _id: "deployment-b",
+        tenantId: otherTenantId,
+        templateId: "template-b",
+        environmentId: "environment-b",
+        targetVersionId: "version-b",
+        status: "ACTIVE",
+        createdAt: 1,
+      },
+    ],
+    releaseGateEvaluations: [
+      { _id: "gate-a", deploymentId: "deployment-a", status: "PASS", createdAt: 1 },
+      { _id: "gate-b", deploymentId: "deployment-b", status: "PASS", createdAt: 1 },
+    ],
+    approvalRecords: [
+      { _id: "approval-a", tenantId, projectId, status: "PENDING", requestedAt: 1 },
+      { _id: "approval-b", tenantId: otherTenantId, projectId: otherProjectId, status: "PENDING", requestedAt: 1 },
+    ],
+    changeRecords: [
+      { _id: "change-a", tenantId, projectId, type: "TEST", summary: "A", timestamp: 1 },
+      { _id: "change-b", tenantId: otherTenantId, projectId: otherProjectId, type: "TEST", summary: "B", timestamp: 1 },
+    ],
   };
   const allRows = () => Object.values(tables).flat();
   const db = {
@@ -81,7 +195,7 @@ function createContext({
     query: (table: string) => {
       let rows = [...(tables[table] ?? [])];
       const builder: any = {
-        withIndex: (_name: string, apply: (q: any) => unknown) => {
+        withIndex: (_name: string, apply?: (q: any) => unknown) => {
           const conditions: Array<[string, unknown]> = [];
           const q: any = {
             eq: (field: string, value: unknown) => {
@@ -89,7 +203,7 @@ function createContext({
               return q;
             },
           };
-          apply(q);
+          apply?.(q);
           rows = rows.filter((row) => conditions.every(([field, value]) => row[field] === value));
           return builder;
         },
@@ -106,6 +220,8 @@ function createContext({
     ctx: { auth: { getUserIdentity: async () => identity }, db } as any,
     projectId,
     otherProjectId,
+    tenantId,
+    otherTenantId,
     definitionId,
   };
 }
@@ -120,7 +236,7 @@ describe("authorization remediation", () => {
   it("denies a caller assigned to a different workspace", async () => {
     const { ctx, otherProjectId } = createContext();
     await expect(functionHandler(kpiSummary)(ctx, { projectId: otherProjectId, periodDays: 7 }))
-      .rejects.toThrow("Workspace is unavailable or unauthorized");
+      .rejects.toThrow(/Company account|Workspace is unavailable or unauthorized/);
   });
 
   it("fails safely for an invalid workspace resource", async () => {
@@ -162,7 +278,7 @@ describe("authorization remediation", () => {
     const { ctx, projectId, otherProjectId } = createContext({ permissions: ["factory.improve"] });
     await expect(functionHandler(legacyScopedWrite)(ctx, { projectId })).resolves.toEqual({ projectId });
     await expect(functionHandler(legacyScopedWrite)(ctx, { projectId: otherProjectId }))
-      .rejects.toThrow("Workspace is unavailable or unauthorized");
+      .rejects.toThrow(/Company account|Workspace is unavailable or unauthorized/);
   });
 
   it("reserves unscoped global writes for company administrators", async () => {
@@ -176,5 +292,248 @@ describe("authorization remediation", () => {
     });
     await expect(functionHandler(legacyGlobalWrite)(administrator.ctx, { value: "x" }))
       .resolves.toBe("x");
+  });
+
+  it("denies unauthenticated callers across every remediated Preview read", async () => {
+    const { ctx, projectId } = createContext({ identity: null });
+    const calls = [
+      () => functionHandler(listTenants)(ctx, { activeOnly: false }),
+      () => functionHandler(getTemplate)(ctx, { templateId: "template-a" }),
+      () => functionHandler(listTemplates)(ctx, { projectId }),
+      () => functionHandler(getVersion)(ctx, { versionId: "version-a" }),
+      () => functionHandler(listVersions)(ctx, { templateId: "template-a" }),
+      () => functionHandler(listPolicyEnvelopes)(ctx, { projectId }),
+      () => functionHandler(evaluate)(ctx, { projectId, riskLevel: "GREEN" }),
+      () => functionHandler(getDependencyGraph)(ctx, { projectId }),
+      () => functionHandler(listOpEvents)(ctx, { projectId }),
+      () => functionHandler(getOpEventStats)(ctx, { projectId }),
+      () => functionHandler(workLedger)(ctx, { projectId }),
+      () => functionHandler(getGatewayConnection)(ctx, {}),
+      () => functionHandler(defaultRules)(ctx, {}),
+      () => functionHandler(gatherEvidence)(ctx, { projectId }),
+    ];
+
+    for (const call of calls) {
+      await expect(call()).rejects.toThrow(/Authentication|required|unavailable|unauthorized/);
+    }
+  });
+
+  it("denies cross-company Preview reads without exposing the target", async () => {
+    const { ctx, otherProjectId } = createContext({ permissions: ["factory.read"] });
+    const calls = [
+      () => functionHandler(listTemplates)(ctx, { projectId: otherProjectId }),
+      () => functionHandler(listVersions)(ctx, { templateId: "template-b" }),
+      () => functionHandler(listPolicyEnvelopes)(ctx, { projectId: otherProjectId }),
+      () => functionHandler(evaluate)(ctx, { projectId: otherProjectId, riskLevel: "GREEN" }),
+      () => functionHandler(getDependencyGraph)(ctx, { projectId: otherProjectId }),
+      () => functionHandler(listOpEvents)(ctx, { projectId: otherProjectId }),
+      () => functionHandler(getOpEventStats)(ctx, { projectId: otherProjectId }),
+      () => functionHandler(workLedger)(ctx, { projectId: otherProjectId }),
+      () => functionHandler(gatherEvidence)(ctx, { projectId: otherProjectId }),
+    ];
+
+    for (const call of calls) {
+      await expect(call()).rejects.toThrow(/unavailable|unauthorized/);
+    }
+  });
+
+  it("serves each remediated Preview read inside an authorized workspace", async () => {
+    const { ctx, projectId, tenantId } = createContext({ permissions: ["factory.read"] });
+
+    await expect(functionHandler(listTenants)(ctx, { activeOnly: false }))
+      .resolves.toEqual([expect.objectContaining({ _id: tenantId })]);
+    await expect(functionHandler(getTemplate)(ctx, { templateId: "template-a" }))
+      .resolves.toMatchObject({ projectId });
+    await expect(functionHandler(listTemplates)(ctx, { projectId }))
+      .resolves.toHaveLength(1);
+    await expect(functionHandler(getVersion)(ctx, { versionId: "version-a" }))
+      .resolves.toMatchObject({ projectId });
+    await expect(functionHandler(listVersions)(ctx, { templateId: "template-a" }))
+      .resolves.toHaveLength(1);
+    await expect(functionHandler(listPolicyEnvelopes)(ctx, { projectId }))
+      .resolves.toEqual([]);
+    await expect(functionHandler(evaluate)(ctx, { projectId, riskLevel: "GREEN" }))
+      .resolves.toEqual({ decision: "ALLOW", source: "fallback" });
+    await expect(functionHandler(getDependencyGraph)(ctx, { projectId }))
+      .resolves.toMatchObject({ nodes: [expect.objectContaining({ id: "task-a" })], edges: [] });
+    await expect(functionHandler(listOpEvents)(ctx, { projectId }))
+      .resolves.toEqual([]);
+    await expect(functionHandler(getOpEventStats)(ctx, { projectId }))
+      .resolves.toMatchObject({ total: 0, inWindow: 0 });
+    await expect(functionHandler(workLedger)(ctx, { projectId }))
+      .resolves.toMatchObject({
+        todo: [expect.objectContaining({ id: "task-a" })],
+        inProgress: [],
+        finished: [],
+      });
+    await expect(functionHandler(getGatewayConnection)(ctx, {})).resolves.toBeNull();
+    await expect(functionHandler(defaultRules)(ctx, {})).resolves.toHaveLength(4);
+    await expect(functionHandler(gatherEvidence)(ctx, { projectId }))
+      .resolves.toMatchObject({ prCount: 0 });
+  });
+
+  it("rejects contradictory or invalid Preview object scopes", async () => {
+    const { ctx, projectId, otherTenantId } = createContext({ permissions: ["factory.read"] });
+    await expect(functionHandler(listPolicyEnvelopes)(ctx, {
+      projectId,
+      tenantId: otherTenantId,
+    })).rejects.toThrow("unavailable or unauthorized");
+    await expect(functionHandler(listOpEvents)(ctx, {
+      projectId,
+      tenantId: otherTenantId,
+    })).rejects.toThrow("unavailable or unauthorized");
+    await expect(functionHandler(getDependencyGraph)(ctx, {
+      parentTaskId: "missing-task",
+    })).rejects.toThrow("unavailable or unauthorized");
+    await expect(functionHandler(gatherEvidence)(ctx, {
+      projectId: "missing-project",
+    })).rejects.toThrow("unavailable or unauthorized");
+  });
+
+  it("denies cross-company policy, template, and version bindings before writes", async () => {
+    const { ctx, projectId, otherTenantId } = createContext({
+      permissions: ["factory.improve", "factory.automation.manage"],
+    });
+    await expect(functionHandler(createPolicyEnvelope)(ctx, {
+      tenantId: otherTenantId,
+      projectId,
+      name: "Cross-company policy",
+      rules: {},
+    })).rejects.toThrow("unavailable or unauthorized");
+    await expect(functionHandler(createTemplate)(ctx, {
+      tenantId: otherTenantId,
+      projectId,
+      name: "Cross-company template",
+      slug: "cross-company-template",
+    })).rejects.toThrow("unavailable or unauthorized");
+    await expect(functionHandler(createVersion)(ctx, {
+      tenantId: otherTenantId,
+      projectId,
+      templateId: "template-b",
+      genome: {
+        modelConfig: { provider: "test", modelId: "test" },
+        promptBundleHash: "prompt",
+        toolManifestHash: "tools",
+        provenance: { createdBy: "test", source: "test", createdAt: 1 },
+      },
+    })).rejects.toThrow("unavailable or unauthorized");
+  });
+
+  it("denies unauthenticated callers across the remediated Live deployment and audit reads", async () => {
+    const { ctx, projectId, tenantId } = createContext({ identity: null });
+    const calls = [
+      () => functionHandler(listEnvironments)(ctx, { tenantId }),
+      () => functionHandler(listDeployments)(ctx, { tenantId }),
+      () => functionHandler(listShadowGates)(ctx, { deploymentId: "deployment-a" }),
+      () => functionHandler(listLatestShadowGates)(ctx, { deploymentIds: ["deployment-a"] }),
+      () => functionHandler(listShadowGateHistory)(ctx, { deploymentIds: ["deployment-a"] }),
+      () => functionHandler(listApprovals)(ctx, { projectId }),
+      () => functionHandler(listChangeRecords)(ctx, { projectId }),
+      () => functionHandler(getChangeRecord)(ctx, { changeRecordId: "change-a" }),
+    ];
+
+    for (const call of calls) {
+      await expect(call()).rejects.toThrow(/Authentication|required|unavailable|unauthorized/);
+    }
+  });
+
+  it("denies cross-company deployment and audit reads", async () => {
+    const { ctx, otherProjectId, otherTenantId } = createContext({ permissions: ["factory.read"] });
+    const calls = [
+      () => functionHandler(listEnvironments)(ctx, { tenantId: otherTenantId }),
+      () => functionHandler(listDeployments)(ctx, { tenantId: otherTenantId }),
+      () => functionHandler(listShadowGates)(ctx, { deploymentId: "deployment-b" }),
+      () => functionHandler(listLatestShadowGates)(ctx, { deploymentIds: ["deployment-b"] }),
+      () => functionHandler(listShadowGateHistory)(ctx, { deploymentIds: ["deployment-b"] }),
+      () => functionHandler(listApprovals)(ctx, { projectId: otherProjectId }),
+      () => functionHandler(listChangeRecords)(ctx, { projectId: otherProjectId }),
+      () => functionHandler(getChangeRecord)(ctx, { changeRecordId: "change-b" }),
+    ];
+
+    for (const call of calls) {
+      await expect(call()).rejects.toThrow(/Company account|unavailable|unauthorized/);
+    }
+  });
+
+  it("serves Live deployment and audit reads only inside the authorized scope", async () => {
+    const { ctx, projectId, tenantId } = createContext({ permissions: ["factory.read"] });
+
+    await expect(functionHandler(listEnvironments)(ctx, { tenantId })).resolves.toHaveLength(1);
+    await expect(functionHandler(listDeployments)(ctx, { tenantId })).resolves.toHaveLength(1);
+    await expect(functionHandler(listShadowGates)(ctx, { deploymentId: "deployment-a" })).resolves.toHaveLength(1);
+    await expect(functionHandler(listLatestShadowGates)(ctx, { deploymentIds: ["deployment-a"] })).resolves.toHaveLength(1);
+    await expect(functionHandler(listShadowGateHistory)(ctx, { deploymentIds: ["deployment-a"] })).resolves.toHaveLength(1);
+    await expect(functionHandler(listApprovals)(ctx, { projectId })).resolves.toHaveLength(1);
+    await expect(functionHandler(listChangeRecords)(ctx, { projectId })).resolves.toHaveLength(1);
+    await expect(functionHandler(getChangeRecord)(ctx, { changeRecordId: "change-a" }))
+      .resolves.toMatchObject({ projectId });
+  });
+
+  it("rejects unscoped or contradictory Live deployment and audit reads", async () => {
+    const { ctx, projectId, tenantId, otherTenantId } = createContext({ permissions: ["factory.read"] });
+
+    await expect(functionHandler(listDeployments)(ctx, {}))
+      .rejects.toThrow("authorized deployment scope");
+    await expect(functionHandler(listApprovals)(ctx, {}))
+      .rejects.toThrow("authorized approval scope");
+    await expect(functionHandler(listChangeRecords)(ctx, {}))
+      .rejects.toThrow("authorized audit scope");
+    await expect(functionHandler(listDeployments)(ctx, {
+      tenantId: otherTenantId,
+      templateId: "template-a",
+    })).rejects.toThrow("unavailable or unauthorized");
+    await expect(functionHandler(listApprovals)(ctx, { projectId, tenantId: otherTenantId }))
+      .rejects.toThrow("unavailable or unauthorized");
+    await expect(functionHandler(listChangeRecords)(ctx, { projectId, tenantId: otherTenantId }))
+      .rejects.toThrow("unavailable or unauthorized");
+    await expect(functionHandler(listDeployments)(ctx, { tenantId })).resolves.toHaveLength(1);
+  });
+
+  it("denies unauthenticated task-drawer reads", async () => {
+    const { ctx, projectId } = createContext({ identity: null });
+    const calls = [
+      () => functionHandler(explainTaskPolicy)(ctx, { taskId: "task-a" }),
+      () => functionHandler(generateIncidentReport)(ctx, { taskId: "task-a" }),
+      () => functionHandler(listReviewsByTask)(ctx, { taskId: "task-a" }),
+      () => functionHandler(getReviewStats)(ctx, { projectId }),
+      () => functionHandler(listWatchSubscriptionsByUser)(ctx, { userId: "operator", projectId }),
+    ];
+
+    for (const call of calls) {
+      await expect(call()).rejects.toThrow(/Authentication|required|unavailable|unauthorized/);
+    }
+  });
+
+  it("denies cross-company and unscoped task-drawer reads", async () => {
+    const { ctx, otherProjectId } = createContext({ permissions: ["factory.read"] });
+    const calls = [
+      () => functionHandler(explainTaskPolicy)(ctx, { taskId: "task-b" }),
+      () => functionHandler(generateIncidentReport)(ctx, { taskId: "task-b" }),
+      () => functionHandler(listReviewsByTask)(ctx, { taskId: "task-b" }),
+      () => functionHandler(getReviewStats)(ctx, { projectId: otherProjectId }),
+      () => functionHandler(listWatchSubscriptionsByUser)(ctx, { userId: "operator", projectId: otherProjectId }),
+      () => functionHandler(getReviewStats)(ctx, {}),
+      () => functionHandler(listWatchSubscriptionsByUser)(ctx, { userId: "operator" }),
+      () => functionHandler(generateIncidentReport)(ctx, { taskId: "missing-task" }),
+    ];
+
+    for (const call of calls) {
+      await expect(call()).rejects.toThrow(/Authentication|required|unavailable|unauthorized|authorized .* scope/);
+    }
+  });
+
+  it("serves task-drawer reads inside the authorized workspace", async () => {
+    const { ctx, projectId } = createContext({ permissions: ["factory.read"] });
+
+    await expect(functionHandler(explainTaskPolicy)(ctx, { taskId: "task-a" }))
+      .resolves.toMatchObject({ taskId: "task-a", decision: "NEEDS_APPROVAL" });
+    await expect(functionHandler(generateIncidentReport)(ctx, { taskId: "task-a" }))
+      .resolves.toMatchObject({ task: { _id: "task-a", projectId }, totalCost: 0 });
+    await expect(functionHandler(listReviewsByTask)(ctx, { taskId: "task-a" }))
+      .resolves.toHaveLength(1);
+    await expect(functionHandler(getReviewStats)(ctx, { projectId }))
+      .resolves.toMatchObject({ total: 1, byType: { PRAISE: 1 } });
+    await expect(functionHandler(listWatchSubscriptionsByUser)(ctx, { userId: "operator", projectId }))
+      .resolves.toEqual([expect.objectContaining({ entityId: "task-a" })]);
   });
 });

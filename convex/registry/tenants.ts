@@ -1,6 +1,10 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
-import { listCompanyMemberships, requireCompanyAccess } from "../lib/companyAccess";
+import {
+  assertAuthenticated,
+  listCompanyMemberships,
+  requireCompanyAccess,
+} from "../lib/companyAccess";
 import { authedMutation } from "../lib/authedFunctions";
 
 export const createTenant = authedMutation({
@@ -62,6 +66,7 @@ export const getTenant = query({
 export const listTenants = query({
   args: { activeOnly: v.optional(v.boolean()) },
   handler: async (ctx, args) => {
+    await assertAuthenticated(ctx);
     const memberships = await listCompanyMemberships(ctx);
     const tenants = memberships.map((membership) => membership.tenant);
     return (args.activeOnly ?? true)

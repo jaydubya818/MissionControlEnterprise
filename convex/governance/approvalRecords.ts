@@ -3,6 +3,11 @@ import { mutation, query } from "../_generated/server";
 import { appendChangeRecord } from "../lib/armAudit";
 import { resolveActiveTenantId } from "../lib/getActiveTenant";
 import { authedMutation } from "../lib/authedFunctions";
+import {
+  FACTORY_PERMISSIONS,
+  requireCompanyAccess,
+  requireWorkspacePermission,
+} from "../lib/companyAccess";
 
 const statusValidator = v.union(
   v.literal("PENDING"),
@@ -99,6 +104,16 @@ export const listApprovals = query({
     status: v.optional(statusValidator),
   },
   handler: async (ctx, args) => {
+    if (args.projectId) {
+      const access = await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
+      if (args.tenantId && args.tenantId !== access.project.tenantId) {
+        throw new Error("Approval scope is unavailable or unauthorized.");
+      }
+    } else if (args.tenantId) {
+      await requireCompanyAccess(ctx, args.tenantId);
+    } else {
+      throw new Error("An authorized approval scope is required.");
+    }
     let rows = args.projectId
       ? await ctx.db
           .query("approvalRecords")
@@ -109,7 +124,7 @@ export const listApprovals = query({
           .query("approvalRecords")
           .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
           .collect()
-      : await ctx.db.query("approvalRecords").collect();
+      : [];
 
     if (args.status) {
       rows = rows.filter((row) => row.status === args.status);

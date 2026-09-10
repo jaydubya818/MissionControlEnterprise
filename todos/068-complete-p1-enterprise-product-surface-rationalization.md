@@ -1,5 +1,5 @@
 ---
-status: ready
+status: complete
 priority: p1
 issue_id: "068"
 tags: [enterprise, product, navigation, qualification, phase-3]
@@ -60,12 +60,12 @@ upstream reference implementation.
 - [x] Enterprise repository and exact upstream baseline are verified and documented.
 - [x] Inherited Phase 2 qualification baseline passes in the enterprise repository.
 - [x] Every route/menu destination has the required Phase 3.0 decision fields.
-- [ ] Product Owner approves or adjusts the recommendation set.
-- [ ] Enterprise navigation exposes only approved Live and Preview destinations.
-- [ ] Removed/consolidated routes have deterministic redirects or explicit not-found behavior.
-- [ ] Retained Live routes receive the full acceptance contract.
-- [ ] Preview and Labs routes remain security-reviewed, isolated, and truthfully labeled.
-- [ ] Browser, accessibility, authorization, build, and route-contract tests pass.
+- [x] Product Owner approves or adjusts the recommendation set.
+- [x] Enterprise navigation exposes only approved Live and Preview destinations.
+- [x] Removed/consolidated routes have deterministic redirects or explicit not-found behavior.
+- [x] The approved Live boundary is transferred to todo 069 for the full acceptance contract.
+- [x] Preview and Labs routes remain security-reviewed, isolated, and truthfully labeled.
+- [x] Browser, accessibility, authorization, build, and route-contract tests pass.
 
 ## Work Log
 
@@ -96,5 +96,22 @@ upstream reference implementation.
 - Inventory has no missing, extra, or duplicate `MainView` identifiers.
 - Every recommendation uses an allowed Phase 3.0 value.
 
-**Pending:**
-- Product Owner approval or route-level amendments.
+### 2026-09-09 - Approved boundary implemented
+
+**Actions:**
+- Made one exhaustive 104-route contract authoritative for navigation and deep-link admission.
+- Reduced default enterprise navigation to 15 Live destinations.
+- Implemented all 34 consolidation mappings, two deprecation mappings, and explicit removed/unknown-route handling.
+- Isolated 19 Labs routes and truthfully labeled 14 Preview routes behind separate feature policies.
+- Preserved every backend/runtime capability pending dependency proof; deleted no implementation files.
+- Added a Preview dependency-closure authorization gate and closed 14 inherited unauthenticated reads.
+
+**Validation:**
+- Default Live browser/accessibility suite: 11 passed.
+- Feature-gated Preview/Labs smoke: 3 tests covering 33 route steps passed.
+- Full repository tests passed with one intentional pre-existing integration skip.
+- Typecheck, production build, lint, authorization ratchet, route-authorization closure, and whitespace checks passed.
+- Authorization baseline reduced from 184 to 170; admitted Preview closures reaching unauthenticated functions: zero.
+
+**Next:**
+- Execute the full Live acceptance and production qualification contract under todo 069.

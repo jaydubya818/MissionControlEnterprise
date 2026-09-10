@@ -42,6 +42,11 @@ export function PoliciesView({ projectId }: { projectId: Id<"projects"> | null }
   const [playgroundOpen, setPlaygroundOpen] = useState(false);
   const [toolName, setToolName] = useState("shell");
   const [riskLevel, setRiskLevel] = useState<"GREEN" | "YELLOW" | "RED">("YELLOW");
+  const policyScope = projectId
+    ? { projectId }
+    : selectedTenantId
+      ? { tenantId: selectedTenantId }
+      : null;
 
   const tenants = useQuery(api["registry/tenants"].listTenants, { activeOnly: false });
   const templates = useQuery(api["registry/agentTemplates"].listTemplates, {
@@ -53,19 +58,23 @@ export function PoliciesView({ projectId }: { projectId: Id<"projects"> | null }
     api["registry/agentVersions"].listVersions,
     selectedTemplateId ? { templateId: selectedTemplateId } : "skip"
   );
-  const envelopes = useQuery(api["governance/policyEnvelopes"].listPolicyEnvelopes, {
-    tenantId: selectedTenantId ?? undefined,
-    projectId: projectId ?? undefined,
-    versionId: selectedVersionId ?? undefined,
-    activeOnly,
-  });
-  const evalResult = useQuery(api["governance/policyEnvelopes"].evaluate, {
-    tenantId: selectedTenantId ?? undefined,
-    projectId: projectId ?? undefined,
-    versionId: selectedVersionId ?? undefined,
-    toolName: toolName || undefined,
-    riskLevel,
-  });
+  const envelopes = useQuery(
+    api["governance/policyEnvelopes"].listPolicyEnvelopes,
+    policyScope
+      ? { ...policyScope, versionId: selectedVersionId ?? undefined, activeOnly }
+      : "skip"
+  );
+  const evalResult = useQuery(
+    api["governance/policyEnvelopes"].evaluate,
+    policyScope
+      ? {
+          ...policyScope,
+          versionId: selectedVersionId ?? undefined,
+          toolName: toolName || undefined,
+          riskLevel,
+        }
+      : "skip"
+  );
 
   const createPolicyEnvelope = useMutation(api["governance/policyEnvelopes"].createPolicyEnvelope);
   const attachPolicy = useMutation(api["governance/policyEnvelopes"].attachPolicy);

@@ -1,8 +1,15 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
+import type { Doc } from "../_generated/dataModel";
 import { appendChangeRecord } from "../lib/armAudit";
 import { resolveActiveTenantId } from "../lib/getActiveTenant";
 import { authedMutation } from "../lib/authedFunctions";
+import {
+  FACTORY_PERMISSIONS,
+  assertAuthenticated,
+  requireCompanyAccess,
+  requireWorkspacePermission,
+} from "../lib/companyAccess";
 
 const deploymentStatus = v.union(
   v.literal("PENDING"),
@@ -10,6 +17,61 @@ const deploymentStatus = v.union(
   v.literal("ROLLING_BACK"),
   v.literal("RETIRED")
 );
+
+async function requireDeploymentScope(ctx: any, deploymentId: any) {
+  const deployment = await ctx.db.get(deploymentId);
+  if (!deployment?.tenantId) {
+    throw new Error("Deployment is unavailable or unauthorized.");
+  }
+  await requireCompanyAccess(ctx, deployment.tenantId);
+  return deployment;
+}
+
+async function requireDeploymentListScope(ctx: any, args: {
+  tenantId?: any;
+  templateId?: any;
+  environmentId?: any;
+}) {
+  let authorizedTenantId = args.tenantId;
+
+  if (args.templateId) {
+    const template = await ctx.db.get(args.templateId);
+    if (!template?.tenantId) throw new Error("Deployment scope is unavailable or unauthorized.");
+    if (template.projectId) {
+      await requireWorkspacePermission(ctx, template.projectId, FACTORY_PERMISSIONS.VIEW);
+    } else {
+      await requireCompanyAccess(ctx, template.tenantId);
+    }
+    if (authorizedTenantId && authorizedTenantId !== template.tenantId) {
+      throw new Error("Deployment scope is unavailable or unauthorized.");
+    }
+    authorizedTenantId = template.tenantId;
+  }
+
+  if (args.environmentId) {
+    const environment = await ctx.db.get(args.environmentId);
+    if (!environment?.tenantId) throw new Error("Deployment scope is unavailable or unauthorized.");
+    await requireCompanyAccess(ctx, environment.tenantId);
+    if (authorizedTenantId && authorizedTenantId !== environment.tenantId) {
+      throw new Error("Deployment scope is unavailable or unauthorized.");
+    }
+    authorizedTenantId = environment.tenantId;
+  }
+
+  if (!authorizedTenantId) {
+    throw new Error("An authorized deployment scope is required.");
+  }
+  await requireCompanyAccess(ctx, authorizedTenantId);
+  return authorizedTenantId;
+}
+
+async function requireDeploymentIds(ctx: any, deploymentIds: any[]) {
+  if (deploymentIds.length === 0) {
+    await assertAuthenticated(ctx);
+    return;
+  }
+  for (const deploymentId of deploymentIds) await requireDeploymentScope(ctx, deploymentId);
+}
 
 export const createDeployment = authedMutation({
   args: {
@@ -135,13 +197,16 @@ export const recordShadowGate = authedMutation({
 
 export const listShadowGates = query({
   args: { deploymentId: v.id("deployments") },
-  handler: async (ctx, args) =>
-    await ctx.db.query("releaseGateEvaluations").withIndex("by_deployment", (q) => q.eq("deploymentId", args.deploymentId)).order("desc").collect(),
+  handler: async (ctx, args) => {
+    await requireDeploymentScope(ctx, args.deploymentId);
+    return await ctx.db.query("releaseGateEvaluations").withIndex("by_deployment", (q) => q.eq("deploymentId", args.deploymentId)).order("desc").collect();
+  },
 });
 
 export const listLatestShadowGates = query({
   args: { deploymentIds: v.array(v.id("deployments")) },
   handler: async (ctx, args) => {
+    await requireDeploymentIds(ctx, args.deploymentIds);
     const gates = await Promise.all(
       args.deploymentIds.map(async (deploymentId) =>
         await ctx.db
@@ -159,6 +224,7 @@ export const listLatestShadowGates = query({
 export const listShadowGateHistory = query({
   args: { deploymentIds: v.array(v.id("deployments")) },
   handler: async (ctx, args) => {
+    await requireDeploymentIds(ctx, args.deploymentIds);
     const rows = await Promise.all(
       args.deploymentIds.map((deploymentId) =>
         ctx.db
@@ -232,7 +298,8 @@ export const listDeployments = query({
     status: v.optional(deploymentStatus),
   },
   handler: async (ctx, args) => {
-    let rows;
+    const authorizedTenantId = await requireDeploymentListScope(ctx, args);
+    let rows: Doc<"deployments">[];
     if (args.templateId) {
       rows = await ctx.db
         .query("deployments")
@@ -248,9 +315,9 @@ export const listDeployments = query({
         .query("deployments")
         .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId!))
         .collect();
-    } else {
-      rows = await ctx.db.query("deployments").collect();
-    }
+    } else rows = [];
+
+    rows = rows.filter((row) => row.tenantId === authorizedTenantId);
 
     if (args.status) {
       rows = rows.filter((row) => row.status === args.status);

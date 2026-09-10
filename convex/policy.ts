@@ -233,20 +233,8 @@ export const explainTaskPolicy = query({
   },
   handler: async (ctx, args) => {
     const task = await ctx.db.get(args.taskId);
-    if (!task) {
-      return {
-        taskId: args.taskId,
-        taskStatus: "NOT_FOUND" as const,
-        assignee: null,
-        decision: "DENY" as const,
-        riskLevel: "RED" as const,
-        reason: "Task not found",
-        triggeredRules: ["task_not_found"],
-        requiredApprovals: [],
-        remediationHints: ["Verify the task ID and retry."],
-        evaluatedAt: Date.now(),
-      };
-    }
+    if (!task?.projectId) throw new Error("Task is unavailable or unauthorized.");
+    await requireWorkspacePermission(ctx, task.projectId, FACTORY_PERMISSIONS.VIEW);
 
     const policy = await ctx.db
       .query("policies")

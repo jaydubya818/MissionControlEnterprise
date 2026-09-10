@@ -1,5 +1,50 @@
 import { query } from "../_generated/server";
 import { v } from "convex/values";
+import type { Id } from "../_generated/dataModel";
+import {
+  FACTORY_PERMISSIONS,
+  requireCompanyAccess,
+  requireWorkspacePermission,
+} from "../lib/companyAccess";
+
+type OpEventScope = {
+  tenantId?: Id<"tenants">;
+  projectId?: Id<"projects">;
+  instanceId?: Id<"agentInstances">;
+};
+
+async function requireOpEventScope(ctx: any, args: OpEventScope) {
+  let projectId = args.projectId;
+  let tenantId = args.tenantId;
+
+  if (args.instanceId) {
+    const instance = await ctx.db.get(args.instanceId);
+    if (!instance || (!instance.projectId && !instance.tenantId)) {
+      throw new Error("Operational event scope is unavailable or unauthorized.");
+    }
+    if (projectId && instance.projectId !== projectId) {
+      throw new Error("Operational event scope is unavailable or unauthorized.");
+    }
+    if (tenantId && instance.tenantId !== tenantId) {
+      throw new Error("Operational event scope is unavailable or unauthorized.");
+    }
+    projectId = instance.projectId ?? projectId;
+    tenantId = instance.tenantId ?? tenantId;
+  }
+
+  if (projectId) {
+    const access = await requireWorkspacePermission(ctx, projectId, FACTORY_PERMISSIONS.VIEW);
+    if (tenantId && tenantId !== access.project.tenantId) {
+      throw new Error("Operational event scope is unavailable or unauthorized.");
+    }
+    return;
+  }
+  if (tenantId) {
+    await requireCompanyAccess(ctx, tenantId);
+    return;
+  }
+  throw new Error("An authorized operational event scope is required.");
+}
 
 export const listOpEvents = query({
   args: {
@@ -10,6 +55,7 @@ export const listOpEvents = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireOpEventScope(ctx, args);
     let rows = args.instanceId
       ? await ctx.db
           .query("opEvents")
@@ -43,6 +89,7 @@ export const getOpEventStats = query({
     windowMinutes: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireOpEventScope(ctx, args);
     const rows = args.projectId
       ? await ctx.db
           .query("opEvents")

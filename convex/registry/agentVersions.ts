@@ -3,7 +3,11 @@ import { mutation, query } from "../_generated/server";
 import { computeGenomeHash } from "../lib/genomeHash";
 import { appendChangeRecord } from "../lib/armAudit";
 import { resolveActiveTenantId } from "../lib/getActiveTenant";
-import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "../lib/companyAccess";
+import {
+  FACTORY_PERMISSIONS,
+  requireCompanyAccess,
+  requireWorkspacePermission,
+} from "../lib/companyAccess";
 import { authedMutation } from "../lib/authedFunctions";
 
 const versionStatus = v.union(
@@ -40,16 +44,22 @@ export const createVersion = mutation({
     metadata: v.optional(v.any()),
   },
   handler: async (ctx, args) => {
-    if (args.projectId) {
-      await requireWorkspacePermission(
-        ctx,
-        args.projectId,
-        args.status === "APPROVED" ? FACTORY_PERMISSIONS.APPROVE : FACTORY_PERMISSIONS.IMPROVE,
-      );
+    if (!args.projectId) {
+      throw new Error("An authorized workspace is required to create an agent version.");
     }
+    const access = await requireWorkspacePermission(
+      ctx,
+      args.projectId,
+      args.status === "APPROVED" ? FACTORY_PERMISSIONS.APPROVE : FACTORY_PERMISSIONS.IMPROVE,
+    );
     const template = await ctx.db.get(args.templateId);
-    if (!template || (args.projectId && template.projectId && template.projectId !== args.projectId)) {
-      throw new Error("Agent template is outside the selected workspace.");
+    if (
+      !template
+      || template.tenantId !== access.project.tenantId
+      || (template.projectId && template.projectId !== args.projectId)
+      || (args.tenantId && args.tenantId !== access.project.tenantId)
+    ) {
+      throw new Error("Agent template is unavailable or unauthorized.");
     }
     const tenantId = await resolveActiveTenantId(
       { db: ctx.db as any },
@@ -60,6 +70,9 @@ export const createVersion = mutation({
         createDefaultIfMissing: true,
       }
     );
+    if (tenantId !== access.project.tenantId) {
+      throw new Error("Agent version scope is unavailable or unauthorized.");
+    }
 
     const existing = await ctx.db
       .query("agentVersions")
@@ -103,7 +116,14 @@ export const createVersion = mutation({
 export const getVersion = query({
   args: { versionId: v.id("agentVersions") },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.versionId);
+    const version = await ctx.db.get(args.versionId);
+    if (!version?.tenantId) throw new Error("Agent version is unavailable or unauthorized.");
+    if (version.projectId) {
+      await requireWorkspacePermission(ctx, version.projectId, FACTORY_PERMISSIONS.VIEW);
+    } else {
+      await requireCompanyAccess(ctx, version.tenantId);
+    }
+    return version;
   },
 });
 
@@ -112,6 +132,13 @@ export const listVersions = query({
     templateId: v.id("agentTemplates"),
   },
   handler: async (ctx, args) => {
+    const template = await ctx.db.get(args.templateId);
+    if (!template?.tenantId) throw new Error("Agent template is unavailable or unauthorized.");
+    if (template.projectId) {
+      await requireWorkspacePermission(ctx, template.projectId, FACTORY_PERMISSIONS.VIEW);
+    } else {
+      await requireCompanyAccess(ctx, template.tenantId);
+    }
     const rows = await ctx.db
       .query("agentVersions")
       .withIndex("by_template", (q) => q.eq("templateId", args.templateId))

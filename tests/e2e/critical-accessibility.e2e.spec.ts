@@ -4,7 +4,7 @@ import { expect, test, type Page, type TestInfo } from "@playwright/test";
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
 const CRITICAL_ROUTES = [
-  { route: "/v2/home", heading: "Command Center" },
+  { route: "/v2/command-center", heading: "Command Center" },
   { route: "/v2/tasks", heading: "Tasks" },
   { route: "/v2/control-work-orders", heading: "Work Orders" },
   { route: "/v2/control-approvals", heading: "Decision Center" },

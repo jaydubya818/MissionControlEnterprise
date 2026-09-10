@@ -13,8 +13,13 @@ import { useToast } from "./Toast";
 import { useKeyboardShortcuts } from "./KeyboardShortcuts";
 import { useModalState } from "./hooks/useModalState";
 import { PrivacyProvider } from "./contexts/PrivacyContext";
-import { useFlag, useFlagResolution } from "./hooks/useFlag";
+import { useFlagResolution } from "./hooks/useFlag";
 import { AppShellV2, initialViewFromLocation } from "./shellV2/AppShellV2";
+import {
+  ENTERPRISE_ROUTE_VIEWS,
+  ENTERPRISE_ROUTE_NOTICE_PARAM,
+  ENTERPRISE_ROUTE_SOURCE_PARAM,
+} from "./shellV2/enterpriseRouteContract";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
   WorkspaceScopeProvider,
@@ -235,6 +240,30 @@ function readPersistedCompanyId(): string | null {
   }
 }
 
+function enterpriseRouteNoticeMessage(searchParams: URLSearchParams): string | null {
+  const reason = searchParams.get(ENTERPRISE_ROUTE_NOTICE_PARAM);
+  const source = (searchParams.get(ENTERPRISE_ROUTE_SOURCE_PARAM) ?? "requested")
+    .replace(/[^a-zA-Z0-9-]/g, " ")
+    .slice(0, 80);
+  const label = source === "home" ? "Overview" : source.replace(/-/g, " ");
+  switch (reason) {
+    case "consolidated":
+      return `The ${label} surface was consolidated into this authoritative enterprise view.`;
+    case "deprecated":
+      return `The ${label} route is deprecated. Mission Control opened its supported replacement.`;
+    case "removed":
+      return `The ${label} route is not part of the Mission Control Enterprise product boundary.`;
+    case "preview-disabled":
+      return `The ${label} route is Preview and is disabled in this environment.`;
+    case "labs-disabled":
+      return `The ${label} route is a Labs capability and is disabled by default.`;
+    case "unknown":
+      return `The requested route is not available in Mission Control Enterprise.`;
+    default:
+      return null;
+  }
+}
+
 function ScopeRecoveryNotice({
   message,
   onDismiss,
@@ -263,24 +292,7 @@ function ScopeRecoveryNotice({
   );
 }
 
-const VALID_MAIN_VIEWS: MainView[] = [
-  "home", "atc", "tasks", "agents", "directory", "policies", "deployments", "audit", "telemetry", "automations", "automation-runs",
-  "dag", "chat", "council", "calendar", "projects", "model-routing", "memory", "captures", "docs", "skills", "people", "org",
-  "design-system",
-  "office", "live-office", "search", "identity", "telegraph", "meetings", "voice", "content-pipeline",
-  "crm", "command", "code", "recorder", "test-generation", "api-import", "execution", "flaky-steps",
-  "hybrid-workflows", "schedule", "codegen", "gherkin", "metrics", "qc-dashboard", "qc-runs",
-  "qc-environments", "qc-findings", "qc-metrics", "qc-rulesets", "gateway", "live-chat", "schedules",
-  "hiring", "team", "system", "radar", "factory", "pipeline", "feedback", "ops-schedule", "goals",
-  "analytics", "command-center", "missions", "mission-detail", "trace-inspector", "effectiveness", "operator-evals",
-  "factory-health", "readiness", "friction", "agent-catalog", "dossier", "recommendations",
-  "control-portfolio", "control-work-orders", "control-fleet", "control-approvals",
-  "harness-health", "harness-loops", "harness-control-plane", "harness-work-ledger",
-  "harness-verifiers", "harness-change-review", "harness-change-risk", "harness-launch",
-  "harness-meta-loop", "harness-team-pulse", "harness-builder", "harness-maintenance", "harness-code-review-wizard",
-  "harness-workshop", "harness-automations", "harness-agent-fleet", "harness-software-factory", "harness-architect", "harness-patterns",
-  "registry-lifecycle", "registry-evaluate", "registry-inventory", "registry-installations", "registry-runs",
-];
+const VALID_MAIN_VIEWS = ENTERPRISE_ROUTE_VIEWS;
 
 function readPersistedView(): MainView | null {
   if (typeof window === "undefined") return null;
@@ -295,7 +307,7 @@ function readPersistedView(): MainView | null {
 }
 
 function readInitialView(): MainView {
-  if (typeof window === "undefined") return readPersistedView() ?? "home";
+  if (typeof window === "undefined") return readPersistedView() ?? "command-center";
   return initialViewFromLocation(
     window.location.pathname,
     VALID_MAIN_VIEWS,
@@ -687,6 +699,7 @@ export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const enterpriseRouteWarning = enterpriseRouteNoticeMessage(searchParams);
   const companyContext = useFlagResolution("company.context");
   const companyContextEnabled = companyContext.enabled;
   // ── Navigation & selection (persist last view so UI reopens where operator left off) ─
@@ -721,6 +734,14 @@ export default function App() {
   // ── Derived ─────────────────────────────────────────────────────────────
   const activeSection = useMemo(() => viewToSection(currentView), [currentView]);
   const sectionTabs = SECTION_TABS[activeSection];
+  const dismissEnterpriseRouteWarning = useCallback(() => {
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.delete(ENTERPRISE_ROUTE_NOTICE_PARAM);
+      next.delete(ENTERPRISE_ROUTE_SOURCE_PARAM);
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
 
   // ── Data ─────────────────────────────────────────────────────────────────
   const companySession = useQuery(
@@ -1239,9 +1260,9 @@ export default function App() {
   }
 
   // ── Render ───────────────────────────────────────────────────────────────
-  // The Software Factory v2 shell is now the default UI. Set the `ui.shell.v1`
-  // flag (or VITE_FLAG_UI_SHELL_V1=true) to fall back to the legacy shell.
-  const legacyShell = useFlag("ui.shell.v1");
+  // MissionControlEnterprise admits only the curated operator shell. The
+  // preserved legacy implementation has no enterprise product entry point.
+  const legacyShell = false;
 
   if (companyContext.loading || (companyContextEnabled && companySession === undefined)) {
     return <SectionLoadingState />;
@@ -1269,15 +1290,19 @@ export default function App() {
                 ? "The requested company account was unavailable. Mission Control opened an accessible account instead."
                 : workspaceWarning?.visible === true
                   ? WORKSPACE_RECOVERY_WARNING
-                  : null
+                  : enterpriseRouteWarning
             }
-            onDismiss={() =>
-              companyWarning
-                ? setCompanyWarning(false)
-                : setWorkspaceWarning((current) =>
-                    current ? { ...current, visible: false } : current
-                  )
-            }
+            onDismiss={() => {
+              if (companyWarning) {
+                setCompanyWarning(false);
+              } else if (workspaceWarning?.visible === true) {
+                setWorkspaceWarning((current) =>
+                  current ? { ...current, visible: false } : current
+                );
+              } else {
+                dismissEnterpriseRouteWarning();
+              }
+            }}
           />
           <AppShellV2
             activeView={currentView}
@@ -1367,15 +1392,19 @@ export default function App() {
             ? "The requested company account was unavailable. Mission Control opened an accessible account instead."
             : workspaceWarning?.visible === true
               ? WORKSPACE_RECOVERY_WARNING
-              : null
+              : enterpriseRouteWarning
         }
-        onDismiss={() =>
-          companyWarning
-            ? setCompanyWarning(false)
-            : setWorkspaceWarning((current) =>
-                current ? { ...current, visible: false } : current
-              )
-        }
+        onDismiss={() => {
+          if (companyWarning) {
+            setCompanyWarning(false);
+          } else if (workspaceWarning?.visible === true) {
+            setWorkspaceWarning((current) =>
+              current ? { ...current, visible: false } : current
+            );
+          } else {
+            dismissEnterpriseRouteWarning();
+          }
+        }}
       />
       <div className="flex h-screen flex-col bg-background text-foreground">
         <AppTopBar

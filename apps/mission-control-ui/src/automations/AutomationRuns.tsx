@@ -94,7 +94,6 @@ export function AutomationRuns({
                 <td className="px-3 py-3">
                   <div className="flex flex-col items-start gap-2 text-xs">
                     <a href={workspacePath(`/v2/control-work-orders?workOrder=${run.workOrder._id}`, projectId)} className="inline-flex items-center gap-1 text-registry-accent hover:text-foreground">WorkOrder <ArrowUpRight className="h-3 w-3" /></a>
-                    <a href={workspacePath(`/v2/harness-workshop?workflow=${run.workOrder.workflowId}`, projectId)} className="inline-flex items-center gap-1 text-registry-accent hover:text-foreground">Workflow <ArrowUpRight className="h-3 w-3" /></a>
                     {run.receipts[0] ? <a href={`?workspace=${projectId}&tab=receipts&receipt=${run.receipts[0]._id}`} className="inline-flex items-center gap-1 text-registry-accent hover:text-foreground">Receipt <ArrowUpRight className="h-3 w-3" /></a> : null}
                     <button type="button" onClick={() => run.definition && onSelectDefinition(run.definition._id)} className="inline-flex items-center gap-1 text-registry-accent hover:text-foreground">Definition / decisions <ArrowUpRight className="h-3 w-3" /></button>
                     {["DISPATCHED", "IN_PROGRESS"].includes(run.workOrder.state) && run.definition?.adapterType ? (

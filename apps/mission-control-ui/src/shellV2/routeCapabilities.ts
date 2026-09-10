@@ -1,80 +1,39 @@
 import type { MainView } from "../TopNav";
+import {
+  ENTERPRISE_ROUTE_DECISIONS,
+  enterpriseRouteDecision,
+} from "./enterpriseRouteContract";
 
 export type RouteScope = "workspace" | "global";
-export type RouteMaturity = "live" | "preview" | "demo" | "hidden";
+export type RouteMaturity = "live" | "preview" | "labs" | "hidden";
 
 export interface RouteCapability {
   scope: RouteScope;
   maturity: RouteMaturity;
 }
 
+const GLOBAL_VIEWS = new Set<MainView>(["skills", "agent-catalog"]);
+
 /**
- * Product contract for the EOS operator shell.
+ * Product capability registry for the curated enterprise shell.
  *
- * Routes omitted from this registry are hidden when capability enforcement is
- * enabled. This makes adding a component insufficient to promote it into the
- * production navigation.
+ * Only Live, Preview, and Labs destinations are registered as product routes.
+ * Consolidated, hidden, deprecated, and removed views remain in the exhaustive
+ * decision contract so stale links receive deterministic handling.
  */
-export const ROUTE_CAPABILITIES: Partial<Record<MainView, RouteCapability>> = {
-  "command-center": { scope: "workspace", maturity: "live" },
-  "control-work-orders": { scope: "workspace", maturity: "live" },
-  "control-approvals": { scope: "workspace", maturity: "live" },
-  tasks: { scope: "workspace", maturity: "live" },
-  "trace-inspector": { scope: "workspace", maturity: "live" },
-  agents: { scope: "workspace", maturity: "live" },
-  atc: { scope: "workspace", maturity: "live" },
-  audit: { scope: "workspace", maturity: "live" },
-  telemetry: { scope: "workspace", maturity: "live" },
-  automations: { scope: "workspace", maturity: "live" },
-  "automation-runs": { scope: "workspace", maturity: "live" },
-  skills: { scope: "global", maturity: "live" },
-  memory: { scope: "workspace", maturity: "live" },
-  docs: { scope: "global", maturity: "live" },
-  policies: { scope: "workspace", maturity: "preview" },
-  identity: { scope: "workspace", maturity: "live" },
-  deployments: { scope: "workspace", maturity: "live" },
-  projects: { scope: "workspace", maturity: "live" },
-  "model-routing": { scope: "workspace", maturity: "live" },
-  "operator-evals": { scope: "workspace", maturity: "live" },
-
-  goals: { scope: "workspace", maturity: "preview" },
-  factory: { scope: "workspace", maturity: "live" },
-  code: { scope: "workspace", maturity: "preview" },
-  dag: { scope: "workspace", maturity: "preview" },
-  analytics: { scope: "workspace", maturity: "preview" },
-  "harness-loops": { scope: "workspace", maturity: "live" },
-  "harness-code-review-wizard": { scope: "workspace", maturity: "preview" },
-  "harness-change-review": { scope: "workspace", maturity: "preview" },
-  "harness-automations": { scope: "workspace", maturity: "preview" },
-  "harness-meta-loop": { scope: "workspace", maturity: "preview" },
-  "registry-lifecycle": { scope: "workspace", maturity: "preview" },
-  "registry-evaluate": { scope: "workspace", maturity: "preview" },
-  "registry-inventory": { scope: "workspace", maturity: "preview" },
-  "registry-installations": { scope: "workspace", maturity: "preview" },
-  "registry-runs": { scope: "workspace", maturity: "preview" },
-  "qc-rulesets": { scope: "workspace", maturity: "preview" },
-  gateway: { scope: "workspace", maturity: "preview" },
-  system: { scope: "workspace", maturity: "preview" },
-  "design-system": { scope: "global", maturity: "preview" },
-  recorder: { scope: "workspace", maturity: "preview" },
-  "test-generation": { scope: "workspace", maturity: "preview" },
-  "api-import": { scope: "workspace", maturity: "preview" },
-  "flaky-steps": { scope: "workspace", maturity: "preview" },
-  gherkin: { scope: "workspace", maturity: "preview" },
-  "hybrid-workflows": { scope: "workspace", maturity: "preview" },
-  codegen: { scope: "workspace", maturity: "preview" },
-  pipeline: { scope: "workspace", maturity: "preview" },
-
-  missions: { scope: "workspace", maturity: "live" },
-  "mission-detail": { scope: "workspace", maturity: "live" },
-  effectiveness: { scope: "workspace", maturity: "demo" },
-  "factory-health": { scope: "workspace", maturity: "demo" },
-  readiness: { scope: "workspace", maturity: "demo" },
-  friction: { scope: "workspace", maturity: "demo" },
-  recommendations: { scope: "workspace", maturity: "demo" },
-  "agent-catalog": { scope: "global", maturity: "demo" },
-  dossier: { scope: "workspace", maturity: "demo" },
-};
+export const ROUTE_CAPABILITIES = Object.fromEntries(
+  Object.entries(ENTERPRISE_ROUTE_DECISIONS).flatMap(([view, decision]) => {
+    if (decision.disposition !== "live"
+      && decision.disposition !== "preview"
+      && decision.disposition !== "labs") {
+      return [];
+    }
+    return [[view, {
+      scope: GLOBAL_VIEWS.has(view as MainView) ? "global" : "workspace",
+      maturity: decision.disposition,
+    } satisfies RouteCapability]];
+  })
+) as Partial<Record<MainView, RouteCapability>>;
 
 const HIDDEN_CAPABILITY: RouteCapability = {
   scope: "workspace",
@@ -91,6 +50,8 @@ export function hasDeclaredRouteCapability(view: MainView): boolean {
 
 export interface RouteVisibilityOptions {
   showPreviewRoutes?: boolean;
+  showLabsRoutes?: boolean;
+  /** Compatibility name for the existing persisted feature flag. */
   showDemoRoutes?: boolean;
 }
 
@@ -101,16 +62,19 @@ export function isRouteVisible(
   const capability = routeCapability(view);
   if (capability.maturity === "live") return true;
   if (capability.maturity === "preview") return options.showPreviewRoutes === true;
-  if (capability.maturity === "demo") return options.showDemoRoutes === true;
+  if (capability.maturity === "labs") {
+    return options.showLabsRoutes === true || options.showDemoRoutes === true;
+  }
   return false;
 }
 
 export function routeBadge(
   view: MainView
-): "Global" | "Preview" | "Demo" | undefined {
-  const capability = routeCapability(view);
-  if (capability.maturity === "preview") return "Preview";
-  if (capability.maturity === "demo") return "Demo";
-  if (capability.scope === "global") return "Global";
+): "Global" | "Preview" | "Labs" | "Support" | undefined {
+  const decision = enterpriseRouteDecision(view);
+  if (decision.disposition === "preview") return "Preview";
+  if (decision.disposition === "labs") return "Labs";
+  if (decision.disposition === "hidden") return "Support";
+  if (routeCapability(view).scope === "global") return "Global";
   return undefined;
 }

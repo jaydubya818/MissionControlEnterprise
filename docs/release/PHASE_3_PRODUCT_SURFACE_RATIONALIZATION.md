@@ -1,6 +1,6 @@
 ---
 title: Phase 3 Enterprise Product Surface Rationalization
-status: proposed
+status: implemented
 upstream_baseline: ffd58077989a23004819a85f529ca74c955b1422
 updated: 2026-09-09
 ---
@@ -9,12 +9,14 @@ updated: 2026-09-09
 
 ## Decision status
 
-**PROPOSED — PRODUCT OWNER APPROVAL REQUIRED**
+**IMPLEMENTED — RELEASE QUALIFICATION IN PROGRESS**
 
-This document defines the recommended enterprise product boundary. It does not
-authorize route deletion, navigation changes, or maturity promotion. Phase 3
-release qualification remains gated until the Product Owner approves or adjusts
-this recommendation set.
+The Product Owner approved the complete 104-route classification on 2026-09-09,
+including the five Live-to-Preview downgrades. Product-surface implementation is
+authorized only in `MissionControlEnterprise`; physical backend deletion still
+requires separate dependency proof. The enterprise route contract, navigation,
+redirects, Labs isolation, Preview labeling, and Preview authorization closure
+are now implemented.
 
 The exhaustive 104-route decision record is
 [`PHASE_3_PRODUCT_SURFACE_INVENTORY.csv`](./PHASE_3_PRODUCT_SURFACE_INVENTORY.csv).
@@ -119,17 +121,17 @@ unrestricted enterprise claim yet:
 | Route | Why it remains Preview |
 | --- | --- |
 | `/v2/policies` | Server enforcement is qualified; policy authoring still needs full route security proof. |
-| `/v2/dag` | Task relations are authoritative, but a dependency read is in authorization debt. |
+| `/v2/dag` | Task relations are authoritative and scoped; the graph interaction still needs broader Preview usability evidence. |
 | `/v2/telemetry` | Current signals are real; a canonical incident aggregate and degraded-mode contract are missing. |
 | `/v2/analytics` | Usage is partial and provider cost may be unknown. |
 | `/v2/factory-health` | Real component data exists, but the current route is mixed with Demo projections. |
-| `/v2/harness-work-ledger` | Durable lineage exists; the dedicated read is in authorization debt. |
+| `/v2/harness-work-ledger` | Durable scoped lineage exists; the dedicated view still needs broader Preview functional evidence. |
 | `/v2/code` | Pipeline data is useful but the end-to-end build contract is incomplete. |
 | `/v2/skills` | Context governance is real but supporting, global, and not required for the golden path. |
 | `/v2/memory` | Workspace knowledge is useful but needs route-level isolation and persistence proof. |
 | `/v2/operator-evals` | Evaluations support improvement but are not an operating-system prerequisite. |
 | `/v2/harness-loops` | The backend is substantial, but the route is broader than the bounded pilot. |
-| `/v2/gateway` | Integration state is real; a gateway read remains in authorization debt. |
+| `/v2/gateway` | Integration state is authenticated; production service identity and degraded-provider proof remain external gates. |
 | `/v2/harness-code-review-wizard` | Repository setup is partial and externally dependent. |
 | `/v2/harness-meta-loop` | Improvement proposals are advisory and need explicit acceptance-authority proof. |
 
@@ -212,10 +214,13 @@ to Live by this decision.
 
 ## Security interpretation
 
-The exact baseline replay passed with 917 public functions scanned, 733
-authorized, 184 ratcheted unauthorized read-only functions, zero Live
-unauthorized functions, and zero unauthorized mutations/actions. That is a
-regression-safe inherited baseline, not a Phase 3 release approval.
+The exact imported-baseline replay passed with 917 public functions scanned,
+733 authorized, 184 ratcheted unauthorized read-only functions, zero Live
+unauthorized functions, and zero unauthorized mutations/actions. Product-
+surface implementation then closed 27 inherited reads, leaving 760 authorized
+and 157 ratcheted unauthorized read-only functions. All 17 Live and 14 Preview
+UI closures now pass the dedicated server-authorization gate. This remains a rationalized
+boundary, not final Phase 3 release approval.
 
 The matrix identifies routes known to touch authorization debt. A route that is
 consolidated, moved to Labs, hidden, deprecated, or removed must not remain a
@@ -223,25 +228,31 @@ deep-link bypass around enterprise navigation. Preview and Labs access must also
 enforce company/workspace scope; labels and feature flags are not security
 boundaries.
 
-## Implementation contract after approval
+## Implemented product-surface contract
 
-1. Make the enterprise route registry the authority for navigation and direct
-   URL admission in every shell configuration.
-2. Render only the 15 approved Live menu destinations by default.
-3. Put the 14 Preview destinations behind one explicit, labeled Preview policy.
-4. Keep Labs disabled by default and excluded from production claims.
-5. Add deterministic canonical redirects for consolidation decisions; do not
-   silently redirect invalid or unauthorized object IDs.
-6. Return an explicit not-found or unavailable state for removed routes and
-   verify that stale deep links cannot access their data.
-7. Remove implementation only after dependency and deep-link analysis proves it
-   is safe; retain migration notes for deprecated routes.
-8. Run the full Live acceptance contract only against the approved Live set.
-9. Run security, basic functional smoke, labeling, and isolation checks against
-   Preview and Labs surfaces.
+1. The exhaustive enterprise route registry is authoritative for navigation and
+   direct URL admission in the only admitted shell.
+2. The default navigation renders exactly the 15 approved Live destinations.
+3. The 14 Preview destinations share one explicit feature gate and render a
+   persistent Preview badge when enabled.
+4. Labs is disabled by default, separated into a collapsed secondary group,
+   and persistently labeled when enabled.
+5. All 34 consolidations and two deprecations use deterministic redirects that
+   preserve scope/query state and explain the migration.
+6. Removed and unknown destinations return an explicit unavailable notice at
+   Command Center; no removed view renders first.
+7. No implementation file or backend capability was physically deleted. The
+   dependency analysis remains the gate for any later deletion.
+8. All 14 Preview UI dependency closures are server-authorized and covered by
+   unauthenticated, cross-company, invalid-object, and authorized-path tests.
+9. Full Live acceptance proceeds only against the approved 17-route boundary in
+   the Phase 3 enterprise release qualification.
 
-## Approval requested
+## Approval record and evidence
 
-Approve this boundary as written, or identify route-level changes in the CSV.
-Navigation implementation, route removal, and full Phase 3 release
-qualification must not start until that decision is recorded.
+The Product Owner approved the classification without route-level changes on
+2026-09-09. Implementation evidence is recorded in
+[`product-surface-qualification.json`](../testing/evidence/phase-3/product-surface-qualification.json)
+and the focused security review is
+[`PHASE_3_PREVIEW_SECURITY_REVIEW.md`](./PHASE_3_PREVIEW_SECURITY_REVIEW.md).
+The remaining release work is tracked by todo 069.

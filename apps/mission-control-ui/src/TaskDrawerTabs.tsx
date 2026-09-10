@@ -137,7 +137,9 @@ export function TaskDrawerTabs({
   );
   const watchSubscriptions = useQuery(
     api.watchSubscriptions.listByUser,
-    taskId ? { userId: "operator", entityType: "TASK" } : "skip"
+    taskId && data?.task.projectId
+      ? { userId: "operator", projectId: data.task.projectId, entityType: "TASK" }
+      : "skip"
   );
   const postMessage = useMutation(api.messages.post);
   const transitionTask = useMutation(api.tasks.transition);

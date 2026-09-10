@@ -24,9 +24,10 @@ export function HarnessCodeReviewWizardSteps({
   projectId?: Id<"projects"> | null;
   onNavigate?: (view: MainView) => void;
 }): JSX.Element {
-  const evidence = useQuery(api.factory.codeReviewWizard.gatherEvidence, {
-    projectId: projectId ?? undefined,
-  });
+  const evidence = useQuery(
+    api.factory.codeReviewWizard.gatherEvidence,
+    projectId ? { projectId } : "skip"
+  );
   const packages = useQuery(api.context.packages.listWithCurrentVersions, {});
   const defaultRules = useQuery(api.context.changeRisk.defaultRules, {});
   const upsertPolicy = useMutation(api.context.changeRisk.upsertPolicy);
@@ -52,6 +53,14 @@ export function HarnessCodeReviewWizardSteps({
       setSelectedPackageId(packages[0]._id);
     }
   }, [packages, selectedPackageId]);
+
+  if (!projectId) {
+    return (
+      <div className="rounded-lg border border-line bg-surface-2 px-4 py-6 text-sm text-ink-secondary">
+        Select a workspace before configuring code-review evidence and policy.
+      </div>
+    );
+  }
 
   if (step === 0) {
     if (!evidence) {

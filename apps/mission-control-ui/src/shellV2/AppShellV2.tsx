@@ -6,10 +6,17 @@ import { Sidebar } from "./Sidebar";
 import { ChatDock } from "./ChatDock";
 import { ResizerHandle } from "./ResizerHandle";
 import { useResizableColumns } from "./useResizableColumns";
-import { groupForView, itemForView, allNavViews, NAV_GROUPS } from "./navConfig";
-import { EOS_NAV_GROUPS } from "./eosNavConfig";
+import { groupForView, itemForView } from "./navConfig";
+import { ENTERPRISE_NAV_GROUPS } from "./enterpriseNavConfig";
 import { filterNavGroups } from "./navFilter";
-import { isRouteVisible, routeBadge } from "./routeCapabilities";
+import { routeBadge } from "./routeCapabilities";
+import {
+  ENTERPRISE_ROUTE_VIEWS,
+  canonicalEnterpriseView,
+  enterprisePathForView,
+  enterpriseRedirectLocation,
+  enterpriseRouteAccess,
+} from "./enterpriseRouteContract";
 import { useNavGroupsWithCounts } from "./useNavGroupsWithCounts";
 import { useFlag } from "../hooks/useFlag";
 import { Breadcrumbs } from "../components/factory/Breadcrumbs";
@@ -48,6 +55,9 @@ export function shouldDeferRouteWrite(
   search = ""
 ): boolean {
   const pathView = viewFromPath(pathname, validViews, search);
+  if (pathname.startsWith(`${ROUTE_PREFIX}/`) && pathView === null) {
+    return true;
+  }
   return pathView !== null && pathView !== activeView;
 }
 
@@ -57,7 +67,14 @@ export function initialViewFromLocation(
   persistedView: MainView | null,
   search = ""
 ): MainView {
-  return viewFromPath(pathname, validViews, search) ?? persistedView ?? "home";
+  const requestedView = viewFromPath(pathname, validViews, search);
+  if (requestedView) {
+    return canonicalEnterpriseView(requestedView) ?? "command-center";
+  }
+  if (persistedView) {
+    return canonicalEnterpriseView(persistedView) ?? "command-center";
+  }
+  return "command-center";
 }
 
 interface AppShellV2Props {
@@ -102,28 +119,18 @@ export function AppShellV2({
   const columns = useResizableColumns();
   const { statusLabel } = useHarnessAnimation(projectId ?? undefined);
 
-  const eosPreview = useFlag("eos.command-center-preview");
-  const showControlStubs = useFlag("ui.control.stubs");
   const showPreviewRoutes = useFlag("ui.navigation.previews");
-  const showDemoRoutes = useFlag("ui.navigation.demo-routes");
-  const baseNavGroups = eosPreview ? EOS_NAV_GROUPS : NAV_GROUPS;
-  const filteredGroups = filterNavGroups(baseNavGroups, {
-    showControlStubs,
-    enforceRouteCapabilities: eosPreview,
+  const showLabsRoutes = useFlag("ui.navigation.demo-routes");
+  const filteredGroups = filterNavGroups(ENTERPRISE_NAV_GROUPS, {
+    enforceRouteCapabilities: true,
     showPreviewRoutes,
-    showDemoRoutes,
+    showDemoRoutes: showLabsRoutes,
   });
   const navGroups = useNavGroupsWithCounts(filteredGroups, projectId);
-  const validViews = [
-    ...new Set([
-      ...baseNavGroups.flatMap((g) => g.items.map((i) => i.view as string)),
-      ...allNavViews(),
-      "automation-runs",
-      "mission-detail",
-    ]),
-  ];
+  const validViews = ENTERPRISE_ROUTE_VIEWS;
   const group =
     navGroups.find((g) => g.items.some((i) => i.view === activeView)) ??
+    ENTERPRISE_NAV_GROUPS.find((g) => g.items.some((i) => i.view === activeView)) ??
     groupForView(activeView);
   const item =
     navGroups.flatMap((g) => g.items).find((i) => i.view === activeView) ??
@@ -132,7 +139,7 @@ export function AppShellV2({
     ...(group ? [{ label: group.label }] : []),
     ...(item ? [{ label: item.label, current: true }] : []),
   ];
-  const activeRouteBadge = eosPreview ? routeBadge(activeView) : undefined;
+  const activeRouteBadge = routeBadge(activeView);
 
   useEffect(() => {
     const normalizedMission = canonicalMissionLocation(
@@ -144,12 +151,56 @@ export function AppShellV2({
       return;
     }
     const pathView = viewFromPath(location.pathname, validViews, location.search);
-    if (pathView && pathView !== activeView) {
+    if (!pathView && location.pathname.startsWith(`${ROUTE_PREFIX}/`)) {
+      const source = location.pathname.slice(ROUTE_PREFIX.length + 1).split("/")[0] || "unknown";
+      onNavigate("command-center");
+      navigate(
+        enterpriseRedirectLocation("command-center", location.search, source, "unknown"),
+        { replace: true }
+      );
+      return;
+    }
+    if (!pathView) return;
+
+    const access = enterpriseRouteAccess(pathView, {
+      showPreviewRoutes,
+      showLabsRoutes,
+    });
+    if (access.status === "redirect") {
+      const destinationAccess = enterpriseRouteAccess(access.view, {
+        showPreviewRoutes,
+        showLabsRoutes,
+      });
+      const destination = destinationAccess.status === "admitted"
+        ? access.view
+        : "command-center";
+      onNavigate(destination);
+      navigate(
+        enterpriseRedirectLocation(destination, location.search, pathView, access.reason),
+        { replace: true }
+      );
+      return;
+    }
+    if (access.status === "unavailable") {
+      onNavigate("command-center");
+      navigate(
+        enterpriseRedirectLocation("command-center", location.search, pathView, access.reason),
+        { replace: true }
+      );
+      return;
+    }
+    if (pathView !== activeView) {
       syncingFromUrl.current = true;
       onNavigate(pathView);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname, location.search, validViews.join(",")]);
+  }, [
+    location.pathname,
+    location.search,
+    showLabsRoutes,
+    showPreviewRoutes,
+    validViews.join(","),
+  ]);
 
   useEffect(() => {
     // Let the URL → state effect settle before writing state back to the URL.
@@ -161,11 +212,31 @@ export function AppShellV2({
     if (shouldDeferRouteWrite(location.pathname, validViews, activeView, location.search)) {
       return;
     }
-    if (
-      eosPreview &&
-      !isRouteVisible(activeView, { showPreviewRoutes, showDemoRoutes })
-    ) {
+    const access = enterpriseRouteAccess(activeView, {
+      showPreviewRoutes,
+      showLabsRoutes,
+    });
+    if (access.status === "redirect") {
+      const destinationAccess = enterpriseRouteAccess(access.view, {
+        showPreviewRoutes,
+        showLabsRoutes,
+      });
+      const destination = destinationAccess.status === "admitted"
+        ? access.view
+        : "command-center";
+      onNavigate(destination);
+      navigate(
+        enterpriseRedirectLocation(destination, location.search, activeView, access.reason),
+        { replace: true }
+      );
+      return;
+    }
+    if (access.status === "unavailable") {
       onNavigate("command-center");
+      navigate(
+        enterpriseRedirectLocation("command-center", location.search, activeView, access.reason),
+        { replace: true }
+      );
       return;
     }
     if (syncingFromUrl.current) {
@@ -180,17 +251,16 @@ export function AppShellV2({
     const expected =
       activeView === "mission-detail" && isCanonicalMissionDetail(location.pathname)
         ? location.pathname
-        : `${ROUTE_PREFIX}/${activeView}`;
+        : enterprisePathForView(activeView);
     if (location.pathname !== expected) {
       navigate({ pathname: expected, search: location.search }, { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     activeView,
-    eosPreview,
     location.pathname,
     location.search,
-    showDemoRoutes,
+    showLabsRoutes,
     showPreviewRoutes,
   ]);
 
@@ -309,7 +379,10 @@ export function AppShellV2({
               <Breadcrumbs items={crumbs} />
             </div>
             {activeRouteBadge ? (
-              <span className="shrink-0 rounded border border-line bg-surface-1 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.06em] text-ink-secondary">
+              <span
+                data-route-badge={activeRouteBadge.toLowerCase()}
+                className="shrink-0 rounded border border-line bg-surface-1 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.06em] text-ink-secondary"
+              >
                 {activeRouteBadge}
               </span>
             ) : null}

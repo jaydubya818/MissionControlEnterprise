@@ -5,6 +5,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "../lib/companyAccess";
+import { authedQuery } from "../lib/authedFunctions";
 
 const ruleArg = v.object({
   id: v.string(),
@@ -75,7 +76,7 @@ export const upsertPolicy = mutation({
   },
 });
 
-export const defaultRules = query({
+export const defaultRules = authedQuery({
   args: {},
   handler: async () => [
     { id: "security", label: "Security-sensitive paths", requireHuman: true, globPatterns: ["**/auth/**", "**/convex/**"] },

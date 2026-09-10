@@ -42,7 +42,7 @@ export interface NavItem {
   /** Optional count badge (waku-agent nav pattern) */
   count?: number;
   /** Scope or maturity label applied by the route capability registry. */
-  badge?: "Global" | "Preview" | "Demo";
+  badge?: "Global" | "Preview" | "Labs" | "Support";
 }
 
 export interface NavGroup {

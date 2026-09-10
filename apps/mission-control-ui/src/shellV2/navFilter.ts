@@ -8,11 +8,11 @@ const STUB_CONTROL_VIEWS = new Set<MainView>(["control-portfolio", "control-flee
 export interface NavFilterOptions {
   /** When false (default), hide preview stub routes from the sidebar. */
   showControlStubs?: boolean;
-  /** Apply the EOS route scope/maturity product contract. */
+  /** Apply the enterprise route scope/maturity product contract. */
   enforceRouteCapabilities?: boolean;
   /** Show routes explicitly classified as preview. */
   showPreviewRoutes?: boolean;
-  /** Show routes explicitly classified as demo-only. */
+  /** Show routes explicitly classified as Labs. Retains the existing flag name. */
   showDemoRoutes?: boolean;
 }
 
@@ -37,7 +37,10 @@ export function filterNavGroups(
           }
           if (
             enforceRouteCapabilities &&
-            !isRouteVisible(item.view, { showPreviewRoutes, showDemoRoutes })
+            !isRouteVisible(item.view, {
+              showPreviewRoutes,
+              showLabsRoutes: showDemoRoutes,
+            })
           ) {
             return false;
           }

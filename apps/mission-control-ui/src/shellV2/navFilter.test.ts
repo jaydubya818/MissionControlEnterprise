@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EOS_NAV_GROUPS } from "./eosNavConfig";
+import { ENTERPRISE_NAV_GROUPS } from "./enterpriseNavConfig";
 import { NAV_GROUPS } from "./navConfig";
 import { filterNavGroups } from "./navFilter";
 import { hasDeclaredRouteCapability } from "./routeCapabilities";
@@ -21,8 +21,8 @@ describe("filterNavGroups", () => {
     expect(views).toContain("control-fleet");
   });
 
-  it("shows only declared live EOS routes by default", () => {
-    const filtered = filterNavGroups(EOS_NAV_GROUPS, {
+  it("shows only the 15 approved primary Live destinations by default", () => {
+    const filtered = filterNavGroups(ENTERPRISE_NAV_GROUPS, {
       enforceRouteCapabilities: true,
     });
     const items = filtered.flatMap((group) => group.items);
@@ -31,8 +31,8 @@ describe("filterNavGroups", () => {
     expect(views).toContain("agents");
     expect(views).toContain("model-routing");
     expect(views).not.toContain("agent-catalog");
-    expect(views).not.toContain("dossier");
-    expect(items.find((item) => item.view === "docs")?.badge).toBe("Global");
+    expect(views).not.toContain("harness-loops");
+    expect(views).not.toContain("effectiveness");
     expect(views).toEqual([
       "command-center",
       "missions",
@@ -43,39 +43,34 @@ describe("filterNavGroups", () => {
       "factory",
       "agents",
       "model-routing",
-      "harness-loops",
       "automations",
       "atc",
       "identity",
       "deployments",
       "trace-inspector",
       "audit",
-      "telemetry",
-      "operator-evals",
-      "skills",
-      "memory",
-      "docs",
     ]);
   });
 
-  it("exposes preview and demo routes only through their explicit flags", () => {
-    const previewViews = filterNavGroups(EOS_NAV_GROUPS, {
+  it("exposes Preview and Labs only through their explicit flags and labels", () => {
+    const previewViews = filterNavGroups(ENTERPRISE_NAV_GROUPS, {
       enforceRouteCapabilities: true,
       showPreviewRoutes: true,
     }).flatMap((group) => group.items);
-    const demoViews = filterNavGroups(EOS_NAV_GROUPS, {
+    const labsViews = filterNavGroups(ENTERPRISE_NAV_GROUPS, {
       enforceRouteCapabilities: true,
       showDemoRoutes: true,
     }).flatMap((group) => group.items);
 
     expect(previewViews.find((item) => item.view === "effectiveness")).toBeUndefined();
     expect(previewViews.find((item) => item.view === "dag")?.badge).toBe("Preview");
-    expect(previewViews.find((item) => item.view === "harness-loops")?.badge).toBeUndefined();
-    expect(demoViews.find((item) => item.view === "dossier")?.badge).toBe("Demo");
+    expect(previewViews.find((item) => item.view === "harness-loops")?.badge).toBe("Preview");
+    expect(labsViews.find((item) => item.view === "effectiveness")?.badge).toBe("Labs");
+    expect(labsViews.find((item) => item.view === "dossier")).toBeUndefined();
   });
 
-  it("requires an explicit capability declaration for every EOS navigation item", () => {
-    const undeclared = EOS_NAV_GROUPS.flatMap((group) => group.items)
+  it("requires an explicit capability declaration for every enterprise navigation item", () => {
+    const undeclared = ENTERPRISE_NAV_GROUPS.flatMap((group) => group.items)
       .map((item) => item.view)
       .filter((view) => !hasDeclaredRouteCapability(view));
 

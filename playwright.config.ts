@@ -23,6 +23,10 @@ export default defineConfig({
       VITE_FLAG_UI_SHELL_V2: "true",
       VITE_FLAG_CONTEXT_REGISTRY: "true",
       VITE_FLAG_EOS_COMMAND_CENTER_PREVIEW: "true",
+      VITE_FLAG_UI_NAVIGATION_PREVIEWS:
+        process.env.MC_E2E_PREVIEW_ROUTES ?? "false",
+      VITE_FLAG_UI_NAVIGATION_DEMO_ROUTES:
+        process.env.MC_E2E_LABS_ROUTES ?? "false",
       // The shell-only suite has no Convex flag backend. Resolve company
       // context explicitly instead of leaving the application in flag loading.
       VITE_FLAG_COMPANY_CONTEXT: "false",

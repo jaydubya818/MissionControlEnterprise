@@ -12,6 +12,8 @@ import { PageHeader } from "../components/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Search, BookOpen } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import type { RegistryTab } from "../lib/registryViews";
 
 interface KnowledgeSectionProps {
   currentView: MainView;
@@ -21,12 +23,17 @@ interface KnowledgeSectionProps {
 }
 
 export function KnowledgeSection({ currentView, projectId, onTaskSelect, onNavigate }: KnowledgeSectionProps) {
+  const [searchParams] = useSearchParams();
   const eosPreview = useFlag("eos.command-center-preview");
   const showPreviewRoutes = useFlag("ui.navigation.previews");
   if (currentView === "docs") return <DocsView />;
   if (currentView === "design-system") return <DesignSystemView />;
   if (isRegistryView(currentView)) {
-    const tab = registryTabFromView(currentView) ?? "catalog";
+    const requestedTab = searchParams.get("tab");
+    const supportedTabs: RegistryTab[] = ["catalog", "lifecycle", "evaluate", "inventory", "installations", "evals"];
+    const tab = requestedTab && supportedTabs.includes(requestedTab as RegistryTab)
+      ? requestedTab as RegistryTab
+      : registryTabFromView(currentView) ?? "catalog";
     return (
       <RegistryView
         initialTab={tab}

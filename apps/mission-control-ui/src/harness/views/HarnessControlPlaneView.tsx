@@ -19,10 +19,10 @@ export function HarnessControlPlaneView({
     projectId: projectId ?? undefined,
     limit: 8,
   });
-  const ledger = useQuery(api.factory.health.workLedger, {
-    projectId: projectId ?? undefined,
-    limit: 5,
-  });
+  const ledger = useQuery(
+    api.factory.health.workLedger,
+    projectId ? { projectId, limit: 5 } : "skip"
+  );
   const latestPr = useQuery(api.factory.prChecks.getLatest, {
     projectId: projectId ?? undefined,
   });

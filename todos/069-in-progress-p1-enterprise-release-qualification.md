@@ -1,5 +1,5 @@
 ---
-status: ready
+status: in_progress
 priority: p1
 issue_id: "069"
 tags: [enterprise, security, reliability, operations, release, phase-3]
@@ -42,7 +42,7 @@ after todo 068 is complete.
 
 ## Acceptance Criteria
 
-- [ ] Todo 068 is complete and the enterprise route contract is approved.
+- [x] Todo 068 is complete and the enterprise route contract is approved.
 - [ ] Phase 3 release boundary, risk register, pilot scope, and capacity envelope exist.
 - [ ] Integration, security, recovery, failure-injection, load, soak, provider, and startup gates are truthfully classified.
 - [ ] Operations runbooks, service objectives, support model, and onboarding/offboarding checklists exist.
@@ -56,3 +56,11 @@ after todo 068 is complete.
 Phase 3 enterprise release qualification is intentionally blocked by todo 068.
 No broad post-baseline qualification will proceed until the product surface is
 rationalized and approved.
+
+### 2026-09-09 - Qualification boundary opened
+
+Todo 068 is complete. The release boundary is now exactly 17 Live route
+identifiers, with 15 primary navigation destinations. Preview security and
+basic browser smoke pass; remaining Phase 3 release, production-auth,
+integration, recovery, load/soak, provider, operational, and pilot evidence is
+in progress and must remain truthfully classified.

@@ -4,6 +4,7 @@
 
 import { v } from "convex/values";
 import { query } from "../_generated/server";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "../lib/companyAccess";
 
 export interface EvidenceFinding {
   id: string;
@@ -15,10 +16,11 @@ export interface EvidenceFinding {
 
 export const gatherEvidence = query({
   args: {
-    projectId: v.optional(v.id("projects")),
+    projectId: v.id("projects"),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     const limit = args.limit ?? 12;
     const findings: EvidenceFinding[] = [];
     const seen = new Set<string>();
@@ -29,10 +31,10 @@ export const gatherEvidence = query({
       findings.push({ ...f, selected: true });
     };
 
-    let prChecks = await ctx.db.query("harnessPrChecks").collect();
-    if (args.projectId) {
-      prChecks = prChecks.filter((p) => p.projectId === args.projectId);
-    }
+    const prChecks = await ctx.db
+      .query("harnessPrChecks")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
     prChecks.sort((a, b) => b.syncedAt - a.syncedAt);
 
     for (const pr of prChecks.slice(0, 5)) {
@@ -64,7 +66,11 @@ export const gatherEvidence = query({
       }
     }
 
-    const qcRuns = await ctx.db.query("qcRuns").order("desc").take(10);
+    const qcRuns = await ctx.db
+      .query("qcRuns")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .order("desc")
+      .take(10);
     for (const run of qcRuns) {
       const qcFindings = await ctx.db
         .query("qcFindings")

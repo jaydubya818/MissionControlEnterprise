@@ -375,14 +375,17 @@ export const workLedger = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    if (!args.projectId) throw new Error("An authorized workspace is required for the work ledger.");
+    await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
     const limit = args.limit ?? 50;
     const now = Date.now();
     const STALE_MS = 7 * 24 * 60 * 60 * 1000;
 
-    let tasks = await ctx.db.query("tasks").order("desc").take(limit * 3);
-    if (args.projectId) {
-      tasks = tasks.filter((t) => t.projectId === args.projectId);
-    }
+    const tasks = await ctx.db
+      .query("tasks")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .order("desc")
+      .take(limit * 3);
 
     const todo = tasks.filter((t) => t.status === "INBOX" || t.status === "READY" || t.status === "ASSIGNED");
     const inProgress = tasks.filter(

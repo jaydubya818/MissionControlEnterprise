@@ -2,7 +2,13 @@ import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { appendChangeRecord } from "../lib/armAudit";
 import { resolveActiveTenantId } from "../lib/getActiveTenant";
-import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "../lib/companyAccess";
+import {
+  FACTORY_PERMISSIONS,
+  assertAuthenticated,
+  listCompanyMemberships,
+  requireCompanyAccess,
+  requireWorkspacePermission,
+} from "../lib/companyAccess";
 import { authedMutation } from "../lib/authedFunctions";
 
 export const createTemplate = mutation({
@@ -15,8 +21,16 @@ export const createTemplate = mutation({
     metadata: v.optional(v.any()),
   },
   handler: async (ctx, args) => {
-    if (args.projectId) {
-      await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.IMPROVE);
+    if (!args.projectId) {
+      throw new Error("An authorized workspace is required to create an agent template.");
+    }
+    const access = await requireWorkspacePermission(
+      ctx,
+      args.projectId,
+      FACTORY_PERMISSIONS.IMPROVE
+    );
+    if (args.tenantId && args.tenantId !== access.project.tenantId) {
+      throw new Error("Agent template scope is unavailable or unauthorized.");
     }
     const tenantId = await resolveActiveTenantId(
       { db: ctx.db as any },
@@ -26,6 +40,9 @@ export const createTemplate = mutation({
         createDefaultIfMissing: true,
       }
     );
+    if (tenantId !== access.project.tenantId) {
+      throw new Error("Agent template scope is unavailable or unauthorized.");
+    }
 
     const existing = await ctx.db
       .query("agentTemplates")
@@ -65,7 +82,14 @@ export const createTemplate = mutation({
 export const getTemplate = query({
   args: { templateId: v.id("agentTemplates") },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.templateId);
+    const template = await ctx.db.get(args.templateId);
+    if (!template?.tenantId) throw new Error("Agent template is unavailable or unauthorized.");
+    if (template.projectId) {
+      await requireWorkspacePermission(ctx, template.projectId, FACTORY_PERMISSIONS.VIEW);
+    } else {
+      await requireCompanyAccess(ctx, template.tenantId);
+    }
+    return template;
   },
 });
 
@@ -76,17 +100,40 @@ export const listTemplates = query({
     activeOnly: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    let rows = args.tenantId
-      ? await ctx.db
-          .query("agentTemplates")
-          .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
-          .collect()
-      : args.projectId
+    await assertAuthenticated(ctx);
+    let allowedTenantIds: Set<string>;
+    if (args.projectId) {
+      const access = await requireWorkspacePermission(
+        ctx,
+        args.projectId,
+        FACTORY_PERMISSIONS.VIEW
+      );
+      if (args.tenantId && args.tenantId !== access.project.tenantId) {
+        throw new Error("Agent template scope is unavailable or unauthorized.");
+      }
+      allowedTenantIds = new Set([String(access.project.tenantId)]);
+    } else if (args.tenantId) {
+      await requireCompanyAccess(ctx, args.tenantId);
+      allowedTenantIds = new Set([String(args.tenantId)]);
+    } else {
+      allowedTenantIds = new Set(
+        (await listCompanyMemberships(ctx)).map((membership) => String(membership.tenant._id))
+      );
+    }
+
+    let rows = args.projectId
       ? await ctx.db
           .query("agentTemplates")
           .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
           .collect()
+      : args.tenantId
+      ? await ctx.db
+          .query("agentTemplates")
+          .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
+          .collect()
       : await ctx.db.query("agentTemplates").collect();
+
+    rows = rows.filter((row) => row.tenantId && allowedTenantIds.has(String(row.tenantId)));
 
     if (args.activeOnly ?? true) {
       rows = rows.filter((row) => row.active);

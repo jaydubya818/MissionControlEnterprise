@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "mission-control-enterprise-product-surface/v1",
+  "repository": "jaydubya818/MissionControlEnterprise",
+  "upstreamRepository": "jaydubya818/MissionControl",
+  "upstreamBaseline": "ffd58077989a23004819a85f529ca74c955b1422",
+  "recordedOn": "2026-09-09",
+  "result": "PASS",
+  "routeContract": {
+    "total": 104,
+    "live": 17,
+    "preview": 14,
+    "consolidated": 34,
+    "labs": 19,
+    "hidden": 5,
+    "deprecated": 2,
+    "removed": 13,
+    "primaryLiveNavigationDestinations": 15
+  },
+  "authorization": {
+    "publicFunctions": 917,
+    "authorized": 760,
+    "remainingUnauthorizedReadOnly": 157,
+    "closedByThisCheckpoint": 27,
+    "liveRoutesReachingUnauthorizedFunctions": 0,
+    "previewRoutesReachingUnauthorizedFunctions": 0,
+    "remainingReadsClassified": 157,
+    "unauthorizedMutationsOrActions": 0
+  },
+  "runtimeContract": {
+    "baselineVersion": 33,
+    "enterpriseVersion": 34,
+    "acceptedChanges": 3
+  },
+  "checks": [
+    { "command": "pnpm run release:security", "result": "PASS" },
+    { "command": "pnpm run security:authorization", "result": "PASS" },
+    { "command": "pnpm run security:authorization-debt", "result": "PASS", "classified": 157 },
+    { "command": "pnpm run security:enterprise-routes", "result": "PASS" },
+    { "command": "pnpm run test", "result": "PASS", "tests": 2024, "skipped": 1 },
+    { "command": "pnpm run typecheck", "result": "PASS" },
+    { "command": "pnpm run lint", "result": "PASS" },
+    { "command": "pnpm run build", "result": "PASS" },
+    { "command": "node scripts/check-runtime-contract.mjs --base ffd58077989a23004819a85f529ca74c955b1422", "result": "PASS" },
+    { "command": "CI=true pnpm run qualify:factory:v2", "result": "PASS" },
+    { "command": "pnpm run test:integration", "result": "PASS", "configurationTests": 4, "repositoryTests": 2024, "externalLiveScenarioSkipped": 1 },
+    { "command": "pnpm run test:e2e:critical", "result": "PASS", "tests": 11 },
+    { "command": "pnpm run test:e2e:enterprise-surfaces", "result": "PASS", "tests": 3, "routeSteps": 33 },
+    { "command": "git diff --check", "result": "PASS" },
+    { "command": "git diff --name-only --diff-filter=D -- apps convex packages scripts", "result": "PASS", "deletedImplementationFiles": 0 }
+  ],
+  "limitations": [
+    "The browser surface tests use the deterministic shell-only harness; production Clerk and authoritative-data browser qualification remain Phase 3 release gates.",
+    "All 157 remaining inherited unauthenticated reads are classified and remain pilot blockers until authorized, internalized, explicitly declared minimal public, or removed.",
+    "This checkpoint proves product-surface rationalization and Preview security, not final enterprise release readiness."
+  ]
+}

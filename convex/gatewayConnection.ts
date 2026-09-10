@@ -4,12 +4,11 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
-import { authedMutation } from "./lib/authedFunctions";
+import { authedMutation, authedQuery } from "./lib/authedFunctions";
 
 const GATEWAY_CONNECTION_ID = "default" as const;
 
-export const get = query({
+export const get = authedQuery({
   args: {},
   handler: async (ctx) => {
     const row = await ctx.db

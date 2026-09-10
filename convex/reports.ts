@@ -6,14 +6,14 @@
 
 import { v } from "convex/values";
 import { query } from "./_generated/server";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
 
 export const generateIncidentReport = query({
   args: { taskId: v.id("tasks") },
   handler: async (ctx, args) => {
     const task = await ctx.db.get(args.taskId);
-    if (!task) {
-      throw new Error("Task not found");
-    }
+    if (!task?.projectId) throw new Error("Task is unavailable or unauthorized.");
+    await requireWorkspacePermission(ctx, task.projectId, FACTORY_PERMISSIONS.VIEW);
     
     const transitions = await ctx.db
       .query("taskTransitions")

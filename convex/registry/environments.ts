@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { authedMutation } from "../lib/authedFunctions";
+import { requireCompanyAccess } from "../lib/companyAccess";
 
 export const createEnvironment = authedMutation({
   args: {
@@ -29,6 +30,7 @@ export const listEnvironments = query({
     type: v.optional(v.union(v.literal("dev"), v.literal("staging"), v.literal("prod"))),
   },
   handler: async (ctx, args) => {
+    await requireCompanyAccess(ctx, args.tenantId);
     let rows = await ctx.db
       .query("environments")
       .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))

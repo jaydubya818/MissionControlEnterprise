@@ -17,6 +17,7 @@ export function SidebarItem({ item, active, onNavigate }: SidebarItemProps): JSX
   return (
     <button
       type="button"
+      data-nav-view={item.view}
       onClick={() => onNavigate(item.view)}
       aria-current={active ? "page" : undefined}
       className={cn(

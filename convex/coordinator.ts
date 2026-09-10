@@ -13,6 +13,25 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { Id, Doc } from "./_generated/dataModel";
 import { authedMutation } from "./lib/authedFunctions";
+import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
+
+async function requireDependencyGraphScope(
+  ctx: Parameters<typeof requireWorkspacePermission>[0],
+  args: { parentTaskId?: Id<"tasks">; projectId?: Id<"projects"> }
+) {
+  if (args.parentTaskId) {
+    const parent = await ctx.db.get(args.parentTaskId);
+    if (!parent?.projectId) throw new Error("Task graph is unavailable or unauthorized.");
+    if (args.projectId && args.projectId !== parent.projectId) {
+      throw new Error("Task graph is unavailable or unauthorized.");
+    }
+    await requireWorkspacePermission(ctx, parent.projectId, FACTORY_PERMISSIONS.VIEW);
+    return parent.projectId;
+  }
+  if (!args.projectId) throw new Error("An authorized workspace is required for the task graph.");
+  await requireWorkspacePermission(ctx, args.projectId, FACTORY_PERMISSIONS.VIEW);
+  return args.projectId;
+}
 
 // ============================================================================
 // QUERIES
@@ -52,28 +71,30 @@ export const getDependencyGraph = query({
     projectId: v.optional(v.id("projects")),
   },
   handler: async (ctx, args) => {
+    const projectId = await requireDependencyGraphScope(ctx, args);
     let tasks: Doc<"tasks">[];
     let deps: Doc<"taskDependencies">[];
 
     if (args.parentTaskId) {
       // Get subtasks of a specific parent
-      const allTasks = await ctx.db.query("tasks").collect();
-      tasks = allTasks.filter(
+      const projectTasks = await ctx.db
+        .query("tasks")
+        .withIndex("by_project", (q) => q.eq("projectId", projectId))
+        .collect();
+      tasks = projectTasks.filter(
         (t) =>
           (t.parentTaskId === args.parentTaskId || t._id === args.parentTaskId) &&
-          (!args.projectId || t.projectId === args.projectId)
+          t.projectId === projectId
       );
       deps = await ctx.db
         .query("taskDependencies")
         .withIndex("by_parent", (q) => q.eq("parentTaskId", args.parentTaskId!))
         .collect();
     } else {
-      tasks = args.projectId
-        ? await ctx.db
-            .query("tasks")
-            .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
-            .collect()
-        : await ctx.db.query("tasks").collect();
+      tasks = await ctx.db
+        .query("tasks")
+        .withIndex("by_project", (q) => q.eq("projectId", projectId))
+        .collect();
       deps = await ctx.db.query("taskDependencies").collect();
     }
 
