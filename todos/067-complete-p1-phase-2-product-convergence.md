@@ -71,3 +71,9 @@ Execute Option 2 in checkpoints: map/product truth; core delivery; trust; Factor
 - Reapplied all four Phase 2 commits onto canonical Step C baseline `aa1e09e` without source conflicts.
 - Confirmed the Phase 2 diff does not touch Clerk configuration, subject mapping, two-company fixtures, authenticated browser harness, service authentication, or Telegram approval authority.
 - Requalified product, Factory, authorization, authentication, browser, and documentation gates before the reconciliation checkpoint.
+
+### 2026-09-09 - Final accessibility convergence
+
+- Replaced Decision Center dark-theme-only status utilities with the existing
+  semantic information, warning, error, and success tokens.
+- Added final light-theme evidence for Decision Center and Factory Registry.

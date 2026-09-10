@@ -159,6 +159,11 @@ Browser screenshots:
 
 - [Factory Registry](../testing/evidence/phase-2-convergence/factory-registry.png)
 - [Decision Center](../testing/evidence/phase-2-convergence/decision-center.png)
+- [Factory Registry — light theme](../testing/evidence/phase-2-convergence/factory-registry-light.png)
+- [Decision Center — light theme](../testing/evidence/phase-2-convergence/decision-center-light.png)
+
+The Decision Center uses the shell's semantic status tokens for risk, evidence,
+notices, and links so the same authority cues remain legible in both themes.
 
 ## Top product gaps closed
 

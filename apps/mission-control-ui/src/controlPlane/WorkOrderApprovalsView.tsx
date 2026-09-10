@@ -33,18 +33,18 @@ type ApprovalStatus = (typeof STATUS_OPTIONS)[number];
 type Decision = "APPROVE" | "APPROVE_WITH_CONDITIONS" | "REJECT" | "REQUEST_REVISION";
 
 const RISK_TONE: Record<string, string> = {
-  CRITICAL: "border-red-500/40 bg-red-500/10 text-red-200",
-  HIGH: "border-amber-500/40 bg-amber-500/10 text-amber-200",
-  MEDIUM: "border-cyan-500/30 bg-cyan-500/10 text-cyan-200",
-  LOW: "border-emerald-500/30 bg-emerald-500/10 text-emerald-200",
+  CRITICAL: "border-err/40 bg-err-soft text-err",
+  HIGH: "border-warn/40 bg-warn-soft text-warn",
+  MEDIUM: "border-info-accent/30 bg-info-soft text-info-accent",
+  LOW: "border-ok/30 bg-ok-soft text-ok",
 };
 
 function StatCard({ label, value, note, tone = "neutral" }: { label: string; value: number; note: string; tone?: "neutral" | "warning" | "danger" }) {
   return (
-    <Card className={cn("p-4", tone === "warning" && "border-amber-500/25", tone === "danger" && "border-red-500/25")}>
+    <Card className={cn("p-4", tone === "warning" && "border-warn/25", tone === "danger" && "border-err/25")}>
       <div className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{label}</div>
       <div className="mt-2 flex items-end justify-between gap-3">
-        <div className={cn("font-mono text-2xl font-semibold", tone === "warning" && "text-amber-200", tone === "danger" && "text-red-200")}>{value}</div>
+        <div className={cn("font-mono text-2xl font-semibold", tone === "warning" && "text-warn", tone === "danger" && "text-err")}>{value}</div>
         <div className="text-right text-[11px] text-muted-foreground">{note}</div>
       </div>
     </Card>
@@ -56,9 +56,9 @@ function statusLabel(status: string) {
 }
 
 function evidenceTone(status: string) {
-  if (["PASSED", "WAIVED"].includes(status)) return "text-emerald-300";
-  if (["FAILED", "STALE"].includes(status)) return "text-red-300";
-  return "text-amber-200";
+  if (["PASSED", "WAIVED"].includes(status)) return "text-ok";
+  if (["FAILED", "STALE"].includes(status)) return "text-err";
+  return "text-warn";
 }
 
 function EvidenceRow({ item }: { item: DecisionEvidenceItem }) {
@@ -70,7 +70,7 @@ function EvidenceRow({ item }: { item: DecisionEvidenceItem }) {
           {item.method}{item.verifier ? ` · ${item.verifier}` : " · verifier unknown"}
         </div>
         {item.result ? <div className="mt-1 line-clamp-2 text-[11.5px] text-muted-foreground">{item.result}</div> : null}
-        {item.location ? <div className="mt-1 break-all font-mono text-[10.5px] text-cyan-200">{item.location}</div> : null}
+        {item.location ? <div className="mt-1 break-all font-mono text-[10.5px] text-info-accent">{item.location}</div> : null}
       </div>
       <div className={cn("font-mono text-[11px] font-semibold", evidenceTone(item.status))}>{item.status}</div>
     </li>
@@ -190,7 +190,7 @@ export function WorkOrderApprovalsView({ projectId }: { projectId: Id<"projects"
 
         <div className="mt-4 flex flex-wrap items-end justify-between gap-3 rounded-xl border border-[var(--panel-line)] bg-card/40 p-3">
           <div>
-            <div className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-cyan-200">Decision gate</div>
+            <div className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-info-accent">Decision gate</div>
             <p className="mt-1 text-[12.5px] text-muted-foreground">Approval records authority. A verification checkpoint may resume only the exact reviewed candidate; every other dispatch remains explicit.</p>
           </div>
           <div className="w-[220px] space-y-1.5">
@@ -208,8 +208,8 @@ export function WorkOrderApprovalsView({ projectId }: { projectId: Id<"projects"
             className={cn(
               "mt-4 flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-[12.5px]",
               outcomeNotice.type === "error"
-                ? "border-red-500/30 bg-red-500/[0.08] text-red-200"
-                : "border-emerald-500/30 bg-emerald-500/[0.08] text-emerald-200",
+                ? "border-err/30 bg-err-soft text-err"
+                : "border-ok/30 bg-ok-soft text-ok",
             )}
           >
             <span>{outcomeNotice.text}</span>
@@ -221,7 +221,7 @@ export function WorkOrderApprovalsView({ projectId }: { projectId: Id<"projects"
           <Card className="mt-4 flex items-center justify-center gap-2 p-10 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Loading governed decisions…</Card>
         ) : ordered.length === 0 ? (
           <Card className="mt-4 p-10 text-center">
-            <CheckCircle2 className="mx-auto h-5 w-5 text-emerald-300" />
+            <CheckCircle2 className="mx-auto h-5 w-5 text-ok" />
             <div className="mt-3 text-sm font-medium text-foreground">No {statusLabel(status)} decisions</div>
             <p className="mt-1 text-sm text-muted-foreground">The queue is clear for this decision state.</p>
           </Card>
@@ -241,7 +241,7 @@ export function WorkOrderApprovalsView({ projectId }: { projectId: Id<"projects"
                       key={approval._id}
                       type="button"
                       onClick={() => setSelectedId(approval._id)}
-                      className={cn("w-full px-4 py-3.5 text-left transition-colors", active ? "bg-cyan-400/[0.08]" : "hover:bg-card/70")}
+                      className={cn("w-full px-4 py-3.5 text-left transition-colors", active ? "bg-info-soft" : "hover:bg-card/70")}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
@@ -266,9 +266,9 @@ export function WorkOrderApprovalsView({ projectId }: { projectId: Id<"projects"
                   <div className="border-b border-[var(--panel-line)] bg-card/60 px-5 py-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <div className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-cyan-200">Needs attention</div>
+                        <div className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-info-accent">Needs attention</div>
                         <h2 className="mt-1 text-lg font-semibold tracking-tight text-foreground">{packet.title}</h2>
-                        <p className="mt-1 text-[12.5px] text-amber-100">{packet.attentionReason}</p>
+                        <p className="mt-1 text-[12.5px] text-warn">{packet.attentionReason}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className={cn("font-mono", RISK_TONE[packet.riskLevel])}>{packet.riskLevel}</Badge>
@@ -295,21 +295,21 @@ export function WorkOrderApprovalsView({ projectId }: { projectId: Id<"projects"
                 <div className="grid gap-4 2xl:grid-cols-2">
                   <Card className="overflow-hidden">
                     <div className="flex items-center justify-between border-b border-[var(--panel-line)] px-4 py-3">
-                      <div className="flex items-center gap-2 text-[12px] font-semibold text-foreground"><FileCheck2 className="h-4 w-4 text-cyan-200" /> Evidence on hand</div>
+                      <div className="flex items-center gap-2 text-[12px] font-semibold text-foreground"><FileCheck2 className="h-4 w-4 text-info-accent" /> Evidence on hand</div>
                       <span className="font-mono text-[10.5px] text-muted-foreground">{packet.evidence.filter((item) => ["PASSED", "WAIVED"].includes(item.status)).length}/{packet.evidence.length}</span>
                     </div>
-                    {packet.evidence.length ? <ul>{packet.evidence.map((item) => <EvidenceRow key={item.criterionId} item={item} />)}</ul> : <div className="p-5 text-[12px] text-amber-200">No acceptance criteria are defined. Completion cannot be proven.</div>}
+                    {packet.evidence.length ? <ul>{packet.evidence.map((item) => <EvidenceRow key={item.criterionId} item={item} />)}</ul> : <div className="p-5 text-[12px] text-warn">No acceptance criteria are defined. Completion cannot be proven.</div>}
                   </Card>
 
                   <Card className="overflow-hidden">
                     <div className="border-b border-[var(--panel-line)] px-4 py-3 text-[12px] font-semibold text-foreground">Unknowns and blockers</div>
                     <div className="p-4">
                       {packet.missingInformation.length ? (
-                        <ul className="space-y-2 text-[12px] text-amber-100">{packet.missingInformation.map((item) => <li key={item} className="flex gap-2"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {item}</li>)}</ul>
+                        <ul className="space-y-2 text-[12px] text-warn">{packet.missingInformation.map((item) => <li key={item} className="flex gap-2"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {item}</li>)}</ul>
                       ) : (
-                        <div className="flex items-center gap-2 text-[12px] text-emerald-200"><CheckCircle2 className="h-4 w-4" /> No blocking unknowns recorded for this gate.</div>
+                        <div className="flex items-center gap-2 text-[12px] text-ok"><CheckCircle2 className="h-4 w-4" /> No blocking unknowns recorded for this gate.</div>
                       )}
-                      {packet.blockingReasons.length ? <div className="mt-4 rounded-lg border border-red-500/25 bg-red-500/[0.06] p-3 text-[12px] text-red-200">{packet.blockingReasons.join(" ")}</div> : null}
+                      {packet.blockingReasons.length ? <div className="mt-4 rounded-lg border border-err/25 bg-err-soft p-3 text-[12px] text-err">{packet.blockingReasons.join(" ")}</div> : null}
                     </div>
                   </Card>
                 </div>
@@ -320,14 +320,14 @@ export function WorkOrderApprovalsView({ projectId }: { projectId: Id<"projects"
                       <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground"><ArrowUpRight className="h-3.5 w-3.5" /> {resumesVerifiedAttempt ? "Resume after decision" : "Dispatch after decision"}</div>
                       <p className="mt-2 text-[12.5px] leading-relaxed text-foreground/85">{packet.dispatchPreview}</p>
                       {resumesVerifiedAttempt ? (
-                        <div className="mt-3 rounded-lg border border-cyan-500/25 bg-cyan-500/[0.06] p-3 text-[11.5px] text-cyan-100">
+                        <div className="mt-3 rounded-lg border border-info-accent/25 bg-info-soft p-3 text-[11.5px] text-info-accent">
                           Same Attempt · candidate <span className="font-mono">{selected.latestRun?.candidateRevision?.slice(0, 12)}</span> · resumes at publication · no agent or verifier rerun
                         </div>
                       ) : null}
                     </section>
                     <section className="p-4">
                       <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground"><FileCheck2 className="h-3.5 w-3.5" /> Proof required to close</div>
-                      {packet.proofRequirements.length ? <ul className="mt-2 space-y-1.5 text-[12px] text-foreground/80">{packet.proofRequirements.map((item) => <li key={item}>— {item}</li>)}</ul> : <p className="mt-2 text-[12px] text-amber-200">Proof requirements are not defined.</p>}
+                      {packet.proofRequirements.length ? <ul className="mt-2 space-y-1.5 text-[12px] text-foreground/80">{packet.proofRequirements.map((item) => <li key={item}>— {item}</li>)}</ul> : <p className="mt-2 text-[12px] text-warn">Proof requirements are not defined.</p>}
                     </section>
                   </div>
                 </Card>
@@ -344,7 +344,7 @@ export function WorkOrderApprovalsView({ projectId }: { projectId: Id<"projects"
                         <Textarea id="decision-conditions" value={conditionNotes} onChange={(event) => setConditionNotes(event.target.value)} placeholder="One enforceable condition per line. Required for conditional approval." rows={4} />
                       </div>
                     </div>
-                    {message ? <div role={message.type === "error" ? "alert" : "status"} className={cn("mt-3 rounded-lg border px-3 py-2 text-[12.5px]", message.type === "error" ? "border-red-500/30 bg-red-500/[0.08] text-red-200" : "border-emerald-500/30 bg-emerald-500/[0.08] text-emerald-200")}>{message.text}</div> : null}
+                    {message ? <div role={message.type === "error" ? "alert" : "status"} className={cn("mt-3 rounded-lg border px-3 py-2 text-[12.5px]", message.type === "error" ? "border-err/30 bg-err-soft text-err" : "border-ok/30 bg-ok-soft text-ok")}>{message.text}</div> : null}
                     <div className="mt-4 flex flex-wrap gap-2">
                       <Button size="sm" onClick={() => handleDecision("APPROVE")} disabled={savingId === selected._id || !packet.canDecide}>{savingId === selected._id ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}{resumesVerifiedAttempt ? "Approve & resume publish" : "Approve scope"}</Button>
                       <Button size="sm" variant="outline" onClick={() => handleDecision("APPROVE_WITH_CONDITIONS")} disabled={savingId === selected._id || !packet.canDecide}>{resumesVerifiedAttempt ? "Require retry with conditions" : "Approve with conditions"}</Button>
@@ -359,7 +359,7 @@ export function WorkOrderApprovalsView({ projectId }: { projectId: Id<"projects"
                       <div className="mt-1 text-[12px] text-muted-foreground">{selected.reason ?? "No reason recorded."}</div>
                     </div>
                     {workOrderHref && ["APPROVED", "CONDITIONAL"].includes(selected.status) ? (
-                      <a href={workOrderHref} className="inline-flex h-9 items-center rounded-md border border-[var(--panel-line)] px-3 text-[12.5px] font-medium text-cyan-200 hover:bg-card">Open dispatch & proof <ArrowUpRight className="ml-1.5 h-3.5 w-3.5" /></a>
+                      <a href={workOrderHref} className="inline-flex h-9 items-center rounded-md border border-[var(--panel-line)] px-3 text-[12.5px] font-medium text-info-accent hover:bg-card">Open dispatch & proof <ArrowUpRight className="ml-1.5 h-3.5 w-3.5" /></a>
                     ) : null}
                   </Card>
                 )}
@@ -367,7 +367,7 @@ export function WorkOrderApprovalsView({ projectId }: { projectId: Id<"projects"
                 {workOrderHref ? (
                   <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--panel-line)] bg-card/30 px-4 py-3 text-[12px] text-muted-foreground">
                     <span>Operational truth remains on the WorkOrder: dispatch, run state, receipts, and acceptance.</span>
-                    <a href={workOrderHref} className="shrink-0 font-medium text-cyan-200 hover:text-foreground">Inspect WorkOrder →</a>
+                    <a href={workOrderHref} className="shrink-0 font-medium text-info-accent hover:text-foreground">Inspect WorkOrder →</a>
                   </div>
                 ) : null}
               </div>
