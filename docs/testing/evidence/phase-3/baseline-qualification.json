@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "mission-control-enterprise-phase-3-baseline/v1",
+  "repository": "jaydubya818/MissionControlEnterprise",
+  "upstreamRepository": "jaydubya818/MissionControl",
+  "upstreamBaseline": "ffd58077989a23004819a85f529ca74c955b1422",
+  "qualifiedHead": "ffd58077989a23004819a85f529ca74c955b1422",
+  "startedAt": "2026-09-10T01:15:58.302Z",
+  "completedAt": "2026-09-10T01:18:12.010Z",
+  "command": "CI=true pnpm run qualify:factory:v2",
+  "result": "PASS",
+  "authorization": {
+    "publicFunctions": 917,
+    "authorized": 733,
+    "remainingUnauthorizedReadOnly": 184,
+    "liveUnauthorized": 0,
+    "unauthorizedMutationsOrActions": 0
+  },
+  "dependencyAudit": {
+    "productionCritical": 0,
+    "productionHigh": 0,
+    "productionModerate": 2,
+    "productionLow": 0,
+    "status": "PASS_WITH_ACCEPTED_MODERATE_ADVISORIES"
+  },
+  "tests": {
+    "passed": 2008,
+    "skipped": 1,
+    "failed": 0
+  },
+  "checks": {
+    "releaseSecurity": "PASS",
+    "secretScan": "PASS",
+    "factoryDocumentation": "PASS",
+    "factoryV2": "PASS",
+    "fullRepositoryTests": "PASS",
+    "typecheckAndSkillLint": "PASS",
+    "runtimeContract": "PASS",
+    "productionBuild": "PASS",
+    "orchestrationStartup": "PASS",
+    "whitespace": "PASS"
+  },
+  "limitations": [
+    "This is the inherited deterministic Phase 2 baseline, not Phase 3 enterprise release qualification.",
+    "The root integration runner remains a known Phase 3 blocker.",
+    "Production Clerk browser qualification remains externally configured.",
+    "Load, soak, live-provider, and production-equivalent recovery qualification were not part of this baseline replay."
+  ]
+}
