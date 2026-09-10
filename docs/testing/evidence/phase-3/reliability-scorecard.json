@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "mission-control-enterprise-reliability-scorecard/v1",
+  "repository": "jaydubya818/MissionControlEnterprise",
+  "upstreamBaseline": "ffd58077989a23004819a85f529ca74c955b1422",
+  "releaseCandidate": "8c2355b4b67d7a7e2a41ce95708e18ba3adcd1b9",
+  "recordedOn": "2026-09-10",
+  "readiness": "LEVEL 0 — NOT ENTERPRISE-PILOT READY",
+  "dimensions": [
+    { "name": "product surface contract", "status": "PASS", "evidence": "104 routes classified and enforced; 15 primary Live navigation destinations" },
+    { "name": "admitted route authorization", "status": "PASS", "evidence": "17/17 Live and 14/14 Preview closures pass" },
+    { "name": "public function authorization ratchet", "status": "PASS", "evidence": "762 public; 760 authorized; 2 bounded declared-public health probes; 0 unauthorized" },
+    { "name": "repository test, typecheck, lint, and build", "status": "PASS", "evidence": "2043 tests pass; one external scenario skipped; typecheck, lint, and build pass" },
+    { "name": "deterministic governed golden path", "status": "PASS", "evidence": "same-company read/write pass; anonymous and cross-company read/write denied" },
+    { "name": "local browser surface smoke", "status": "PASS WITH LIMITATIONS", "evidence": "12/12 critical tests and 3/3 Preview/Labs tests pass" },
+    { "name": "production startup admission contract", "status": "PASS WITH BOUNDED LIMITATION", "evidence": "configured artifact imports; missing service identity, inbound auth, and exact CORS fail closed" },
+    { "name": "production configuration values", "status": "BLOCKED — EXTERNAL", "evidence": "12 required non-secret configuration findings" },
+    { "name": "production Clerk and two-company browser isolation", "status": "BLOCKED — EXTERNAL", "evidence": "deployment credentials and two real sessions unavailable" },
+    { "name": "deployed restart, recovery, retry, and worker loss", "status": "OPEN", "evidence": "deterministic contracts pass; deployed failure injection absent" },
+    { "name": "current candidate load and soak", "status": "BLOCKED — EXTERNAL", "evidence": "historical sequential evidence only; no current production-equivalent cohort" },
+    { "name": "live model, sandbox, GitHub, and notification providers", "status": "BLOCKED — EXTERNAL", "evidence": "real-provider failure and fallback cohort absent" },
+    { "name": "incident alerting and non-author tabletop", "status": "BLOCKED — EXTERNAL", "evidence": "runbooks exist; alert delivery and tabletop execution absent" },
+    { "name": "backup, restore, deployed rollback, and digest reconciliation", "status": "BLOCKED — EXTERNAL", "evidence": "external provider and deployment drills absent" }
+  ],
+  "decision": "NO-GO for enterprise pilot until every pilot-required blocker is closed or explicitly bounded by an approved operating control."
+}

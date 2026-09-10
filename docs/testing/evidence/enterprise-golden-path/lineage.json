@@ -2,8 +2,8 @@
   "schemaVersion": "enterprise-golden-path-lineage/v1",
   "baseline": {
     "commit": "b7cd6890b5ac8ced093a4163dbff8d8ae103f8f9",
-    "qualifiedHead": "ee2e7715a4b91894f341675fd4d102e72c10b67e",
-    "qualifiedAt": "2026-09-09T18:32:51.740Z",
+    "qualifiedHead": "8c2355b4b67d7a7e2a41ce95708e18ba3adcd1b9",
+    "qualifiedAt": "2026-09-10T08:28:15.562Z",
     "environment": {
       "platform": "darwin",
       "architecture": "arm64",
@@ -69,7 +69,7 @@
       "generation": 2
     },
     "leaseId": "lease-source-current-head",
-    "executionManifestDigest": "sha256:a5ae90131672a5672917ebb506360d41dc1ee609a7a808c152a5f8d49fcc2ff6",
+    "executionManifestDigest": "sha256:10fface1f1934b6cb1edb621cfc898aea52b2f370c42fc5bd9af9743eb0629c0",
     "runtime": "remote-sandbox"
   },
   "candidate": {

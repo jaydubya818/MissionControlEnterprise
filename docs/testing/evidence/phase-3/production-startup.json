@@ -1,6 +1,6 @@
 {
   "schemaVersion": "mission-control-production-startup/v1",
-  "recordedAt": "2026-09-10T07:59:13.170Z",
+  "recordedAt": "2026-09-10T08:27:34.108Z",
   "environment": "built Node ESM artifact; startup disabled before network/listen",
   "result": "PASS WITH BOUNDED LIMITATION",
   "scenarios": [

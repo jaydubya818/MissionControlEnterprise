@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "mission-control-enterprise-production-configuration/v1",
+  "repository": "jaydubya818/MissionControlEnterprise",
+  "releaseCandidate": "8c2355b4b67d7a7e2a41ce95708e18ba3adcd1b9",
+  "recordedOn": "2026-09-10",
+  "command": "pnpm run production:config:check",
+  "result": "BLOCKED",
+  "exitCode": 1,
+  "secretValuesPrinted": false,
+  "findings": [
+    { "name": "NODE_ENV", "requirement": "Must equal production." },
+    { "name": "VITE_AUTH_MODE", "requirement": "Must equal clerk." },
+    { "name": "VITE_CLERK_PUBLISHABLE_KEY", "requirement": "A production value is required." },
+    { "name": "VITE_CONVEX_URL", "requirement": "An HTTPS production URL is required." },
+    { "name": "CONVEX_URL", "requirement": "An HTTPS production URL is required." },
+    { "name": "CLERK_JWT_ISSUER_DOMAIN", "requirement": "An HTTPS production URL is required." },
+    { "name": "VITE_ORCHESTRATION_URL", "requirement": "An HTTPS production URL is required." },
+    { "name": "CONVEX_SERVICE_AUTH_TOKEN", "requirement": "A production value is required." },
+    { "name": "ORCHESTRATION_API_TOKEN|MC_API_TOKEN", "requirement": "A production inbound orchestration credential is required." },
+    { "name": "MISSION_CONTROL_SERVICE_ID", "requirement": "A production value is required." },
+    { "name": "MISSION_CONTROL_SERVICE_COMMAND_SECRET", "requirement": "A production value is required." },
+    { "name": "ORCHESTRATION_ALLOWED_ORIGINS", "requirement": "At least one exact production UI origin is required." }
+  ],
+  "interpretation": "The repository fails closed when the production deployment contract is incomplete. This is an external deployment blocker, not a passing production configuration."
+}

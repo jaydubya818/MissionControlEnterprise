@@ -7,8 +7,8 @@ This packet complements the existing Factory V2 qualification with authenticated
 ## Baseline
 
 - Baseline commit: `b7cd6890b5ac8ced093a4163dbff8d8ae103f8f9`
-- Qualified head before generated evidence: `ee2e7715a4b91894f341675fd4d102e72c10b67e`
-- Qualification date: `2026-09-09T18:32:51.740Z`
+- Qualified head before generated evidence: `8c2355b4b67d7a7e2a41ce95708e18ba3adcd1b9`
+- Qualification date: `2026-09-10T08:28:15.562Z`
 - Environment: darwin arm64; v24.18.1
 
 ## Authentication and tenancy
@@ -26,8 +26,6 @@ This packet complements the existing Factory V2 qualification with authenticated
 `mission-system-factory-e2e-v2` → `plan-system-factory-e2e-v2` r1 → `work-order-system-factory-e2e-v2` → `routing-decision-system-factory-e2e-v2` → `factory-version-progressive-software-v1` + `fake-system-factory-v2:v1` → `attempt-source-current-head` → `candidate:fa42e1cb35a8f76b294c06e5f6d53cfbd8fa159d` → `verification-run:attempt-verification-current-head` → `evidence:attempt-verification-current-head:factory-negative-constraints`, `evidence:attempt-verification-current-head:factory-change-budget`, `evidence:attempt-verification-current-head:mission:independent-verification`, `evidence:attempt-verification-current-head:spec:VERIFY-001` → `approval-system-factory-e2e-v2` → `release-system-factory-e2e-v2`
 
 The candidate revision remains `fa42e1cb35a8f76b294c06e5f6d53cfbd8fa159d` through verification, approval, and release readiness. Full digests and relationships are in [lineage.json](lineage.json).
-
-The isolated qualification persists the exact Git candidate and reloadable JSON lineage/evidence. An external Convex process-restart exercise was not available, so this is technical persistence proof, not production-environment certification.
 
 ## Negative qualification
 
@@ -49,16 +47,6 @@ Unauthenticated access, cross-company read/write, stale lease, specification mis
 
 1. Production Clerk mode and credentials were not available in the qualification environment.
 2. No production-equivalent second Clerk company identity was available for browser isolation.
-
-## Phase 2 reconciliation evidence
-
-- Canonical Step C reconciliation baseline: `aa1e09e6844263a598a49a91995ab15539a939f5`.
-- Canonical shell smoke/accessibility suite: **PASS** (`pnpm run test:e2e:critical`, 9 tests).
-- Factory V2 qualification against the canonical baseline: **PASS**.
-- Authorization ratchet: **PASS** (`917 total / 733 authorized / 184 non-Live read-only / 0 Live unauthorized`).
-- Phase 2 convergence screenshots: [Factory Registry](../phase-2-convergence/factory-registry.png) and [Decision Center](../phase-2-convergence/decision-center.png).
-
-Build, typecheck, unit, Convex, authorization, secret scan, browser/accessibility, runtime-contract, orchestration smoke and golden-path qualification pass. The root integration-runner cleanup and accepted dependency advisories remain tracked Phase 3 work.
 
 ## Pre-existing blockers repaired
 

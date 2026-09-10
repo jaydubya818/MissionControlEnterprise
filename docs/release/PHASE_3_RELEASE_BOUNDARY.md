@@ -8,6 +8,10 @@ Factory qualification passes, but production authentication, external-provider
 qualification, recovery, load, soak, and operational-response evidence remain
 open. Level 2 is not claimed.
 
+The exact repository-qualified release candidate is
+`8c2355b4b67d7a7e2a41ce95708e18ba3adcd1b9`. Qualification of that candidate
+does not imply that an external deployment exists or is approved.
+
 This inventory applies only to `jaydubya818/MissionControlEnterprise`, imported
 from `jaydubya818/MissionControl` at
 `ffd58077989a23004819a85f529ca74c955b1422`.
@@ -36,16 +40,16 @@ available in the repository.
 | Reliability — retries and idempotency | Golden-path and negative contracts cover current core lifecycle | Retry storms or duplicate side effects under provider ambiguity | Yes | Yes | Duplicate delivery, timeout-after-commit, and replay failure injection | Runtime engineering / providers | OPEN |
 | Reliability — queue recovery and failover | Deterministic task/attempt scheduling exists | Backlog can strand during worker/provider outage | Yes | Yes | Queue-depth, worker-loss, recovery-time, and secondary-route exercises | Runtime engineering | OPEN |
 | Reliability — degraded dependencies | Fail-closed contracts exist for several boundaries; composed degraded-mode proof incomplete | UI/runtime may show misleading health or unsafe retries | Yes | Yes | Inject Convex, GitHub, model, sandbox, and verification failures | Runtime engineering / external providers | OPEN |
-| Scale — operators, companies, repositories | No Phase 3 measured concurrency envelope yet | Pilot scope could exceed proven isolation/capacity | Yes | Yes | Authenticated multi-tenant load scenario with measured percentiles | Performance / enterprise operator | OPEN |
-| Scale — Missions, WorkOrders, Attempts | Functional throughput exists only in deterministic fixtures | Queue latency and database/query pressure unknown | Yes | Yes | Controlled load at increasing concurrency with saturation stop | Performance / Convex | OPEN |
-| Scale — workers and sandboxes | Single-scenario local and remote paths are qualified; broad concurrency is not | Resource saturation, lease contention, provider limits | Yes | Yes | Concurrent worker/sandbox cohorts with utilization and provisioning percentiles | Runtime engineering / sandbox provider | OPEN |
-| Scale — model routes and verification | Routing and verification contracts pass; live concurrency/rate limits not measured | Provider throttling can delay or misroute consequential work | Yes | Yes | Bounded real-provider cohort with rate-limit and fallback injection | Runtime engineering / model providers | OPEN |
+| Scale — operators, companies, repositories | Historical evidence supports only one company, workspace, repository, and operator flow at a time; no current-candidate concurrency cohort | Pilot scope could exceed proven isolation/capacity | Yes | Yes | Authenticated multi-tenant load scenario with measured percentiles | Performance / enterprise operator | BLOCKED — EXTERNAL |
+| Scale — Missions, WorkOrders, Attempts | Historical sequential evidence bounds the pilot to one active Mission, WorkOrder, and Attempt | Queue latency and database/query pressure under concurrency are unknown | Yes | Yes | Controlled load at increasing concurrency with saturation stop | Performance / Convex | BLOCKED — EXTERNAL |
+| Scale — workers and sandboxes | Historical cohort observed maximum remote concurrency of one; current provider concurrency is not qualified | Resource saturation, lease contention, provider limits | Yes | Yes | Concurrent worker/sandbox cohorts with utilization and provisioning percentiles | Runtime engineering / sandbox provider | BLOCKED — EXTERNAL |
+| Scale — model routes and verification | Routing and verification contracts pass; historical cost data is incomplete and current live concurrency/rate limits are unmeasured | Provider throttling can delay or misroute consequential work | Yes | Yes | Bounded real-provider cohort with rate-limit and fallback injection | Runtime engineering / model providers | BLOCKED — EXTERNAL |
 | Providers — model route authority | Exact tuple and route-admission contracts pass | Configured provider may differ from recorded provider | Yes | Yes | Live provider receipts matched to route decision and Attempt | Runtime engineering / model providers | CONTROLLED |
 | Providers — failure, timeout, fallback | Deterministic failures exist; production provider cohorts incomplete | Unsafe fallback or opaque partial completion | Yes | Yes | Rate limit, timeout, malformed output, outage, and allowed-fallback scenarios | Runtime engineering / model providers | OPEN |
 | Operations — Factory Health | Real backend surface retained as Preview | Incomplete signals can imply health when dependencies are degraded | Pilot support only | Yes | Compare UI state to injected runtime/database/provider incidents | SRE / runtime engineering | OPEN |
 | Operations — Work Ledger and Audit | Audit is Live; Work Ledger is Preview; scoped reads are authorized | Missing lineage can prevent incident reconstruction | Yes | Yes | Canonical action-to-audit/evidence linkage and negative omission tests | SRE / application security | CONTROLLED |
 | Operations — incident aggregation, alerts, observability | Trace/Audit Live; broader telemetry remains Preview | Operators may not detect or triage failures within pilot objectives | Yes | Yes | Incident injection, alert delivery, acknowledgement, and false-health checks | SRE / notification provider | OPEN |
-| Operations — runbooks | Existing Factory runbooks exist; enterprise-specific incident/recovery set incomplete | Recovery depends on author knowledge | Yes | Yes | Tabletop execution by a non-author with evidence | SRE / enterprise operator | OPEN |
+| Operations — runbooks | Enterprise pilot, incident, Factory recovery, provider outage, authentication outage, and release recovery runbooks exist; they are unexercised | Recovery steps may fail outside the authoring context | Yes | Yes | Tabletop execution by a non-author with evidence | SRE / enterprise operator | CONTROLLED |
 | Data — persistence and artifact durability | Deterministic persisted lineage and reload proof pass | External backup/restore and artifact retention remain unproven | Yes | Yes | Restart plus backup/restore exercise against pilot deployment | Data platform / Convex / artifact stores | OPEN |
 | Data — recovery assumptions | Local/system fixtures cover repair without mutation loss | Deployment RPO/RTO is unknown | Yes | Yes | Document provider guarantees; run restore and measure loss/time | Data platform / external providers | OPEN |
 | Release — exact artifact and approval | Exact candidate, evidence, approval, and release contracts pass | Deployment can still select a different artifact externally | Yes | Yes | Deployed digest reconciliation against approved release record | Release engineering | CONTROLLED |
@@ -61,7 +65,7 @@ available in the repository.
 - Convex authorization ratchet: 762 public functions, 760 authorized, 2
   bounded declared-public health probes, and 0 unauthorized reads, mutations,
   or actions. All 157 inherited findings remain in resolved history.
-- Repository tests: 2,024 pass, one explicitly external live-deployment scenario
+- Repository tests: 2,043 pass, one explicitly external live-deployment scenario
   not admitted as deterministic proof.
 - Root integration runner: 4 architecture regressions plus the canonical
   repository suite pass under workspace-owned configurations.
@@ -72,8 +76,11 @@ available in the repository.
 
 1. Execute production Clerk and two-company browser proof when external state is
    available; retain the external blocker until then.
-2. Complete failure injection and deployed restart/recovery proof.
-3. Establish a measured pilot capacity envelope and internal service objectives.
-4. Qualify live providers, health/incident response, release, and rollback.
+2. Execute deployed failure injection and restart/recovery proof using the
+   published runbooks.
+3. Run the current-candidate load/soak cohort from the conservative historical
+   ceiling and validate the published internal service objectives.
+4. Qualify live providers, alert delivery, a non-author tabletop, backup/restore,
+   release, and rollback.
 5. Reassess Level 1 only after every pilot-required row is PASS or explicitly
    bounded by an approved pilot control.

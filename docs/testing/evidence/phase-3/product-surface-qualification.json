@@ -3,7 +3,8 @@
   "repository": "jaydubya818/MissionControlEnterprise",
   "upstreamRepository": "jaydubya818/MissionControl",
   "upstreamBaseline": "ffd58077989a23004819a85f529ca74c955b1422",
-  "recordedOn": "2026-09-09",
+  "recordedOn": "2026-09-10",
+  "qualifiedCandidate": "8c2355b4b67d7a7e2a41ce95708e18ba3adcd1b9",
   "result": "PASS",
   "routeContract": {
     "total": 104,
@@ -17,42 +18,45 @@
     "primaryLiveNavigationDestinations": 15
   },
   "authorization": {
-    "publicFunctions": 838,
+    "publicFunctions": 762,
     "authorized": 760,
-    "remainingUnauthorizedReadOnly": 78,
-    "closedByThisCheckpoint": 106,
-    "internalizedAfterDependencyAnalysis": 79,
+    "declaredPublic": 2,
+    "remainingUnauthorizedReadOnly": 0,
+    "closedByThisCheckpoint": 157,
+    "internalizedAfterDependencyAnalysis": 149,
+    "workspaceAuthorizedAfterDependencyAnalysis": 6,
+    "declaredPublicAfterDependencyAnalysis": 2,
     "liveRoutesReachingUnauthorizedFunctions": 0,
     "previewRoutesReachingUnauthorizedFunctions": 0,
-    "remainingReadsClassified": 78,
-    "resolvedClassificationHistory": 79,
+    "remainingReadsClassified": 0,
+    "resolvedClassificationHistory": 157,
     "unauthorizedMutationsOrActions": 0
   },
   "runtimeContract": {
     "baselineVersion": 33,
-    "enterpriseVersion": 35,
-    "acceptedChanges": 82
+    "enterpriseVersion": 36,
+    "acceptedChanges": 157
   },
   "checks": [
     { "command": "pnpm run release:security", "result": "PASS" },
     { "command": "pnpm run security:authorization", "result": "PASS" },
-    { "command": "pnpm run security:authorization-debt", "result": "PASS", "active": 78, "resolved": 79 },
+    { "command": "pnpm run security:authorization-debt", "result": "PASS", "active": 0, "resolved": 157 },
     { "command": "pnpm run security:enterprise-routes", "result": "PASS" },
-    { "command": "pnpm run test", "result": "PASS", "tests": 2024, "skipped": 1 },
+    { "command": "pnpm run test", "result": "PASS", "tests": 2043, "skipped": 1 },
     { "command": "pnpm run typecheck", "result": "PASS" },
     { "command": "pnpm run lint", "result": "PASS" },
     { "command": "pnpm run build", "result": "PASS" },
     { "command": "node scripts/check-runtime-contract.mjs --base ffd58077989a23004819a85f529ca74c955b1422", "result": "PASS" },
     { "command": "CI=true pnpm run qualify:factory:v2", "result": "PASS" },
-    { "command": "pnpm run test:integration", "result": "PASS", "configurationTests": 4, "repositoryTests": 2024, "externalLiveScenarioSkipped": 1 },
-    { "command": "pnpm run test:e2e:critical", "result": "PASS", "tests": 11 },
+    { "command": "pnpm run test:integration", "result": "PASS", "configurationTests": 4, "repositoryTests": 2043, "externalLiveScenarioSkipped": 1 },
+    { "command": "pnpm run test:e2e:critical", "result": "PASS", "tests": 12 },
     { "command": "pnpm run test:e2e:enterprise-surfaces", "result": "PASS", "tests": 3, "routeSteps": 33 },
     { "command": "git diff --check", "result": "PASS" },
-    { "command": "git diff --name-only --diff-filter=D -- apps convex packages scripts", "result": "PASS", "deletedImplementationFiles": 0 }
+    { "command": "git diff --name-only --diff-filter=D ffd58077989a23004819a85f529ca74c955b1422..8c2355b4b67d7a7e2a41ce95708e18ba3adcd1b9 -- apps convex packages scripts", "result": "PASS", "deletedRouteSpecificFrontendFiles": 37, "deletedBackendFiles": 0 }
   ],
   "limitations": [
-    "The browser surface tests use the deterministic shell-only harness; production Clerk and authoritative-data browser qualification remain Phase 3 release gates.",
-    "All 78 remaining inherited unauthenticated reads are classified and remain pilot blockers until authorized, internalized, explicitly declared minimal public, or removed; 79 internalized decisions remain in resolved history.",
-    "This checkpoint proves product-surface rationalization and Preview security, not final enterprise release readiness."
+    "The browser surface tests use the deterministic shell-only harness; production Clerk, authoritative data, route-level actions, persistence, permissions, and degraded-state browser qualification remain external release gates.",
+    "All 157 inherited unauthenticated reads are resolved in the durable ledger: 149 internalized after dependency analysis, 6 workspace-authorized, and 2 bounded health probes declared public.",
+    "This checkpoint proves product-surface rationalization, admitted-route authorization closure, and local browser smoke. It does not establish enterprise pilot readiness."
   ]
 }

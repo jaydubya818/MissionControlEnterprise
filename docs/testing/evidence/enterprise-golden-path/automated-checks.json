@@ -1,9 +1,9 @@
 {
   "schemaVersion": "enterprise-golden-path-automated-checks/v1",
   "baselineSha": "b7cd6890b5ac8ced093a4163dbff8d8ae103f8f9",
-  "startedHead": "ee2e7715a4b91894f341675fd4d102e72c10b67e",
-  "startedAt": "2026-09-09T18:32:31.832Z",
-  "completedAt": "2026-09-09T18:32:51.740Z",
+  "startedHead": "8c2355b4b67d7a7e2a41ce95708e18ba3adcd1b9",
+  "startedAt": "2026-09-10T08:27:58.117Z",
+  "completedAt": "2026-09-10T08:28:15.562Z",
   "result": "PASS",
   "checks": [
     {
@@ -11,49 +11,49 @@
       "command": "pnpm run ci:prepare",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 6876
+      "durationMs": 6149
     },
     {
       "name": "canonical Factory V2 golden path with Step C lineage",
       "command": "pnpm --filter @mission-control/orchestration-server exec vitest run src/__tests__/systemFactoryQualification.test.ts",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 9202
+      "durationMs": 7744
     },
     {
       "name": "authenticated tenant and authorization boundaries",
       "command": "pnpm exec vitest run convex/__tests__/companyAccess.test.ts convex/__tests__/authorizationRemediation.test.ts convex/__tests__/deliveryAuthorizationFailClosed.test.ts convex/__tests__/modelRoutingAuthorization.test.ts",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 1022
+      "durationMs": 963
     },
     {
       "name": "governed lifecycle and fail-closed advancement",
       "command": "pnpm exec vitest run convex/__tests__/missionPlan.test.ts convex/__tests__/missionWorkOrderContract.test.ts convex/__tests__/factoryDispatch.test.ts convex/__tests__/sandboxProfileAdmission.test.ts convex/__tests__/factoryRuntimeGoldenPath.test.ts convex/__tests__/verificationPersistence.test.ts convex/__tests__/workOrderGovernance.test.ts convex/__tests__/factoryRelease.test.ts",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 906
+      "durationMs": 840
     },
     {
       "name": "service authentication and replay protection",
       "command": "pnpm exec vitest run convex/__tests__/serviceCommandAuth.test.ts",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 713
+      "durationMs": 672
     },
     {
       "name": "authentication client contract",
       "command": "pnpm --filter mission-control-ui exec vitest run src/auth/authMode.test.ts src/auth/clerkConvexDiagnostic.test.ts",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 931
+      "durationMs": 852
     },
     {
       "name": "Factory documentation consistency",
       "command": "pnpm run docs:factory-check",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 257
+      "durationMs": 224
     }
   ]
 }

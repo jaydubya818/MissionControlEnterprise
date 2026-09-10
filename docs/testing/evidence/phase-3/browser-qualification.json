@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "mission-control-enterprise-browser-qualification/v1",
+  "repository": "jaydubya818/MissionControlEnterprise",
+  "releaseCandidate": "8c2355b4b67d7a7e2a41ce95708e18ba3adcd1b9",
+  "recordedOn": "2026-09-10",
+  "result": "PASS WITH EXTERNAL BLOCKERS",
+  "criticalSuite": {
+    "command": "pnpm run test:e2e:critical",
+    "result": "PASS",
+    "tests": 12,
+    "liveRouteIdentifiersCovered": 17,
+    "primaryLiveNavigationDestinations": 15,
+    "criticalAccessibilityRoutes": 4,
+    "criticalAccessibilityDialogs": 1,
+    "responsiveRouteFlows": 1
+  },
+  "secondarySurfaceSuite": {
+    "command": "pnpm run test:e2e:enterprise-surfaces",
+    "result": "PASS",
+    "tests": 3,
+    "previewRouteSteps": 14,
+    "labsRouteSteps": 19,
+    "previewAndLabsCollapsedByDefault": true
+  },
+  "localEvidence": [
+    "All Live route identifiers render in the enterprise shell through a direct deep link.",
+    "Exactly 15 primary Live destinations are exposed in enterprise navigation.",
+    "Consolidated, removed, Preview, Labs, and unknown links receive explicit handling.",
+    "Live Command Center and Work Orders expose no demo entry point.",
+    "No page errors or unexpected request failures were observed by the local smoke harness."
+  ],
+  "limitations": [
+    "The shell harness does not use production Clerk or authoritative production Convex data.",
+    "The tolerated offline /gateway/status probe is not evidence of a healthy deployed orchestration service.",
+    "Only four critical routes and one dialog have axe evidence; only the Work Orders-to-Tasks shell flow has mobile evidence.",
+    "Production actions, persistence, refresh, back/forward, negative permissions, and route-specific loading, empty, error, and degraded states remain externally blocked."
+  ],
+  "fullLiveContract": "NOT FULLY QUALIFIED"
+}

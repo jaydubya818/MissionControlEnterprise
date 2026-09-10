@@ -106,7 +106,7 @@
       "attempt-source-repaired",
       "attempt-source-current-head"
     ],
-    "executionManifestDigest": "sha256:a5ae90131672a5672917ebb506360d41dc1ee609a7a808c152a5f8d49fcc2ff6",
+    "executionManifestDigest": "sha256:10fface1f1934b6cb1edb621cfc898aea52b2f370c42fc5bd9af9743eb0629c0",
     "executionBackend": "remote-sandbox",
     "candidateShas": [
       "5e6c9bac719b464c7261ac8b156379350b4c70a6",
@@ -272,9 +272,9 @@
     "sandboxHasGithubAuthority": false
   },
   "performance": {
-    "durationMs": 8088,
-    "sourceGateDurationMs": 3052,
-    "verificationDurationMs": 4529,
+    "durationMs": 6813,
+    "sourceGateDurationMs": 2559,
+    "verificationDurationMs": 3874,
     "sandboxProviderRuntimeMs": 1,
     "deterministicGateRuns": 7,
     "sourceAttempts": 5,
