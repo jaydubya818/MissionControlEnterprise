@@ -217,9 +217,11 @@ to Live by this decision.
 The exact imported-baseline replay passed with 917 public functions scanned,
 733 authorized, 184 ratcheted unauthorized read-only functions, zero Live
 unauthorized functions, and zero unauthorized mutations/actions. Product-
-surface implementation then closed 27 inherited reads, leaving 760 authorized
-and 157 ratcheted unauthorized read-only functions. All 17 Live and 14 Preview
-UI closures now pass the dedicated server-authorization gate. This remains a rationalized
+surface implementation then authorized 27 inherited reads. Dependency analysis
+subsequently internalized 79 reads with no admitted or known caller, leaving
+838 public functions: 760 authorized and 78 ratcheted unauthorized read-only
+functions. All 17 Live and 14 Preview UI closures now pass the dedicated
+server-authorization gate. This remains a rationalized
 boundary, not final Phase 3 release approval.
 
 The matrix identifies routes known to touch authorization debt. A route that is

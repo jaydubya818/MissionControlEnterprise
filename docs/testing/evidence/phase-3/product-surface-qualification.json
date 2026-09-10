@@ -17,24 +17,26 @@
     "primaryLiveNavigationDestinations": 15
   },
   "authorization": {
-    "publicFunctions": 917,
+    "publicFunctions": 838,
     "authorized": 760,
-    "remainingUnauthorizedReadOnly": 157,
-    "closedByThisCheckpoint": 27,
+    "remainingUnauthorizedReadOnly": 78,
+    "closedByThisCheckpoint": 106,
+    "internalizedAfterDependencyAnalysis": 79,
     "liveRoutesReachingUnauthorizedFunctions": 0,
     "previewRoutesReachingUnauthorizedFunctions": 0,
-    "remainingReadsClassified": 157,
+    "remainingReadsClassified": 78,
+    "resolvedClassificationHistory": 79,
     "unauthorizedMutationsOrActions": 0
   },
   "runtimeContract": {
     "baselineVersion": 33,
-    "enterpriseVersion": 34,
-    "acceptedChanges": 3
+    "enterpriseVersion": 35,
+    "acceptedChanges": 82
   },
   "checks": [
     { "command": "pnpm run release:security", "result": "PASS" },
     { "command": "pnpm run security:authorization", "result": "PASS" },
-    { "command": "pnpm run security:authorization-debt", "result": "PASS", "classified": 157 },
+    { "command": "pnpm run security:authorization-debt", "result": "PASS", "active": 78, "resolved": 79 },
     { "command": "pnpm run security:enterprise-routes", "result": "PASS" },
     { "command": "pnpm run test", "result": "PASS", "tests": 2024, "skipped": 1 },
     { "command": "pnpm run typecheck", "result": "PASS" },
@@ -50,7 +52,7 @@
   ],
   "limitations": [
     "The browser surface tests use the deterministic shell-only harness; production Clerk and authoritative-data browser qualification remain Phase 3 release gates.",
-    "All 157 remaining inherited unauthenticated reads are classified and remain pilot blockers until authorized, internalized, explicitly declared minimal public, or removed.",
+    "All 78 remaining inherited unauthenticated reads are classified and remain pilot blockers until authorized, internalized, explicitly declared minimal public, or removed; 79 internalized decisions remain in resolved history.",
     "This checkpoint proves product-surface rationalization and Preview security, not final enterprise release readiness."
   ]
 }

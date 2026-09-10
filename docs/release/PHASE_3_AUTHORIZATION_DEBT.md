@@ -9,19 +9,25 @@ updated: 2026-09-09
 
 ## Decision
 
-The remaining **157 public unauthenticated Convex reads are all network
+The initial ledger classified 157 public unauthenticated Convex reads. The
+first remediation tranche converted 79 reads with no admitted or known
+repository caller to `internalQuery`, preserving their backend implementation
+while removing their public entry points.
+
+The remaining **78 public unauthenticated Convex reads are all network
 reachable** to a caller that knows the deployment URL and function identifier.
 Removing a route or navigation entry does not secure a public Convex function.
 
 None is reachable from the statically enforced closure of the 17 Live or 14
 Preview routes. That limits accidental product admission, but it does not make
-the backend safe for an enterprise pilot. All 157 therefore remain pilot and
+the backend safe for an enterprise pilot. All 78 therefore remain pilot and
 unrestricted-release blockers until they are authorized, converted to an
 explicitly reviewed minimal public contract, internalized, or removed after
 dependency proof.
 
 The authoritative function-by-function ledger is
-`scripts/authorization-debt-classification.json`. The release gate executes
+`scripts/authorization-debt-classification.json`, including active and resolved
+history. The release gate executes
 `scripts/check-authorization-debt-classification.mjs` and fails if the ledger
 omits a baseline function, retains a stale function, duplicates a function, or
 lacks any required decision field.
@@ -41,22 +47,23 @@ Each ledger record applies its decision to every named function and records:
 
 ## Classification result
 
-| Classification | Functions | Meaning |
-| --- | ---: | --- |
-| Legacy | 69 | Superseded or removed product surfaces retained only for dependency-safe cleanup. |
-| Future product surface | 27 | Potentially useful capability with no approved enterprise owner or admission. |
-| Internalization candidate | 25 | Server/runtime implementation detail that should not remain a public query. |
-| Developer tool | 19 | Diagnostic, migration, seed, health, or canary surface requiring an explicit bounded contract. |
-| Preview | 17 | Labs/experimental backend outside the approved Preview navigation boundary. |
-| **Total** | **157** | Exact match to the authorization ratchet baseline. |
+| Classification | Initially classified | Internalized | Remaining public |
+| --- | ---: | ---: | ---: |
+| Legacy | 69 | 40 | 29 |
+| Future product surface | 27 | 20 | 7 |
+| Internalization candidate | 25 | 18 | 7 |
+| Developer tool | 19 | 0 | 19 |
+| Preview | 17 | 1 | 16 |
+| **Total** | **157** | **79** | **78** |
 
-Exact static references exist for 46 of the 157 functions. The remaining 111
-have no known repository caller, but all 157 remain callable over the public
-Convex API until remediated.
+Exact static references exist for 46 of the 78 remaining functions. The other
+32 are deliberately held-back Labs or developer-tool contracts that require
+separate decisions; lack of a repository caller does not prove that an
+external health, migration, or diagnostic consumer does not exist.
 
 ## Admitted runtime blockers
 
-The ledger identifies seven reads with known runtime/CLI ownership across
+The ledger identifies six reads with known runtime/CLI ownership across
 `skillAutomations`, `workflowRuns`, and `workflows`. They require special care:
 
 - service execution must use the signed, workspace/repository-scoped service
@@ -85,13 +92,14 @@ without closing cross-company exposure.
 ## Automated evidence
 
 ```text
-Authorization debt classification: PASS — 157/157 reads classified
-Public Convex functions: 917
+Authorization debt classification: PASS — 78/78 active reads classified; 79 resolved reads retained
+Public Convex functions: 838
 Authorized: 760
-Unauthorized reads: 157
+Unauthorized reads: 78
 Unauthorized mutations/actions: 0
 Live route authorization closure: 17/17 PASS
 Preview route authorization closure: 14/14 PASS
 ```
 
-Classification is complete. Remediation is not.
+Classification is complete. The first internalization tranche is complete;
+the remaining remediation is not.

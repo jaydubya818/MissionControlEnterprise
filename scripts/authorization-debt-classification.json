@@ -4,10 +4,28 @@
   "entries": [
     {
       "module": "agentHiring",
-      "functions": ["getAssessmentPacket", "getCandidate", "getDecisionRecord", "getPanelPacket", "getRoleSpec", "getScreenReport", "listCandidates", "listRoleSpecs"],
+      "functions": [
+        "getCandidate",
+        "getRoleSpec",
+        "listCandidates",
+        "listRoleSpecs"
+      ],
       "classification": "LEGACY",
       "whyItRemains": "The removed Hiring surface and its retained backend have not yet passed the physical-deletion dependency gate.",
-      "calledFunctions": {"getCandidate": ["apps/mission-control-ui/src/HiringView.tsx"], "getRoleSpec": ["apps/mission-control-ui/src/HiringView.tsx"], "listCandidates": ["apps/mission-control-ui/src/HiringView.tsx"], "listRoleSpecs": ["apps/mission-control-ui/src/HiringView.tsx"]},
+      "calledFunctions": {
+        "getCandidate": [
+          "apps/mission-control-ui/src/HiringView.tsx"
+        ],
+        "getRoleSpec": [
+          "apps/mission-control-ui/src/HiringView.tsx"
+        ],
+        "listCandidates": [
+          "apps/mission-control-ui/src/HiringView.tsx"
+        ],
+        "listRoleSpecs": [
+          "apps/mission-control-ui/src/HiringView.tsx"
+        ]
+      },
       "admission": "NOT_ADMITTED",
       "readOnly": true,
       "pilotBlocker": true,
@@ -15,20 +33,11 @@
       "remediation": "Remove the obsolete product component after dependency proof, then internalize or delete these reads; if any hiring capability is retained, add tenant-scoped authorization before re-exposure."
     },
     {
-      "module": "agentLearning",
-      "functions": ["getProjectLearningInsights"],
-      "classification": "FUTURE PRODUCT SURFACE",
-      "whyItRemains": "Learning insights may support a later Improve surface but are not part of the approved enterprise navigation.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Require factory.read for the requested project or make the query internal until an admitted surface owns it."
-    },
-    {
       "module": "apiCollections",
-      "functions": ["get", "list"],
+      "functions": [
+        "get",
+        "list"
+      ],
       "classification": "PREVIEW",
       "whyItRemains": "The API-import implementation is retained for the isolated Labs workflow.",
       "calledFunctions": {},
@@ -40,10 +49,18 @@
     },
     {
       "module": "captures",
-      "functions": ["get", "getByType", "list"],
+      "functions": [
+        "get",
+        "getByType",
+        "list"
+      ],
       "classification": "PREVIEW",
       "whyItRemains": "Capture ingestion and review remain available only as an experimental Labs capability.",
-      "calledFunctions": {"list": ["apps/mission-control-ui/src/CapturesView.tsx"]},
+      "calledFunctions": {
+        "list": [
+          "apps/mission-control-ui/src/CapturesView.tsx"
+        ]
+      },
       "admission": "LABS_ONLY",
       "readOnly": true,
       "pilotBlocker": true,
@@ -52,7 +69,10 @@
     },
     {
       "module": "codegen",
-      "functions": ["get", "list"],
+      "functions": [
+        "get",
+        "list"
+      ],
       "classification": "PREVIEW",
       "whyItRemains": "Code generation is isolated in Labs and retained pending capability qualification.",
       "calledFunctions": {},
@@ -64,10 +84,25 @@
     },
     {
       "module": "contentDrops",
-      "functions": ["get", "getStats", "list", "listByAgent"],
+      "functions": [
+        "get",
+        "getStats",
+        "list"
+      ],
       "classification": "LEGACY",
       "whyItRemains": "The Content Pipeline route is removed, but its source and an old end-to-end diagnostic still reference this backend.",
-      "calledFunctions": {"get": ["apps/mission-control-ui/src/ContentPipelineView.tsx"], "getStats": ["apps/mission-control-ui/src/ContentPipelineView.tsx"], "list": ["apps/mission-control-ui/src/ContentPipelineView.tsx", "scripts/mc-e2e-full.sh"]},
+      "calledFunctions": {
+        "get": [
+          "apps/mission-control-ui/src/ContentPipelineView.tsx"
+        ],
+        "getStats": [
+          "apps/mission-control-ui/src/ContentPipelineView.tsx"
+        ],
+        "list": [
+          "apps/mission-control-ui/src/ContentPipelineView.tsx",
+          "scripts/mc-e2e-full.sh"
+        ]
+      },
       "admission": "NOT_ADMITTED",
       "readOnly": true,
       "pilotBlocker": true,
@@ -75,47 +110,18 @@
       "remediation": "Retire the diagnostic dependency, remove the obsolete component after proof, and internalize or delete the backend reads."
     },
     {
-      "module": "context/activation",
-      "functions": ["getReceiptForRun"],
-      "classification": "INTERNALIZATION CANDIDATE",
-      "whyItRemains": "The receipt lookup supports governed-context lineage but has no current external caller.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Convert to internalQuery and expose receipt data only through the already-authorized Attempt inspector."
-    },
-    {
-      "module": "coordinator",
-      "functions": ["getSubtasks", "getTaskDependencies"],
-      "classification": "INTERNALIZATION CANDIDATE",
-      "whyItRemains": "These older coordinator lookups are superseded by the authorized dependency-graph projection.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Internalize or remove after confirming no worker uses string-based calls; canonical clients must use getDependencyGraph."
-    },
-    {
-      "module": "costEvents",
-      "functions": ["listByAgent", "listByProject", "listByTask", "summaryByProject"],
-      "classification": "FUTURE PRODUCT SURFACE",
-      "whyItRemains": "Fine-grained cost events are a possible Economics backend, but Economics is not an admitted Phase 3 destination.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Require factory.read for project/task/agent-derived scope before any Economics surface is admitted; internalize unused aggregations meanwhile."
-    },
-    {
       "module": "e2e",
-      "functions": ["validate"],
+      "functions": [
+        "validate"
+      ],
       "classification": "DEVELOPER TOOL",
       "whyItRemains": "Legacy doctor and full-E2E scripts query it as a deployment diagnostic.",
-      "calledFunctions": {"validate": ["scripts/mc-doctor.sh", "scripts/mc-e2e-full.sh"]},
+      "calledFunctions": {
+        "validate": [
+          "scripts/mc-doctor.sh",
+          "scripts/mc-e2e-full.sh"
+        ]
+      },
       "admission": "DEVELOPER_TOOL",
       "readOnly": true,
       "pilotBlocker": true,
@@ -123,59 +129,17 @@
       "remediation": "Require a scoped operator/service identity and return only bounded diagnostic fields, or replace it with authenticated qualification queries."
     },
     {
-      "module": "execution",
-      "functions": ["get", "list"],
-      "classification": "LEGACY",
-      "whyItRemains": "The deprecated Execution route redirects to WorkOrders while the legacy backend remains for dependency review.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Internalize or delete after proving the WorkOrder/Attempt runtime does not depend on this legacy execution model."
-    },
-    {
-      "module": "executionRequests",
-      "functions": ["get", "getRoutingRecommendation", "listByProject", "listByTask", "listPending"],
-      "classification": "INTERNALIZATION CANDIDATE",
-      "whyItRemains": "The older execution-request queue is retained while worker/runtime dependency analysis is incomplete.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Confirm the canonical execution worker uses WorkOrders/Attempts, then internalize queue reads; otherwise require signed service scope."
-    },
-    {
-      "module": "executorRouter",
-      "functions": ["getQueueForExecutor"],
-      "classification": "INTERNALIZATION CANDIDATE",
-      "whyItRemains": "A legacy executor queue reader remains while runtime callers are being reconciled.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Convert to an internal query invoked by a signed service command, or remove after proving it is superseded."
-    },
-    {
-      "module": "executors",
-      "functions": ["listPending"],
-      "classification": "INTERNALIZATION CANDIDATE",
-      "whyItRemains": "The older pending-executor projection remains while worker compatibility is assessed.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Internalize for worker-only use or delete after confirming the persistent worker no longer consumes it."
-    },
-    {
       "module": "factory/agentFleet",
-      "functions": ["snapshot"],
+      "functions": [
+        "snapshot"
+      ],
       "classification": "FUTURE PRODUCT SURFACE",
       "whyItRemains": "The harness fleet source was consolidated into Agents, but its specialized snapshot is not consumed by the canonical destination.",
-      "calledFunctions": {"snapshot": ["apps/mission-control-ui/src/harness/views/HarnessAgentFleetView.tsx"]},
+      "calledFunctions": {
+        "snapshot": [
+          "apps/mission-control-ui/src/harness/views/HarnessAgentFleetView.tsx"
+        ]
+      },
       "admission": "LEGACY_COMPONENT_ONLY",
       "readOnly": true,
       "pilotBlocker": true,
@@ -184,10 +148,16 @@
     },
     {
       "module": "factory/health",
-      "functions": ["teamPulse"],
+      "functions": [
+        "teamPulse"
+      ],
       "classification": "FUTURE PRODUCT SURFACE",
       "whyItRemains": "The old Team Pulse source redirects to Command Center; the canonical overview does not consume this projection.",
-      "calledFunctions": {"teamPulse": ["apps/mission-control-ui/src/harness/views/HarnessTeamPulseView.tsx"]},
+      "calledFunctions": {
+        "teamPulse": [
+          "apps/mission-control-ui/src/harness/views/HarnessTeamPulseView.tsx"
+        ]
+      },
       "admission": "LEGACY_COMPONENT_ONLY",
       "readOnly": true,
       "pilotBlocker": true,
@@ -196,10 +166,16 @@
     },
     {
       "module": "factory/repetitiveTasks",
-      "functions": ["listCandidates"],
+      "functions": [
+        "listCandidates"
+      ],
       "classification": "FUTURE PRODUCT SURFACE",
       "whyItRemains": "Repetitive-task recommendations are retained for possible governed automation improvement but are not admitted.",
-      "calledFunctions": {"listCandidates": ["apps/mission-control-ui/src/harness/components/HarnessRepetitiveTasksPanel.tsx"]},
+      "calledFunctions": {
+        "listCandidates": [
+          "apps/mission-control-ui/src/harness/components/HarnessRepetitiveTasksPanel.tsx"
+        ]
+      },
       "admission": "LEGACY_COMPONENT_ONLY",
       "readOnly": true,
       "pilotBlocker": true,
@@ -208,10 +184,16 @@
     },
     {
       "module": "factory/workflows",
-      "functions": ["maintenanceCatalog"],
+      "functions": [
+        "maintenanceCatalog"
+      ],
       "classification": "FUTURE PRODUCT SURFACE",
       "whyItRemains": "Maintenance was consolidated into Automations, but this catalog is referenced only by the old harness view.",
-      "calledFunctions": {"maintenanceCatalog": ["apps/mission-control-ui/src/harness/views/HarnessMaintenanceView.tsx"]},
+      "calledFunctions": {
+        "maintenanceCatalog": [
+          "apps/mission-control-ui/src/harness/views/HarnessMaintenanceView.tsx"
+        ]
+      },
       "admission": "LEGACY_COMPONENT_ONLY",
       "readOnly": true,
       "pilotBlocker": true,
@@ -220,7 +202,9 @@
     },
     {
       "module": "featureFlags",
-      "functions": ["list"],
+      "functions": [
+        "list"
+      ],
       "classification": "DEVELOPER TOOL",
       "whyItRemains": "A legacy global feature-flag inventory remains for diagnostics; admitted UI uses scoped flag resolution elsewhere.",
       "calledFunctions": {},
@@ -232,7 +216,10 @@
     },
     {
       "module": "flakySteps",
-      "functions": ["get", "list"],
+      "functions": [
+        "get",
+        "list"
+      ],
       "classification": "PREVIEW",
       "whyItRemains": "Flaky-step analysis is isolated to Labs.",
       "calledFunctions": {},
@@ -243,23 +230,21 @@
       "remediation": "Add project/object authorization before Labs activation or internalize while no client exists."
     },
     {
-      "module": "github",
-      "functions": ["getGitHubConfig", "listGitHubLinkedTasks"],
-      "classification": "LEGACY",
-      "whyItRemains": "These reads belong to the superseded GitHub integration; canonical repository authority uses GitHub App connections.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Internalize or remove after confirming GitHub App connection and WorkOrder evidence paths cover all required capability."
-    },
-    {
       "module": "goals",
-      "functions": ["get", "getAncestorChain", "getHierarchy", "getLinkedTasks", "list"],
+      "functions": [
+        "getHierarchy",
+        "getLinkedTasks"
+      ],
       "classification": "LEGACY",
       "whyItRemains": "Goals were consolidated into Missions; the old Goals component is retained only for safe dependency analysis.",
-      "calledFunctions": {"getHierarchy": ["apps/mission-control-ui/src/GoalsView.tsx"], "getLinkedTasks": ["apps/mission-control-ui/src/GoalsView.tsx"]},
+      "calledFunctions": {
+        "getHierarchy": [
+          "apps/mission-control-ui/src/GoalsView.tsx"
+        ],
+        "getLinkedTasks": [
+          "apps/mission-control-ui/src/GoalsView.tsx"
+        ]
+      },
       "admission": "LEGACY_COMPONENT_ONLY",
       "readOnly": true,
       "pilotBlocker": true,
@@ -267,20 +252,11 @@
       "remediation": "Migrate any required intent lineage to Missions, then internalize or delete the legacy Goals reads and component."
     },
     {
-      "module": "governance/permissions",
-      "functions": ["listPermissions"],
-      "classification": "FUTURE PRODUCT SURFACE",
-      "whyItRemains": "A permission catalog could support governance administration but has no admitted owner today.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Restrict to authorized company members and return only permissions applicable to their tenant before exposure."
-    },
-    {
       "module": "health",
-      "functions": ["check", "ready"],
+      "functions": [
+        "check",
+        "ready"
+      ],
       "classification": "DEVELOPER TOOL",
       "whyItRemains": "Deployment liveness/readiness probes need a narrow anonymous or service-readable contract.",
       "calledFunctions": {},
@@ -292,7 +268,11 @@
     },
     {
       "module": "hybridWorkflows",
-      "functions": ["get", "getResults", "list"],
+      "functions": [
+        "get",
+        "getResults",
+        "list"
+      ],
       "classification": "PREVIEW",
       "whyItRemains": "Hybrid workflows are isolated to Labs and not part of the canonical WorkOrder execution path.",
       "calledFunctions": {},
@@ -304,10 +284,24 @@
     },
     {
       "module": "meetings",
-      "functions": ["get", "getUpcoming", "list"],
+      "functions": [
+        "get",
+        "getUpcoming",
+        "list"
+      ],
       "classification": "LEGACY",
       "whyItRemains": "Meetings were removed from the enterprise product, but the old component/backend remain pending physical-deletion proof.",
-      "calledFunctions": {"get": ["apps/mission-control-ui/src/MeetingsView.tsx"], "getUpcoming": ["apps/mission-control-ui/src/MeetingsView.tsx"], "list": ["apps/mission-control-ui/src/MeetingsView.tsx"]},
+      "calledFunctions": {
+        "get": [
+          "apps/mission-control-ui/src/MeetingsView.tsx"
+        ],
+        "getUpcoming": [
+          "apps/mission-control-ui/src/MeetingsView.tsx"
+        ],
+        "list": [
+          "apps/mission-control-ui/src/MeetingsView.tsx"
+        ]
+      },
       "admission": "NOT_ADMITTED",
       "readOnly": true,
       "pilotBlocker": true,
@@ -315,35 +309,28 @@
       "remediation": "Remove the obsolete component after dependency proof and internalize or delete the meeting reads."
     },
     {
-      "module": "memoryLifecycle",
-      "functions": ["overview"],
-      "classification": "PREVIEW",
-      "whyItRemains": "Memory is Preview; this alternate lifecycle overview has no admitted caller.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Internalize until the Preview Memory surface explicitly owns it, then enforce project factory.read."
-    },
-    {
-      "module": "metrics",
-      "functions": ["aggregate", "queryRange"],
-      "classification": "LEGACY",
-      "whyItRemains": "The old Metrics route redirects to Preview Analytics, which uses a different authorized projection.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Confirm Analytics covers the required Economics capability, then internalize or delete the duplicate metrics reads."
-    },
-    {
       "module": "migrations/backfillInstanceRefs",
-      "functions": ["getMigrationHealth", "listAgentsNeedingTenantBackfill", "listApprovalsNeedingTenantBackfill", "listMessagesNeedingBackfill", "listMessagesNeedingTenantBackfill", "listProjectsNeedingTenantBackfill", "listRunsNeedingBackfill", "listRunsNeedingTenantBackfill", "listTasksNeedingBackfill", "listTasksNeedingTenantBackfill", "listToolCallsNeedingBackfill", "listToolCallsNeedingTenantBackfill"],
+      "functions": [
+        "getMigrationHealth",
+        "listAgentsNeedingTenantBackfill",
+        "listApprovalsNeedingTenantBackfill",
+        "listMessagesNeedingBackfill",
+        "listMessagesNeedingTenantBackfill",
+        "listProjectsNeedingTenantBackfill",
+        "listRunsNeedingBackfill",
+        "listRunsNeedingTenantBackfill",
+        "listTasksNeedingBackfill",
+        "listTasksNeedingTenantBackfill",
+        "listToolCallsNeedingBackfill",
+        "listToolCallsNeedingTenantBackfill"
+      ],
       "classification": "DEVELOPER TOOL",
       "whyItRemains": "Backfill inspection supports historical data migration and one old Directory diagnostic.",
-      "calledFunctions": {"getMigrationHealth": ["apps/mission-control-ui/src/DirectoryView.tsx"]},
+      "calledFunctions": {
+        "getMigrationHealth": [
+          "apps/mission-control-ui/src/DirectoryView.tsx"
+        ]
+      },
       "admission": "DEVELOPER_TOOL",
       "readOnly": true,
       "pilotBlocker": true,
@@ -351,47 +338,25 @@
       "remediation": "Move all backfill inspection to internal/admin-only maintenance functions and remove the Directory dependency."
     },
     {
-      "module": "monitoring",
-      "functions": ["exportAuditLog"],
-      "classification": "FUTURE PRODUCT SURFACE",
-      "whyItRemains": "An audit export may be valuable operationally, but the Live Audit route does not currently admit this endpoint.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Require explicit workspace/company Audit permission, bound time range, pagination, and export audit evidence before admission."
-    },
-    {
-      "module": "notifications",
-      "functions": ["listByAgent", "listPendingForAgent"],
-      "classification": "FUTURE PRODUCT SURFACE",
-      "whyItRemains": "Agent notification delivery is retained as a supporting capability without a canonical enterprise surface.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Derive the workspace from the agent and require factory.read, or internalize for notification workers."
-    },
-    {
-      "module": "orgAssignments",
-      "functions": ["getAgentPositions", "getCEO", "getLeads", "getProjectOrg"],
-      "classification": "LEGACY",
-      "whyItRemains": "Organization/office product surfaces were removed from Mission Control Enterprise.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Internalize or delete after proving Agent Fleet and Identity no longer depend on the legacy org model."
-    },
-    {
       "module": "orgMembers",
-      "functions": ["get", "getHierarchy", "getUnifiedHierarchy", "list", "listAll"],
+      "functions": [
+        "get",
+        "getUnifiedHierarchy",
+        "list"
+      ],
       "classification": "LEGACY",
       "whyItRemains": "People and Org routes were removed; retained components still reference a subset during dependency analysis.",
-      "calledFunctions": {"get": ["apps/mission-control-ui/src/OrgView.tsx"], "getUnifiedHierarchy": ["apps/mission-control-ui/src/OrgView.tsx"], "list": ["apps/mission-control-ui/src/PeopleView.tsx"]},
+      "calledFunctions": {
+        "get": [
+          "apps/mission-control-ui/src/OrgView.tsx"
+        ],
+        "getUnifiedHierarchy": [
+          "apps/mission-control-ui/src/OrgView.tsx"
+        ],
+        "list": [
+          "apps/mission-control-ui/src/PeopleView.tsx"
+        ]
+      },
       "admission": "NOT_ADMITTED",
       "readOnly": true,
       "pilotBlocker": true,
@@ -400,7 +365,9 @@
     },
     {
       "module": "phaseZeroCanary",
-      "functions": ["status"],
+      "functions": [
+        "status"
+      ],
       "classification": "DEVELOPER TOOL",
       "whyItRemains": "A historical rollout canary remains as diagnostic code.",
       "calledFunctions": {},
@@ -411,23 +378,17 @@
       "remediation": "Internalize or remove the obsolete canary; use the approved health/readiness contract for deployment probes."
     },
     {
-      "module": "policy",
-      "functions": ["evaluate"],
-      "classification": "INTERNALIZATION CANDIDATE",
-      "whyItRemains": "The unscoped legacy evaluator is superseded by authorized policy-envelope and task-policy paths.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Internalize for server composition or remove after call-graph proof; do not re-expose without project scope."
-    },
-    {
       "module": "qcArtifacts",
-      "functions": ["getDownloadUrl", "listByRun"],
+      "functions": [
+        "listByRun"
+      ],
       "classification": "LEGACY",
       "whyItRemains": "Legacy QC routes were consolidated into WorkOrders and authoritative verification evidence.",
-      "calledFunctions": {"listByRun": ["apps/mission-control-ui/src/QcRunDetailView.tsx"]},
+      "calledFunctions": {
+        "listByRun": [
+          "apps/mission-control-ui/src/QcRunDetailView.tsx"
+        ]
+      },
       "admission": "LEGACY_COMPONENT_ONLY",
       "readOnly": true,
       "pilotBlocker": true,
@@ -436,10 +397,22 @@
     },
     {
       "module": "qcFindings",
-      "functions": ["listByRun", "listRecent"],
+      "functions": [
+        "listByRun",
+        "listRecent"
+      ],
       "classification": "LEGACY",
       "whyItRemains": "QC findings are represented canonically as WorkOrder/Attempt verification evidence; old views remain unregistered.",
-      "calledFunctions": {"listByRun": ["apps/mission-control-ui/src/QcDashboardView.tsx", "apps/mission-control-ui/src/QcRunDetailView.tsx"], "listRecent": ["apps/mission-control-ui/src/FeedbackView.tsx", "apps/mission-control-ui/src/QcFindingsView.tsx"]},
+      "calledFunctions": {
+        "listByRun": [
+          "apps/mission-control-ui/src/QcDashboardView.tsx",
+          "apps/mission-control-ui/src/QcRunDetailView.tsx"
+        ],
+        "listRecent": [
+          "apps/mission-control-ui/src/FeedbackView.tsx",
+          "apps/mission-control-ui/src/QcFindingsView.tsx"
+        ]
+      },
       "admission": "LEGACY_COMPONENT_ONLY",
       "readOnly": true,
       "pilotBlocker": true,
@@ -448,10 +421,20 @@
     },
     {
       "module": "qcMetrics",
-      "functions": ["aggregate", "latestByEnvironment", "listByEnvironment"],
+      "functions": [
+        "aggregate",
+        "listByEnvironment"
+      ],
       "classification": "LEGACY",
       "whyItRemains": "QC metrics were consolidated into Preview Analytics; the old views are not admitted.",
-      "calledFunctions": {"aggregate": ["apps/mission-control-ui/src/QcMetricsView.tsx"], "listByEnvironment": ["apps/mission-control-ui/src/QcMetricsView.tsx"]},
+      "calledFunctions": {
+        "aggregate": [
+          "apps/mission-control-ui/src/QcMetricsView.tsx"
+        ],
+        "listByEnvironment": [
+          "apps/mission-control-ui/src/QcMetricsView.tsx"
+        ]
+      },
       "admission": "LEGACY_COMPONENT_ONLY",
       "readOnly": true,
       "pilotBlocker": true,
@@ -460,10 +443,16 @@
     },
     {
       "module": "qcRulesets",
-      "functions": ["get"],
+      "functions": [
+        "get"
+      ],
       "classification": "INTERNALIZATION CANDIDATE",
       "whyItRemains": "The legacy QC run module composes this query through the public API even though it is server-internal behavior.",
-      "calledFunctions": {"get": ["convex/qcRuns.ts"]},
+      "calledFunctions": {
+        "get": [
+          "convex/qcRuns.ts"
+        ]
+      },
       "admission": "NOT_ADMITTED",
       "readOnly": true,
       "pilotBlocker": true,
@@ -472,10 +461,31 @@
     },
     {
       "module": "qcRuns",
-      "functions": ["diff", "environmentSummary", "get", "getByRunId", "list", "listByEnvironment", "projectScores"],
+      "functions": [
+        "environmentSummary",
+        "get",
+        "list",
+        "listByEnvironment"
+      ],
       "classification": "LEGACY",
       "whyItRemains": "Legacy QC run surfaces redirect to WorkOrders/Projects/Analytics; old components are retained only for dependency proof.",
-      "calledFunctions": {"environmentSummary": ["apps/mission-control-ui/src/QcDashboardView.tsx", "apps/mission-control-ui/src/QcEnvironmentsView.tsx", "apps/mission-control-ui/src/QcMetricsView.tsx"], "get": ["apps/mission-control-ui/src/QcRunDetailView.tsx"], "list": ["apps/mission-control-ui/src/QcDashboardView.tsx", "apps/mission-control-ui/src/QcMetricsView.tsx"], "listByEnvironment": ["apps/mission-control-ui/src/QcDashboardView.tsx"]},
+      "calledFunctions": {
+        "environmentSummary": [
+          "apps/mission-control-ui/src/QcDashboardView.tsx",
+          "apps/mission-control-ui/src/QcEnvironmentsView.tsx",
+          "apps/mission-control-ui/src/QcMetricsView.tsx"
+        ],
+        "get": [
+          "apps/mission-control-ui/src/QcRunDetailView.tsx"
+        ],
+        "list": [
+          "apps/mission-control-ui/src/QcDashboardView.tsx",
+          "apps/mission-control-ui/src/QcMetricsView.tsx"
+        ],
+        "listByEnvironment": [
+          "apps/mission-control-ui/src/QcDashboardView.tsx"
+        ]
+      },
       "admission": "LEGACY_COMPONENT_ONLY",
       "readOnly": true,
       "pilotBlocker": true,
@@ -483,23 +493,17 @@
       "remediation": "Confirm every useful run/evidence relationship exists in the authorized WorkOrder/Attempt model, then internalize or delete the legacy QC reads."
     },
     {
-      "module": "registry/agentIdentities",
-      "functions": ["getIdentity", "listIdentities"],
-      "classification": "FUTURE PRODUCT SURFACE",
-      "whyItRemains": "Registry identity projections may support the Live Identity directory but are not used by its canonical backend today.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Merge only if needed and enforce tenant/object scope; otherwise internalize as registry implementation detail."
-    },
-    {
       "module": "registry/agentInstances",
-      "functions": ["getInstance", "listInstances"],
+      "functions": [
+        "listInstances"
+      ],
       "classification": "FUTURE PRODUCT SURFACE",
       "whyItRemains": "Instance inventory may support Agent Fleet, while the only current client is the consolidated legacy Directory view.",
-      "calledFunctions": {"listInstances": ["apps/mission-control-ui/src/DirectoryView.tsx"]},
+      "calledFunctions": {
+        "listInstances": [
+          "apps/mission-control-ui/src/DirectoryView.tsx"
+        ]
+      },
       "admission": "LEGACY_COMPONENT_ONLY",
       "readOnly": true,
       "pilotBlocker": true,
@@ -507,35 +511,21 @@
       "remediation": "Authorize by tenant/project and merge into Agents if justified; otherwise remove the legacy caller and internalize."
     },
     {
-      "module": "revenue",
-      "functions": ["list", "summary"],
-      "classification": "LEGACY",
-      "whyItRemains": "Revenue is outside the approved AI Software Factory product boundary.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Remove or internalize after confirming no enterprise factory dependency."
-    },
-    {
-      "module": "reviews",
-      "functions": ["getPending", "listByAgent"],
-      "classification": "INTERNALIZATION CANDIDATE",
-      "whyItRemains": "Task-scoped peer review is now authorized; these broad legacy review projections have no admitted caller.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Internalize or replace with explicitly project/object-scoped authorized reads if a canonical workflow needs them."
-    },
-    {
       "module": "runs",
-      "functions": ["get", "getStats", "getTopRunsByTokens", "getUsageByModel", "listByAgent", "listByTask"],
+      "functions": [
+        "getTopRunsByTokens",
+        "getUsageByModel"
+      ],
       "classification": "LEGACY",
       "whyItRemains": "These broad legacy Agent Run reads are superseded by scoped Task and Attempt projections; two feed the unregistered old dashboard.",
-      "calledFunctions": {"getTopRunsByTokens": ["apps/mission-control-ui/src/DashboardOverview.tsx"], "getUsageByModel": ["apps/mission-control-ui/src/DashboardOverview.tsx"]},
+      "calledFunctions": {
+        "getTopRunsByTokens": [
+          "apps/mission-control-ui/src/DashboardOverview.tsx"
+        ],
+        "getUsageByModel": [
+          "apps/mission-control-ui/src/DashboardOverview.tsx"
+        ]
+      },
       "admission": "LEGACY_COMPONENT_ONLY",
       "readOnly": true,
       "pilotBlocker": true,
@@ -543,20 +533,10 @@
       "remediation": "Preserve canonical Attempt lineage, then internalize or delete broad legacy reads and remove the old dashboard dependency."
     },
     {
-      "module": "search",
-      "functions": ["getAvailableFilters", "getSearchSuggestions", "quickSearch", "searchTasks"],
-      "classification": "FUTURE PRODUCT SURFACE",
-      "whyItRemains": "Global search was consolidated into Context Catalog and command search, but this older backend has no current caller.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Internalize now; if reintroduced, require authorized workspace scope and prevent cross-company suggestion/filter leakage."
-    },
-    {
       "module": "seed",
-      "functions": ["getSeededStatus"],
+      "functions": [
+        "getSeededStatus"
+      ],
       "classification": "DEVELOPER TOOL",
       "whyItRemains": "Demo/research-lab seed inspection is retained for local setup.",
       "calledFunctions": {},
@@ -567,23 +547,17 @@
       "remediation": "Internalize or restrict to an explicit demo/admin environment; exclude from enterprise production deployment."
     },
     {
-      "module": "sessionBootstrap",
-      "functions": ["getBootstrapContext"],
-      "classification": "INTERNALIZATION CANDIDATE",
-      "whyItRemains": "An older session bootstrap projection remains without an admitted client.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Internalize or replace with the authenticated company/workspace bootstrap contract."
-    },
-    {
       "module": "skillAutomations",
-      "functions": ["getExecutionManifest"],
+      "functions": [
+        "getExecutionManifest"
+      ],
       "classification": "INTERNALIZATION CANDIDATE",
       "whyItRemains": "The orchestration server reads the approved Level 1 automation manifest during runtime execution.",
-      "calledFunctions": {"getExecutionManifest": ["apps/orchestration-server/src/convexCalls.ts"]},
+      "calledFunctions": {
+        "getExecutionManifest": [
+          "apps/orchestration-server/src/convexCalls.ts"
+        ]
+      },
       "admission": "RUNTIME_SERVICE",
       "readOnly": true,
       "pilotBlocker": true,
@@ -591,59 +565,21 @@
       "remediation": "Move manifest retrieval behind the signed service-command envelope or require a scoped service identity and validate the WorkOrder project before returning artifact content."
     },
     {
-      "module": "squad",
-      "functions": ["getPersonas"],
-      "classification": "LEGACY",
-      "whyItRemains": "The Team surface is removed and the persona lookup has no admitted owner.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Internalize or delete after confirming Agent Fleet retains required persona metadata."
-    },
-    {
-      "module": "subscriptions",
-      "functions": ["getSubscribedTaskIds", "listByAgent", "listByTask"],
-      "classification": "LEGACY",
-      "whyItRemains": "This older subscription model is superseded by watchSubscriptions and has no current caller.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Migrate required state to authorized watch subscriptions, then internalize or delete these duplicate reads."
-    },
-    {
-      "module": "taskRelations",
-      "functions": ["listBlockers", "listByProject", "listForTask"],
-      "classification": "LEGACY",
-      "whyItRemains": "The Live task graph uses the authorized coordinator projection; these older relations reads have no current caller.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Confirm parity with the coordinator graph, then internalize or remove; otherwise add task/project-derived authorization."
-    },
-    {
-      "module": "taskRouter",
-      "functions": ["findBestAgent", "getRecommendations"],
-      "classification": "INTERNALIZATION CANDIDATE",
-      "whyItRemains": "Routing helpers may support internal assignment, but no admitted client calls these public reads.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Move routing evaluation to internalQuery and expose only an authorized, workspace-scoped decision projection if needed."
-    },
-    {
       "module": "telegraph",
-      "functions": ["getThread", "getThreadsByTask", "listThreads"],
+      "functions": [
+        "getThread",
+        "listThreads"
+      ],
       "classification": "LEGACY",
       "whyItRemains": "Telegraph was removed from enterprise navigation and product entry points.",
-      "calledFunctions": {"getThread": ["apps/mission-control-ui/src/TelegraphInbox.tsx"], "listThreads": ["apps/mission-control-ui/src/TelegraphInbox.tsx"]},
+      "calledFunctions": {
+        "getThread": [
+          "apps/mission-control-ui/src/TelegraphInbox.tsx"
+        ],
+        "listThreads": [
+          "apps/mission-control-ui/src/TelegraphInbox.tsx"
+        ]
+      },
       "admission": "NOT_ADMITTED",
       "readOnly": true,
       "pilotBlocker": true,
@@ -652,7 +588,10 @@
     },
     {
       "module": "testGeneration",
-      "functions": ["get", "list"],
+      "functions": [
+        "get",
+        "list"
+      ],
       "classification": "PREVIEW",
       "whyItRemains": "Test generation is an isolated Labs capability.",
       "calledFunctions": {},
@@ -664,7 +603,10 @@
     },
     {
       "module": "testRecordings",
-      "functions": ["getBySession", "list"],
+      "functions": [
+        "getBySession",
+        "list"
+      ],
       "classification": "PREVIEW",
       "whyItRemains": "Browser recording is isolated to Labs.",
       "calledFunctions": {},
@@ -676,10 +618,16 @@
     },
     {
       "module": "voice",
-      "functions": ["getArtifact", "listArtifacts"],
+      "functions": [
+        "listArtifacts"
+      ],
       "classification": "LEGACY",
       "whyItRemains": "Voice was removed from the enterprise product; the old panel remains for dependency analysis.",
-      "calledFunctions": {"listArtifacts": ["apps/mission-control-ui/src/VoicePanel.tsx"]},
+      "calledFunctions": {
+        "listArtifacts": [
+          "apps/mission-control-ui/src/VoicePanel.tsx"
+        ]
+      },
       "admission": "NOT_ADMITTED",
       "readOnly": true,
       "pilotBlocker": true,
@@ -687,35 +635,21 @@
       "remediation": "Remove the old panel after dependency proof and internalize or delete artifact reads, preserving any artifacts required by canonical evidence."
     },
     {
-      "module": "watchSubscriptions",
-      "functions": ["listWatchers"],
-      "classification": "INTERNALIZATION CANDIDATE",
-      "whyItRemains": "The task drawer uses the newly authorized user/workspace read; the broad watcher lookup has no current caller.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Internalize or derive and authorize the entity workspace before exposing watcher identities."
-    },
-    {
-      "module": "webhooks",
-      "functions": ["get", "getDeliveries", "list"],
-      "classification": "FUTURE PRODUCT SURFACE",
-      "whyItRemains": "Webhook administration may support providers later, but it has no admitted enterprise owner.",
-      "calledFunctions": {},
-      "admission": "NOT_ADMITTED",
-      "readOnly": true,
-      "pilotBlocker": true,
-      "unrestrictedReleaseBlocker": true,
-      "remediation": "Require tenant administration and redact secrets/delivery payloads before any Control surface admission; internalize otherwise."
-    },
-    {
       "module": "workflowMetrics",
-      "functions": ["getAllMetrics", "getSummary", "getWorkflowMetrics"],
+      "functions": [
+        "getAllMetrics",
+        "getSummary"
+      ],
       "classification": "FUTURE PRODUCT SURFACE",
       "whyItRemains": "Workflow metrics may feed Observability/Economics later; the old component is not an admitted route.",
-      "calledFunctions": {"getAllMetrics": ["apps/mission-control-ui/src/WorkflowMetrics.tsx"], "getSummary": ["apps/mission-control-ui/src/WorkflowMetrics.tsx"]},
+      "calledFunctions": {
+        "getAllMetrics": [
+          "apps/mission-control-ui/src/WorkflowMetrics.tsx"
+        ],
+        "getSummary": [
+          "apps/mission-control-ui/src/WorkflowMetrics.tsx"
+        ]
+      },
       "admission": "LEGACY_COMPONENT_ONLY",
       "readOnly": true,
       "pilotBlocker": true,
@@ -724,7 +658,9 @@
     },
     {
       "module": "workflowRecoveryCanary",
-      "functions": ["status"],
+      "functions": [
+        "status"
+      ],
       "classification": "DEVELOPER TOOL",
       "whyItRemains": "A historical workflow-recovery canary remains for diagnostics.",
       "calledFunctions": {},
@@ -736,10 +672,31 @@
     },
     {
       "module": "workflowRuns",
-      "functions": ["get", "listArtifacts", "listEvents", "search"],
+      "functions": [
+        "get",
+        "listArtifacts",
+        "listEvents",
+        "search"
+      ],
       "classification": "INTERNALIZATION CANDIDATE",
       "whyItRemains": "Runtime services, the workflow engine, CLI, and an old panel use these Attempt reads; canonical UI uses the authorized inspector.",
-      "calledFunctions": {"get": ["apps/mission-control-ui/src/WorkflowRunPanel.tsx", "apps/orchestration-server/src/convexCalls.ts", "packages/cli/src/commands/workflow.ts", "packages/workflow-engine/src/executor.ts"], "listArtifacts": ["apps/orchestration-server/src/convexCalls.ts"], "listEvents": ["apps/orchestration-server/src/convexCalls.ts"], "search": ["packages/cli/src/commands/workflow.ts"]},
+      "calledFunctions": {
+        "get": [
+          "apps/mission-control-ui/src/WorkflowRunPanel.tsx",
+          "apps/orchestration-server/src/convexCalls.ts",
+          "packages/cli/src/commands/workflow.ts",
+          "packages/workflow-engine/src/executor.ts"
+        ],
+        "listArtifacts": [
+          "apps/orchestration-server/src/convexCalls.ts"
+        ],
+        "listEvents": [
+          "apps/orchestration-server/src/convexCalls.ts"
+        ],
+        "search": [
+          "packages/cli/src/commands/workflow.ts"
+        ]
+      },
       "admission": "RUNTIME_SERVICE",
       "readOnly": true,
       "pilotBlocker": true,
@@ -748,15 +705,706 @@
     },
     {
       "module": "workflows",
-      "functions": ["get", "getById"],
+      "functions": [
+        "get"
+      ],
       "classification": "INTERNALIZATION CANDIDATE",
       "whyItRemains": "Workflow definitions are read by runtime, CLI, an old panel, and internal meta-loop composition; getById has no known caller.",
-      "calledFunctions": {"get": ["apps/mission-control-ui/src/WorkflowRunPanel.tsx", "packages/cli/src/commands/workflow.ts", "packages/workflow-engine/src/executor.ts", "convex/factory/metaLoop.ts"]},
+      "calledFunctions": {
+        "get": [
+          "apps/mission-control-ui/src/WorkflowRunPanel.tsx",
+          "packages/cli/src/commands/workflow.ts",
+          "packages/workflow-engine/src/executor.ts",
+          "convex/factory/metaLoop.ts"
+        ]
+      },
       "admission": "RUNTIME_SERVICE",
       "readOnly": true,
       "pilotBlocker": true,
       "unrestrictedReleaseBlocker": true,
       "remediation": "Use internalQuery for server composition, a signed scoped service contract for runtime, and authenticated operator access for CLI; internalize getById."
+    }
+  ],
+  "originalClassifiedCount": 157,
+  "resolvedEntries": [
+    {
+      "module": "agentHiring",
+      "functions": [
+        "getAssessmentPacket",
+        "getDecisionRecord",
+        "getPanelPacket",
+        "getScreenReport"
+      ],
+      "classification": "LEGACY",
+      "whyItRemains": "The removed Hiring surface and its retained backend have not yet passed the physical-deletion dependency gate.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Remove the obsolete product component after dependency proof, then internalize or delete these reads; if any hiring capability is retained, add tenant-scoped authorization before re-exposure.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "agentLearning",
+      "functions": [
+        "getProjectLearningInsights"
+      ],
+      "classification": "FUTURE PRODUCT SURFACE",
+      "whyItRemains": "Learning insights may support a later Improve surface but are not part of the approved enterprise navigation.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Require factory.read for the requested project or make the query internal until an admitted surface owns it.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "contentDrops",
+      "functions": [
+        "listByAgent"
+      ],
+      "classification": "LEGACY",
+      "whyItRemains": "The Content Pipeline route is removed, but its source and an old end-to-end diagnostic still reference this backend.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Retire the diagnostic dependency, remove the obsolete component after proof, and internalize or delete the backend reads.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "context/activation",
+      "functions": [
+        "getReceiptForRun"
+      ],
+      "classification": "INTERNALIZATION CANDIDATE",
+      "whyItRemains": "The receipt lookup supports governed-context lineage but has no current external caller.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Convert to internalQuery and expose receipt data only through the already-authorized Attempt inspector.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "coordinator",
+      "functions": [
+        "getSubtasks",
+        "getTaskDependencies"
+      ],
+      "classification": "INTERNALIZATION CANDIDATE",
+      "whyItRemains": "These older coordinator lookups are superseded by the authorized dependency-graph projection.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Internalize or remove after confirming no worker uses string-based calls; canonical clients must use getDependencyGraph.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "costEvents",
+      "functions": [
+        "listByAgent",
+        "listByProject",
+        "listByTask",
+        "summaryByProject"
+      ],
+      "classification": "FUTURE PRODUCT SURFACE",
+      "whyItRemains": "Fine-grained cost events are a possible Economics backend, but Economics is not an admitted Phase 3 destination.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Require factory.read for project/task/agent-derived scope before any Economics surface is admitted; internalize unused aggregations meanwhile.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "execution",
+      "functions": [
+        "get",
+        "list"
+      ],
+      "classification": "LEGACY",
+      "whyItRemains": "The deprecated Execution route redirects to WorkOrders while the legacy backend remains for dependency review.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Internalize or delete after proving the WorkOrder/Attempt runtime does not depend on this legacy execution model.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "executionRequests",
+      "functions": [
+        "get",
+        "getRoutingRecommendation",
+        "listByProject",
+        "listByTask",
+        "listPending"
+      ],
+      "classification": "INTERNALIZATION CANDIDATE",
+      "whyItRemains": "The older execution-request queue is retained while worker/runtime dependency analysis is incomplete.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Confirm the canonical execution worker uses WorkOrders/Attempts, then internalize queue reads; otherwise require signed service scope.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "executorRouter",
+      "functions": [
+        "getQueueForExecutor"
+      ],
+      "classification": "INTERNALIZATION CANDIDATE",
+      "whyItRemains": "A legacy executor queue reader remains while runtime callers are being reconciled.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Convert to an internal query invoked by a signed service command, or remove after proving it is superseded.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "executors",
+      "functions": [
+        "listPending"
+      ],
+      "classification": "INTERNALIZATION CANDIDATE",
+      "whyItRemains": "The older pending-executor projection remains while worker compatibility is assessed.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Internalize for worker-only use or delete after confirming the persistent worker no longer consumes it.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "github",
+      "functions": [
+        "getGitHubConfig",
+        "listGitHubLinkedTasks"
+      ],
+      "classification": "LEGACY",
+      "whyItRemains": "These reads belong to the superseded GitHub integration; canonical repository authority uses GitHub App connections.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Internalize or remove after confirming GitHub App connection and WorkOrder evidence paths cover all required capability.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "goals",
+      "functions": [
+        "get",
+        "getAncestorChain",
+        "list"
+      ],
+      "classification": "LEGACY",
+      "whyItRemains": "Goals were consolidated into Missions; the old Goals component is retained only for safe dependency analysis.",
+      "calledFunctions": {},
+      "admission": "LEGACY_COMPONENT_ONLY",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Migrate any required intent lineage to Missions, then internalize or delete the legacy Goals reads and component.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "governance/permissions",
+      "functions": [
+        "listPermissions"
+      ],
+      "classification": "FUTURE PRODUCT SURFACE",
+      "whyItRemains": "A permission catalog could support governance administration but has no admitted owner today.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Restrict to authorized company members and return only permissions applicable to their tenant before exposure.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "memoryLifecycle",
+      "functions": [
+        "overview"
+      ],
+      "classification": "PREVIEW",
+      "whyItRemains": "Memory is Preview; this alternate lifecycle overview has no admitted caller.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Internalize until the Preview Memory surface explicitly owns it, then enforce project factory.read.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "metrics",
+      "functions": [
+        "aggregate",
+        "queryRange"
+      ],
+      "classification": "LEGACY",
+      "whyItRemains": "The old Metrics route redirects to Preview Analytics, which uses a different authorized projection.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Confirm Analytics covers the required Economics capability, then internalize or delete the duplicate metrics reads.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "monitoring",
+      "functions": [
+        "exportAuditLog"
+      ],
+      "classification": "FUTURE PRODUCT SURFACE",
+      "whyItRemains": "An audit export may be valuable operationally, but the Live Audit route does not currently admit this endpoint.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Require explicit workspace/company Audit permission, bound time range, pagination, and export audit evidence before admission.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "notifications",
+      "functions": [
+        "listByAgent",
+        "listPendingForAgent"
+      ],
+      "classification": "FUTURE PRODUCT SURFACE",
+      "whyItRemains": "Agent notification delivery is retained as a supporting capability without a canonical enterprise surface.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Derive the workspace from the agent and require factory.read, or internalize for notification workers.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "orgAssignments",
+      "functions": [
+        "getAgentPositions",
+        "getCEO",
+        "getLeads",
+        "getProjectOrg"
+      ],
+      "classification": "LEGACY",
+      "whyItRemains": "Organization/office product surfaces were removed from Mission Control Enterprise.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Internalize or delete after proving Agent Fleet and Identity no longer depend on the legacy org model.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "orgMembers",
+      "functions": [
+        "getHierarchy",
+        "listAll"
+      ],
+      "classification": "LEGACY",
+      "whyItRemains": "People and Org routes were removed; retained components still reference a subset during dependency analysis.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Preserve any authorization-linked membership records, but remove legacy public projections or add strict tenant scope before reuse.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "policy",
+      "functions": [
+        "evaluate"
+      ],
+      "classification": "INTERNALIZATION CANDIDATE",
+      "whyItRemains": "The unscoped legacy evaluator is superseded by authorized policy-envelope and task-policy paths.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Internalize for server composition or remove after call-graph proof; do not re-expose without project scope.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "qcArtifacts",
+      "functions": [
+        "getDownloadUrl"
+      ],
+      "classification": "LEGACY",
+      "whyItRemains": "Legacy QC routes were consolidated into WorkOrders and authoritative verification evidence.",
+      "calledFunctions": {},
+      "admission": "LEGACY_COMPONENT_ONLY",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Map needed artifacts to authorized Attempt evidence, then internalize or delete legacy QC download/list reads.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "qcMetrics",
+      "functions": [
+        "latestByEnvironment"
+      ],
+      "classification": "LEGACY",
+      "whyItRemains": "QC metrics were consolidated into Preview Analytics; the old views are not admitted.",
+      "calledFunctions": {},
+      "admission": "LEGACY_COMPONENT_ONLY",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Move any needed verification trends into the authorized Analytics projection, then internalize or remove this duplicate API.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "qcRuns",
+      "functions": [
+        "diff",
+        "getByRunId",
+        "projectScores"
+      ],
+      "classification": "LEGACY",
+      "whyItRemains": "Legacy QC run surfaces redirect to WorkOrders/Projects/Analytics; old components are retained only for dependency proof.",
+      "calledFunctions": {},
+      "admission": "LEGACY_COMPONENT_ONLY",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Confirm every useful run/evidence relationship exists in the authorized WorkOrder/Attempt model, then internalize or delete the legacy QC reads.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "registry/agentIdentities",
+      "functions": [
+        "getIdentity",
+        "listIdentities"
+      ],
+      "classification": "FUTURE PRODUCT SURFACE",
+      "whyItRemains": "Registry identity projections may support the Live Identity directory but are not used by its canonical backend today.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Merge only if needed and enforce tenant/object scope; otherwise internalize as registry implementation detail.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "registry/agentInstances",
+      "functions": [
+        "getInstance"
+      ],
+      "classification": "FUTURE PRODUCT SURFACE",
+      "whyItRemains": "Instance inventory may support Agent Fleet, while the only current client is the consolidated legacy Directory view.",
+      "calledFunctions": {},
+      "admission": "LEGACY_COMPONENT_ONLY",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Authorize by tenant/project and merge into Agents if justified; otherwise remove the legacy caller and internalize.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "revenue",
+      "functions": [
+        "list",
+        "summary"
+      ],
+      "classification": "LEGACY",
+      "whyItRemains": "Revenue is outside the approved AI Software Factory product boundary.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Remove or internalize after confirming no enterprise factory dependency.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "reviews",
+      "functions": [
+        "getPending",
+        "listByAgent"
+      ],
+      "classification": "INTERNALIZATION CANDIDATE",
+      "whyItRemains": "Task-scoped peer review is now authorized; these broad legacy review projections have no admitted caller.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Internalize or replace with explicitly project/object-scoped authorized reads if a canonical workflow needs them.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "runs",
+      "functions": [
+        "get",
+        "getStats",
+        "listByAgent",
+        "listByTask"
+      ],
+      "classification": "LEGACY",
+      "whyItRemains": "These broad legacy Agent Run reads are superseded by scoped Task and Attempt projections; two feed the unregistered old dashboard.",
+      "calledFunctions": {},
+      "admission": "LEGACY_COMPONENT_ONLY",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Preserve canonical Attempt lineage, then internalize or delete broad legacy reads and remove the old dashboard dependency.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "search",
+      "functions": [
+        "getAvailableFilters",
+        "getSearchSuggestions",
+        "quickSearch",
+        "searchTasks"
+      ],
+      "classification": "FUTURE PRODUCT SURFACE",
+      "whyItRemains": "Global search was consolidated into Context Catalog and command search, but this older backend has no current caller.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Internalize now; if reintroduced, require authorized workspace scope and prevent cross-company suggestion/filter leakage.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "sessionBootstrap",
+      "functions": [
+        "getBootstrapContext"
+      ],
+      "classification": "INTERNALIZATION CANDIDATE",
+      "whyItRemains": "An older session bootstrap projection remains without an admitted client.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Internalize or replace with the authenticated company/workspace bootstrap contract.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "squad",
+      "functions": [
+        "getPersonas"
+      ],
+      "classification": "LEGACY",
+      "whyItRemains": "The Team surface is removed and the persona lookup has no admitted owner.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Internalize or delete after confirming Agent Fleet retains required persona metadata.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "subscriptions",
+      "functions": [
+        "getSubscribedTaskIds",
+        "listByAgent",
+        "listByTask"
+      ],
+      "classification": "LEGACY",
+      "whyItRemains": "This older subscription model is superseded by watchSubscriptions and has no current caller.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Migrate required state to authorized watch subscriptions, then internalize or delete these duplicate reads.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "taskRelations",
+      "functions": [
+        "listBlockers",
+        "listByProject",
+        "listForTask"
+      ],
+      "classification": "LEGACY",
+      "whyItRemains": "The Live task graph uses the authorized coordinator projection; these older relations reads have no current caller.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Confirm parity with the coordinator graph, then internalize or remove; otherwise add task/project-derived authorization.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "taskRouter",
+      "functions": [
+        "findBestAgent",
+        "getRecommendations"
+      ],
+      "classification": "INTERNALIZATION CANDIDATE",
+      "whyItRemains": "Routing helpers may support internal assignment, but no admitted client calls these public reads.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Move routing evaluation to internalQuery and expose only an authorized, workspace-scoped decision projection if needed.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "telegraph",
+      "functions": [
+        "getThreadsByTask"
+      ],
+      "classification": "LEGACY",
+      "whyItRemains": "Telegraph was removed from enterprise navigation and product entry points.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Remove the obsolete inbox after dependency proof and internalize or delete the messaging reads.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "voice",
+      "functions": [
+        "getArtifact"
+      ],
+      "classification": "LEGACY",
+      "whyItRemains": "Voice was removed from the enterprise product; the old panel remains for dependency analysis.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Remove the old panel after dependency proof and internalize or delete artifact reads, preserving any artifacts required by canonical evidence.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "watchSubscriptions",
+      "functions": [
+        "listWatchers"
+      ],
+      "classification": "INTERNALIZATION CANDIDATE",
+      "whyItRemains": "The task drawer uses the newly authorized user/workspace read; the broad watcher lookup has no current caller.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Internalize or derive and authorize the entity workspace before exposing watcher identities.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "webhooks",
+      "functions": [
+        "get",
+        "getDeliveries",
+        "list"
+      ],
+      "classification": "FUTURE PRODUCT SURFACE",
+      "whyItRemains": "Webhook administration may support providers later, but it has no admitted enterprise owner.",
+      "calledFunctions": {},
+      "admission": "NOT_ADMITTED",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Require tenant administration and redact secrets/delivery payloads before any Control surface admission; internalize otherwise.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "workflowMetrics",
+      "functions": [
+        "getWorkflowMetrics"
+      ],
+      "classification": "FUTURE PRODUCT SURFACE",
+      "whyItRemains": "Workflow metrics may feed Observability/Economics later; the old component is not an admitted route.",
+      "calledFunctions": {},
+      "admission": "LEGACY_COMPONENT_ONLY",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Add project scope and bounded aggregation before merging into Preview Analytics/Observability, or internalize.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
+    },
+    {
+      "module": "workflows",
+      "functions": [
+        "getById"
+      ],
+      "classification": "INTERNALIZATION CANDIDATE",
+      "whyItRemains": "Workflow definitions are read by runtime, CLI, an old panel, and internal meta-loop composition; getById has no known caller.",
+      "calledFunctions": {},
+      "admission": "RUNTIME_SERVICE",
+      "readOnly": true,
+      "pilotBlocker": false,
+      "unrestrictedReleaseBlocker": false,
+      "remediation": "Use internalQuery for server composition, a signed scoped service contract for runtime, and authenticated operator access for CLI; internalize getById.",
+      "resolution": "INTERNALIZED",
+      "resolutionEvidence": "Converted from public query to internalQuery after exact repository call-site analysis found no admitted caller."
     }
   ]
 }

@@ -6,7 +6,7 @@
  */
 
 import { v } from "convex/values";
-import { query, mutation, action } from "./_generated/server";
+import { query, mutation, action, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { authedMutation } from "./lib/authedFunctions";
 
@@ -51,7 +51,7 @@ export const listArtifacts = query({
 /**
  * Get a single voice artifact.
  */
-export const getArtifact = query({
+export const getArtifact = internalQuery({
   args: {
     artifactId: v.id("voiceArtifacts"),
   },

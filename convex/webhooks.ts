@@ -5,7 +5,7 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query, action, internalMutation } from "./_generated/server";
+import { mutation, query, action, internalMutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { authedAction, authedMutation } from "./lib/authedFunctions";
 
@@ -32,7 +32,7 @@ async function hmacSha256Hex(secret: string, data: string): Promise<string> {
 // QUERIES
 // ============================================================================
 
-export const list = query({
+export const list = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
   },
@@ -48,14 +48,14 @@ export const list = query({
   },
 });
 
-export const get = query({
+export const get = internalQuery({
   args: { webhookId: v.id("webhooks") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.webhookId);
   },
 });
 
-export const getDeliveries = query({
+export const getDeliveries = internalQuery({
   args: {
     webhookId: v.id("webhooks"),
     limit: v.optional(v.number()),

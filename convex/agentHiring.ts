@@ -5,7 +5,7 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { authedMutation } from "./lib/authedFunctions";
 
@@ -125,7 +125,7 @@ export const getCandidate = query({
   },
 });
 
-export const getScreenReport = query({
+export const getScreenReport = internalQuery({
   args: { candidateId: v.id("hiringCandidates") },
   handler: async (ctx, args) => {
     return await ctx.db
@@ -135,7 +135,7 @@ export const getScreenReport = query({
   },
 });
 
-export const getAssessmentPacket = query({
+export const getAssessmentPacket = internalQuery({
   args: { candidateId: v.id("hiringCandidates") },
   handler: async (ctx, args) => {
     return await ctx.db
@@ -145,7 +145,7 @@ export const getAssessmentPacket = query({
   },
 });
 
-export const getPanelPacket = query({
+export const getPanelPacket = internalQuery({
   args: { candidateId: v.id("hiringCandidates") },
   handler: async (ctx, args) => {
     return await ctx.db
@@ -155,7 +155,7 @@ export const getPanelPacket = query({
   },
 });
 
-export const getDecisionRecord = query({
+export const getDecisionRecord = internalQuery({
   args: { candidateId: v.id("hiringCandidates") },
   handler: async (ctx, args) => {
     return await ctx.db

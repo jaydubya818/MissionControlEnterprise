@@ -16,10 +16,12 @@ authentication and, where records are scoped, company/workspace authorization.
 
 The Preview work closed 14 inherited unauthenticated reads. Subsequent Live
 closure work closed another 13, reducing the repository authorization baseline
-from 184 to 157. The remaining 157 entries are not reachable from an admitted
-Live or Preview route according to the enforced closure gate, but they remain
-directly callable through the public Convex API. They are classified Phase 3
-authorization debt and are not waived for pilot or final enterprise readiness.
+from 184 to 157. A subsequent dependency-safe tranche internalized 79 reads
+with no admitted or known repository caller, leaving 78 public unauthenticated
+reads. None is reachable from an admitted Live or Preview route according to
+the enforced closure gate, but all 78 remain directly callable through the
+public Convex API. They are classified Phase 3 authorization debt and are not
+waived for pilot or final enterprise readiness.
 
 ## Findings and remediation
 
@@ -57,9 +59,10 @@ Current result:
 17 Live routes PASS
 14 Preview routes PASS
 0 admitted routes reach an unauthenticated public Convex function
-917 total public Convex functions
+838 total public Convex functions
 760 authorized
-157 classified unauthenticated read-only functions
+78 active classified unauthenticated read-only functions
+79 internalized reads retained in resolved classification history
 0 unauthorized mutations/actions
 ```
 

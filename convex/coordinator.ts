@@ -10,7 +10,7 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import type { Id, Doc } from "./_generated/dataModel";
 import { authedMutation } from "./lib/authedFunctions";
 import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
@@ -40,7 +40,7 @@ async function requireDependencyGraphScope(
 /**
  * Get all subtasks for a parent task.
  */
-export const getSubtasks = query({
+export const getSubtasks = internalQuery({
   args: { parentTaskId: v.id("tasks") },
   handler: async (ctx, args) => {
     const tasks = await ctx.db.query("tasks").collect();
@@ -51,7 +51,7 @@ export const getSubtasks = query({
 /**
  * Get the task dependency graph for a parent task.
  */
-export const getTaskDependencies = query({
+export const getTaskDependencies = internalQuery({
   args: { parentTaskId: v.id("tasks") },
   handler: async (ctx, args) => {
     return await ctx.db

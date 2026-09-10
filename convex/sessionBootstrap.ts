@@ -11,8 +11,8 @@
  */
 
 import { v } from "convex/values";
-import { action, query } from "./_generated/server";
-import { api } from "./_generated/api";
+import { action, query, internalQuery } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { authedAction } from "./lib/authedFunctions";
 
 // ============================================================================
@@ -22,7 +22,7 @@ import { authedAction } from "./lib/authedFunctions";
 /**
  * Get bootstrap context for an agent session (sync version for UI).
  */
-export const getBootstrapContext = query({
+export const getBootstrapContext = internalQuery({
   args: {
     agentId: v.id("agents"),
     projectId: v.optional(v.id("projects")),
@@ -97,7 +97,7 @@ export const bootstrap: any = authedAction({
   },
   handler: async (ctx, args): Promise<any> => {
     // 1. Get agent + identity context
-    const context: any = await ctx.runQuery(api.sessionBootstrap.getBootstrapContext, {
+    const context: any = await ctx.runQuery(internal.sessionBootstrap.getBootstrapContext, {
       agentId: args.agentId,
       projectId: args.projectId,
     });

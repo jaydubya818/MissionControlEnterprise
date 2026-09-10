@@ -5,7 +5,7 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query, internalMutation } from "./_generated/server";
+import { mutation, query, internalMutation, internalQuery } from "./_generated/server";
 import { Doc, Id } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
 import { authedMutation } from "./lib/authedFunctions";
@@ -17,7 +17,7 @@ import { authedMutation } from "./lib/authedFunctions";
 /**
  * Get metrics for a specific workflow
  */
-export const getWorkflowMetrics = query({
+export const getWorkflowMetrics = internalQuery({
   args: {
     workflowId: v.string(),
     projectId: v.optional(v.id("projects")),

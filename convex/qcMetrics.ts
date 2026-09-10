@@ -5,7 +5,7 @@
  */
 
 import { v } from "convex/values";
-import { query, internalMutation } from "./_generated/server";
+import { query, internalMutation, internalQuery } from "./_generated/server";
 
 const environmentUnion = v.optional(v.union(
   v.literal("local"),
@@ -134,7 +134,7 @@ export const aggregate = query({
 /**
  * Latest value of each metric per environment (for sparklines)
  */
-export const latestByEnvironment = query({
+export const latestByEnvironment = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     environment: environmentUnion,

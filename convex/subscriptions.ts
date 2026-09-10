@@ -3,7 +3,7 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { authedMutation } from "./lib/authedFunctions";
 
 export const subscribe = authedMutation({
@@ -49,7 +49,7 @@ export const unsubscribe = authedMutation({
   },
 });
 
-export const listByAgent = query({
+export const listByAgent = internalQuery({
   args: { agentId: v.id("agents"), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     const limit = args.limit ?? 50;
@@ -61,7 +61,7 @@ export const listByAgent = query({
   },
 });
 
-export const listByTask = query({
+export const listByTask = internalQuery({
   args: { taskId: v.id("tasks"), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     const limit = args.limit ?? 50;
@@ -74,7 +74,7 @@ export const listByTask = query({
 });
 
 /** Subscribed task IDs for an agent — used by heartbeat / "threads with activity". */
-export const getSubscribedTaskIds = query({
+export const getSubscribedTaskIds = internalQuery({
   args: { agentId: v.id("agents") },
   handler: async (ctx, args) => {
     const subs = await ctx.db

@@ -11,6 +11,7 @@ const classificationPath = path.join(repoRoot, "scripts", "authorization-debt-cl
 const baseline = JSON.parse(readFileSync(baselinePath, "utf8")).unauthorized ?? [];
 const document = JSON.parse(readFileSync(classificationPath, "utf8"));
 const entries = document.entries ?? [];
+const resolvedEntries = document.resolvedEntries ?? [];
 
 const sourceFiles = [];
 const sourceText = new Map();
@@ -78,6 +79,7 @@ const allowedAdmissions = new Set([
 
 const errors = [];
 const classified = [];
+const resolved = [];
 const counts = new Map();
 let knownCallerCount = 0;
 
@@ -144,9 +146,44 @@ for (const [index, entry] of entries.entries()) {
   }
 }
 
+for (const [index, entry] of resolvedEntries.entries()) {
+  const label = `resolvedEntries[${index}]`;
+  if (typeof entry.module !== "string" || entry.module.length === 0) {
+    errors.push(`${label}: module is required`);
+    continue;
+  }
+  if (!Array.isArray(entry.functions) || entry.functions.length === 0) {
+    errors.push(`${label} (${entry.module}): functions must be non-empty`);
+    continue;
+  }
+  if (!allowedClassifications.has(entry.classification)) {
+    errors.push(`${label} (${entry.module}): unsupported classification '${entry.classification}'`);
+  }
+  if (!allowedAdmissions.has(entry.admission)) {
+    errors.push(`${label} (${entry.module}): unsupported admission '${entry.admission}'`);
+  }
+  if (entry.resolution !== "INTERNALIZED") {
+    errors.push(`${label} (${entry.module}): resolution must describe the applied internalization`);
+  }
+  if (entry.readOnly !== true || entry.pilotBlocker !== false || entry.unrestrictedReleaseBlocker !== false) {
+    errors.push(`${label} (${entry.module}): resolved reads must be read-only and non-blocking`);
+  }
+  for (const field of ["whyItRemains", "remediation", "resolutionEvidence"]) {
+    if (typeof entry[field] !== "string" || entry[field].trim().length < 12) {
+      errors.push(`${label} (${entry.module}): ${field} must be a meaningful explanation`);
+    }
+  }
+  for (const functionName of entry.functions) resolved.push(`${entry.module}:${functionName}`);
+}
+
 const duplicateIds = classified.filter((id, index) => classified.indexOf(id) !== index);
 if (duplicateIds.length > 0) {
   errors.push(`duplicate classifications: ${[...new Set(duplicateIds)].sort().join(", ")}`);
+}
+const allLedgerIds = [...classified, ...resolved];
+const allDuplicateIds = allLedgerIds.filter((id, index) => allLedgerIds.indexOf(id) !== index);
+if (allDuplicateIds.length > 0) {
+  errors.push(`active/resolved overlap: ${[...new Set(allDuplicateIds)].sort().join(", ")}`);
 }
 
 const baselineSet = new Set(baseline);
@@ -155,6 +192,16 @@ const missing = baseline.filter((id) => !classifiedSet.has(id));
 const stale = classified.filter((id) => !baselineSet.has(id));
 if (missing.length > 0) errors.push(`missing baseline functions: ${missing.join(", ")}`);
 if (stale.length > 0) errors.push(`stale/non-baseline functions: ${stale.join(", ")}`);
+const resolvedStillPublic = resolved.filter((id) => baselineSet.has(id));
+if (resolvedStillPublic.length > 0) {
+  errors.push(`resolved functions still present in unauthorized baseline: ${resolvedStillPublic.join(", ")}`);
+}
+if (typeof document.originalClassifiedCount !== "number" || allLedgerIds.length !== document.originalClassifiedCount) {
+  errors.push(
+    `classification history must contain exactly originalClassifiedCount=${document.originalClassifiedCount}; ` +
+      `found ${allLedgerIds.length}`,
+  );
+}
 
 if (errors.length > 0) {
   console.error("Authorization debt classification: FAIL");
@@ -164,7 +211,8 @@ if (errors.length > 0) {
 
 console.log(
   `Authorization debt classification: PASS — ${classified.length}/${baseline.length} ` +
-    `unauthorized public reads have explicit dispositions across ${entries.length} records.`,
+    `unauthorized public reads have explicit dispositions across ${entries.length} active records; ` +
+    `${resolved.length} reads are retained in the resolved history.`,
 );
 for (const [classification, count] of [...counts.entries()].sort(([a], [b]) => a.localeCompare(b))) {
   console.log(`  ${classification}: ${count}`);

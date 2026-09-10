@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
@@ -446,7 +446,7 @@ export const discoverPattern = authedMutation({
 // ANALYTICS
 // ============================================================================
 
-export const getProjectLearningInsights = query({
+export const getProjectLearningInsights = internalQuery({
   args: { projectId: v.id("projects") },
   handler: async (ctx, args) => {
     const agents = await ctx.db

@@ -48,7 +48,7 @@ function mapLabelsToPriority(labels: string[]): number {
 // QUERIES
 // ============================================================================
 
-export const getGitHubConfig = query({
+export const getGitHubConfig = internalQuery({
   args: { projectId: v.id("projects") },
   handler: async (_ctx, _args) => {
     // TODO: Implement when githubSync table is added to schema
@@ -56,7 +56,7 @@ export const getGitHubConfig = query({
   },
 });
 
-export const listGitHubLinkedTasks = query({
+export const listGitHubLinkedTasks = internalQuery({
   args: { projectId: v.id("projects") },
   handler: async (ctx, args) => {
     const tasks = await ctx.db

@@ -6,21 +6,21 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { authedMutation } from "./lib/authedFunctions";
 
 // ============================================================================
 // QUERIES
 // ============================================================================
 
-export const get = query({
+export const get = internalQuery({
   args: { requestId: v.id("executionRequests") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.requestId);
   },
 });
 
-export const listPending = query({
+export const listPending = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     executor: v.optional(v.string()),
@@ -47,7 +47,7 @@ export const listPending = query({
   },
 });
 
-export const listByTask = query({
+export const listByTask = internalQuery({
   args: {
     taskId: v.id("tasks"),
     limit: v.optional(v.number()),
@@ -61,7 +61,7 @@ export const listByTask = query({
   },
 });
 
-export const listByProject = query({
+export const listByProject = internalQuery({
   args: {
     projectId: v.id("projects"),
     status: v.optional(v.string()),
@@ -215,7 +215,7 @@ export const cancel = authedMutation({
  * V1: Returns recommendation only; execution is manual.
  * V1.1: Will automatically assign and execute.
  */
-export const getRoutingRecommendation = query({
+export const getRoutingRecommendation = internalQuery({
   args: {
     type: v.string(),
     taskId: v.optional(v.id("tasks")),

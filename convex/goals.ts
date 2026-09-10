@@ -1,12 +1,12 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { authedMutation } from "./lib/authedFunctions";
 
 // ============================================================================
 // QUERIES
 // ============================================================================
 
-export const list = query({
+export const list = internalQuery({
   args: {
     projectId: v.id("projects"),
     level: v.optional(
@@ -52,7 +52,7 @@ export const list = query({
   },
 });
 
-export const get = query({
+export const get = internalQuery({
   args: { goalId: v.id("goals") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.goalId);
@@ -98,7 +98,7 @@ export const getLinkedTasks = query({
   },
 });
 
-export const getAncestorChain = query({
+export const getAncestorChain = internalQuery({
   args: { goalId: v.id("goals") },
   handler: async (ctx, args) => {
     const chain = [];

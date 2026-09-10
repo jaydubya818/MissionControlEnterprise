@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { authedMutation } from "./lib/authedFunctions";
 
 export const record = authedMutation({
@@ -25,7 +25,7 @@ export const record = authedMutation({
   },
 });
 
-export const queryRange = query({
+export const queryRange = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     metricName: v.optional(v.string()),
@@ -46,7 +46,7 @@ export const queryRange = query({
   },
 });
 
-export const aggregate = query({
+export const aggregate = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     metricName: v.string(),

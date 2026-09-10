@@ -1,7 +1,7 @@
 /** Executor-facing activation of a repository's immutable context lock. */
 
 import { v } from "convex/values";
-import { mutation, query } from "../_generated/server";
+import { mutation, query, internalQuery } from "../_generated/server";
 import { requireContextRegistryEnabled } from "../lib/contextRegistryGate";
 import { parseResolvedContextLock } from "../lib/contextActivation";
 import { authedMutation } from "../lib/authedFunctions";
@@ -21,7 +21,7 @@ async function insertAudit(
   });
 }
 
-export const getReceiptForRun = query({
+export const getReceiptForRun = internalQuery({
   args: { workflowRunId: v.id("contextWorkflowRuns") },
   handler: async (ctx, args) =>
     await ctx.db

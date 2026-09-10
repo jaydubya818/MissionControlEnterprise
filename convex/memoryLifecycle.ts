@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { internalMutation, query } from "./_generated/server";
+import { internalMutation, query, internalQuery } from "./_generated/server";
 
 const status = v.union(v.literal("COMPLETED"), v.literal("FAILED"));
 
@@ -30,7 +30,7 @@ export const consolidateEpisodes = internalMutation({
   },
 });
 
-export const overview = query({
+export const overview = internalQuery({
   args: { projectId: v.id("projects") },
   handler: async (ctx, args) => {
     const episodes = await ctx.db.query("memoryEpisodes").withIndex("by_project_consolidated", (q) => q.eq("projectId", args.projectId)).collect();

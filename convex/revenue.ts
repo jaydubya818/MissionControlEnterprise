@@ -3,14 +3,14 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { authedMutation } from "./lib/authedFunctions";
 
 // ============================================================================
 // QUERIES
 // ============================================================================
 
-export const list = query({
+export const list = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     limit: v.optional(v.number()),
@@ -28,7 +28,7 @@ export const list = query({
   },
 });
 
-export const summary = query({
+export const summary = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
   },

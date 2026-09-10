@@ -9,7 +9,7 @@
  */
 
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalQuery } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { authedMutation } from "./lib/authedFunctions";
 
@@ -85,7 +85,7 @@ function calculateScore(
 /**
  * Find the best agent for a task
  */
-export const findBestAgent = query({
+export const findBestAgent = internalQuery({
   args: {
     projectId: v.id("projects"),
     taskType: v.string(),
@@ -190,7 +190,7 @@ export const findBestAgent = query({
 /**
  * Get assignment recommendations for a task
  */
-export const getRecommendations = query({
+export const getRecommendations = internalQuery({
   args: {
     projectId: v.id("projects"),
     taskType: v.string(),

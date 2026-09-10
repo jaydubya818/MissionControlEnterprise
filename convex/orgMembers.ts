@@ -3,7 +3,7 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { COMPANY_PERMISSIONS, requireWorkspaceAccess } from "./lib/companyAccess";
 import { authedMutation } from "./lib/authedFunctions";
@@ -58,7 +58,7 @@ export const list = query({
 /**
  * List ALL org members across all projects (for global People view)
  */
-export const listAll = query({
+export const listAll = internalQuery({
   args: {},
   handler: async (ctx) => {
     const members = await ctx.db
@@ -73,7 +73,7 @@ export const listAll = query({
 /**
  * Get org hierarchy tree (for org chart visualization)
  */
-export const getHierarchy = query({
+export const getHierarchy = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
   },

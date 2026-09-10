@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { authedMutation } from "./lib/authedFunctions";
 import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
 
@@ -36,7 +36,7 @@ export const listByUser = query({
   },
 });
 
-export const listWatchers = query({
+export const listWatchers = internalQuery({
   args: {
     entityType: entityTypeValidator,
     entityId: v.string(),

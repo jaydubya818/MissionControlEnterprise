@@ -8,7 +8,7 @@
  */
 
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalQuery } from "./_generated/server";
 import { authedMutation } from "./lib/authedFunctions";
 
 const orgPositionValidator = v.union(
@@ -31,7 +31,7 @@ const orgScopeValidator = v.union(
 /**
  * Get the full org chart for a project (CEO, leads, specialists, interns).
  */
-export const getProjectOrg = query({
+export const getProjectOrg = internalQuery({
   args: {
     projectId: v.id("projects"),
   },
@@ -67,7 +67,7 @@ export const getProjectOrg = query({
 /**
  * Get all positions for a specific agent across projects.
  */
-export const getAgentPositions = query({
+export const getAgentPositions = internalQuery({
   args: {
     agentId: v.id("agents"),
   },
@@ -92,7 +92,7 @@ export const getAgentPositions = query({
 /**
  * Get the CEO agent for a specific project.
  */
-export const getCEO = query({
+export const getCEO = internalQuery({
   args: {
     projectId: v.id("projects"),
   },
@@ -114,7 +114,7 @@ export const getCEO = query({
 /**
  * Get all lead agents for a project.
  */
-export const getLeads = query({
+export const getLeads = internalQuery({
   args: {
     projectId: v.id("projects"),
   },

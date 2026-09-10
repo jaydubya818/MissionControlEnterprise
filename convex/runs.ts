@@ -5,7 +5,7 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
 
 async function requireRunWorkspace(ctx: any, projectId?: any) {
@@ -38,14 +38,14 @@ function toPreview(value: unknown): string | undefined {
 // QUERIES
 // ============================================================================
 
-export const get = query({
+export const get = internalQuery({
   args: { runId: v.id("runs") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.runId);
   },
 });
 
-export const listByAgent = query({
+export const listByAgent = internalQuery({
   args: { 
     agentId: v.id("agents"),
     limit: v.optional(v.number()),
@@ -71,7 +71,7 @@ export const listByAgent = query({
   },
 });
 
-export const listByTask = query({
+export const listByTask = internalQuery({
   args: { 
     taskId: v.id("tasks"),
     limit: v.optional(v.number()),
@@ -925,7 +925,7 @@ export const complete = authedMutation({
   },
 });
 
-export const getStats = query({
+export const getStats = internalQuery({
   args: { 
     agentId: v.optional(v.id("agents")),
     taskId: v.optional(v.id("tasks")),

@@ -6,7 +6,7 @@
  */
 
 import { v } from "convex/values";
-import { internalMutation, mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query, internalQuery } from "./_generated/server";
 import { authedMutation } from "./lib/authedFunctions";
 
 // ============================================================================
@@ -179,7 +179,7 @@ export const onExecutionComplete = authedMutation({
 /**
  * Get pending execution requests for a specific executor.
  */
-export const getQueueForExecutor = query({
+export const getQueueForExecutor = internalQuery({
   args: {
     executor: v.union(
       v.literal("CURSOR"),

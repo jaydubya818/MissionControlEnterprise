@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { authedMutation } from "./lib/authedFunctions";
 
 const relationType = v.union(
@@ -13,7 +13,7 @@ const relationType = v.union(
 // QUERIES
 // ============================================================================
 
-export const listForTask = query({
+export const listForTask = internalQuery({
   args: { taskId: v.id("tasks") },
   handler: async (ctx, args) => {
     const asSource = await ctx.db
@@ -30,7 +30,7 @@ export const listForTask = query({
   },
 });
 
-export const listBlockers = query({
+export const listBlockers = internalQuery({
   args: { taskId: v.id("tasks") },
   handler: async (ctx, args) => {
     const blockedBy = await ctx.db
@@ -57,7 +57,7 @@ export const listBlockers = query({
   },
 });
 
-export const listByProject = query({
+export const listByProject = internalQuery({
   args: { projectId: v.id("projects") },
   handler: async (ctx, args) => {
     return await ctx.db

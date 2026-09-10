@@ -1,12 +1,12 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { authedMutation } from "./lib/authedFunctions";
 
 // ============================================================================
 // QUERIES
 // ============================================================================
 
-export const listByProject = query({
+export const listByProject = internalQuery({
   args: {
     projectId: v.id("projects"),
     limit: v.optional(v.number()),
@@ -20,7 +20,7 @@ export const listByProject = query({
   },
 });
 
-export const listByAgent = query({
+export const listByAgent = internalQuery({
   args: {
     agentId: v.id("agents"),
     limit: v.optional(v.number()),
@@ -34,7 +34,7 @@ export const listByAgent = query({
   },
 });
 
-export const listByTask = query({
+export const listByTask = internalQuery({
   args: {
     taskId: v.id("tasks"),
     limit: v.optional(v.number()),
@@ -48,7 +48,7 @@ export const listByTask = query({
   },
 });
 
-export const summaryByProject = query({
+export const summaryByProject = internalQuery({
   args: { projectId: v.id("projects") },
   handler: async (ctx, args) => {
     const events = await ctx.db

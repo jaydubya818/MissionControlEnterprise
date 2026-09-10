@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query } from "./_generated/server";
+import { query, internalQuery } from "./_generated/server";
 import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
 
 /**
@@ -131,7 +131,7 @@ export const searchAll = query({
   },
 });
 
-export const searchTasks = query({
+export const searchTasks = internalQuery({
   args: {
     query: v.string(),
     projectId: v.optional(v.id("projects")),
@@ -200,7 +200,7 @@ export const searchTasks = query({
   },
 });
 
-export const quickSearch = query({
+export const quickSearch = internalQuery({
   args: {
     query: v.string(),
     projectId: v.optional(v.id("projects")),
@@ -239,7 +239,7 @@ export const quickSearch = query({
 // SEARCH SUGGESTIONS
 // ============================================================================
 
-export const getSearchSuggestions = query({
+export const getSearchSuggestions = internalQuery({
   args: {
     query: v.string(),
     projectId: v.optional(v.id("projects")),
@@ -289,7 +289,7 @@ export const getSearchSuggestions = query({
 // FILTERS
 // ============================================================================
 
-export const getAvailableFilters = query({
+export const getAvailableFilters = internalQuery({
   args: { projectId: v.optional(v.id("projects")) },
   handler: async (ctx, args) => {
     const tasks = args.projectId

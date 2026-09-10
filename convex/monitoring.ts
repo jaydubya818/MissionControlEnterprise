@@ -5,7 +5,7 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
 import { authedMutation } from "./lib/authedFunctions";
 
@@ -242,7 +242,7 @@ export const getAuditLog = query({
 /**
  * Export audit log as markdown.
  */
-export const exportAuditLog = query({
+export const exportAuditLog = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     startTime: v.optional(v.number()),

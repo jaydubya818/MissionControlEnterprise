@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query, action } from "./_generated/server";
+import { mutation, query, action, internalQuery } from "./_generated/server";
 import { authedAction, authedMutation } from "./lib/authedFunctions";
 
 // Extension point: executeApi / executeUi / executeHybrid currently simulate steps.
@@ -29,7 +29,7 @@ function evaluateSteps(steps: Array<{ name: string; shouldFail?: boolean }>) {
   };
 }
 
-export const list = query({
+export const list = internalQuery({
   args: {
     projectId: v.optional(v.id("projects")),
     executionType: v.optional(v.union(v.literal("api"), v.literal("ui"), v.literal("hybrid"))),
@@ -43,7 +43,7 @@ export const list = query({
   },
 });
 
-export const get = query({
+export const get = internalQuery({
   args: { id: v.id("executionResults") },
   handler: async (ctx, args) => await ctx.db.get(args.id),
 });

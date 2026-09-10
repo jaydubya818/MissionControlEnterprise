@@ -3,7 +3,7 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { authedMutation } from "./lib/authedFunctions";
 
 interface PersonaDef {
@@ -31,7 +31,7 @@ const SQUAD_PERSONAS: PersonaDef[] = [
   { name: "Sofie", emoji: "✨", role: "SPECIALIST", allowedTaskTypes: ["CONTENT", "SOCIAL", "EMAIL_MARKETING"], budgetDaily: 5.0, budgetPerRun: 0.75 },
 ];
 
-export const getPersonas = query({
+export const getPersonas = internalQuery({
   args: {},
   handler: async () => {
     return SQUAD_PERSONAS;

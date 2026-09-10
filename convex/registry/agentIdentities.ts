@@ -1,10 +1,10 @@
-import { query, mutation } from "../_generated/server";
+import { query, mutation, internalQuery } from "../_generated/server";
 import { v } from "convex/values";
 import { resolveAgentRef } from "../lib/agentResolver";
 import { appendChangeRecord } from "../lib/armAudit";
 import { authedMutation } from "../lib/authedFunctions";
 
-export const getIdentity = query({
+export const getIdentity = internalQuery({
   args: {
     instanceId: v.optional(v.id("agentInstances")),
     agentId: v.optional(v.id("agents")),
@@ -27,7 +27,7 @@ export const getIdentity = query({
   },
 });
 
-export const listIdentities = query({
+export const listIdentities = internalQuery({
   args: {
     tenantId: v.optional(v.id("tenants")),
     templateId: v.optional(v.id("agentTemplates")),

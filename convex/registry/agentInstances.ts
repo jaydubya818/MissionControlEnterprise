@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "../_generated/server";
+import { mutation, query, internalQuery } from "../_generated/server";
 import { appendChangeRecord } from "../lib/armAudit";
 import { resolveActiveTenantId } from "../lib/getActiveTenant";
 import { authedMutation } from "../lib/authedFunctions";
@@ -80,7 +80,7 @@ export const createInstance = authedMutation({
   },
 });
 
-export const getInstance = query({
+export const getInstance = internalQuery({
   args: { instanceId: v.id("agentInstances") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.instanceId);

@@ -4,7 +4,7 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { assertAuthenticated } from "./lib/companyAccess";
 import { authedMutation } from "./lib/authedFunctions";
 
@@ -87,7 +87,7 @@ export const createForAgents = authedMutation({
   },
 });
 
-export const listByAgent = query({
+export const listByAgent = internalQuery({
   args: {
     agentId: v.id("agents"),
     unreadOnly: v.optional(v.boolean()),
@@ -135,7 +135,7 @@ export const markAllReadForAgent = authedMutation({
 });
 
 /** Pending (unread) notifications for an agent — used by heartbeat. */
-export const listPendingForAgent = query({
+export const listPendingForAgent = internalQuery({
   args: { agentId: v.id("agents"), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     const limit = args.limit ?? 30;

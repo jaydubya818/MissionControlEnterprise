@@ -5,7 +5,7 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { Doc } from "./_generated/dataModel";
 import { authedMutation } from "./lib/authedFunctions";
 import { FACTORY_PERMISSIONS, requireWorkspacePermission } from "./lib/companyAccess";
@@ -28,7 +28,7 @@ export const listByTask = query({
   },
 });
 
-export const listByAgent = query({
+export const listByAgent = internalQuery({
   args: { 
     agentId: v.id("agents"),
     limit: v.optional(v.number()),
@@ -44,7 +44,7 @@ export const listByAgent = query({
   },
 });
 
-export const getPending = query({
+export const getPending = internalQuery({
   args: { 
     projectId: v.optional(v.id("projects")),
     limit: v.optional(v.number()),

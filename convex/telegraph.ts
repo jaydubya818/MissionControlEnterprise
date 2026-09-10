@@ -6,7 +6,7 @@
  */
 
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalQuery } from "./_generated/server";
 import { authedMutation } from "./lib/authedFunctions";
 
 const channelValidator = v.union(v.literal("INTERNAL"), v.literal("TELEGRAM"));
@@ -86,7 +86,7 @@ export const getThread = query({
 /**
  * Get threads linked to a specific task.
  */
-export const getThreadsByTask = query({
+export const getThreadsByTask = internalQuery({
   args: {
     taskId: v.id("tasks"),
   },

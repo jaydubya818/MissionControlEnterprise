@@ -1,4 +1,4 @@
-import { mutation, query } from "../_generated/server";
+import { mutation, query, internalQuery } from "../_generated/server";
 import { v } from "convex/values";
 import { authedMutation } from "../lib/authedFunctions";
 
@@ -21,7 +21,7 @@ export const createPermission = authedMutation({
   },
 });
 
-export const listPermissions = query({
+export const listPermissions = internalQuery({
   args: {
     resource: v.optional(v.string()),
   },

@@ -5,7 +5,7 @@
  */
 
 import { v } from "convex/values";
-import { query, internalMutation } from "./_generated/server";
+import { query, internalMutation, internalQuery } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 
 // ============================================================================
@@ -28,7 +28,7 @@ export const listByRun = query({
 /**
  * Get download URL for an artifact
  */
-export const getDownloadUrl = query({
+export const getDownloadUrl = internalQuery({
   args: { id: v.id("qcArtifacts") },
   handler: async (ctx, args) => {
     const artifact = await ctx.db.get(args.id);

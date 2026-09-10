@@ -7,7 +7,7 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { FACTORY_PERMISSIONS, assertAuthenticated, requireWorkspacePermission } from "./lib/companyAccess";
 import type { Doc } from "./_generated/dataModel";
 import { classifyRisk, requiresApproval } from "./lib/riskClassifier";
@@ -391,7 +391,7 @@ export const explainTaskPolicy = query({
 // POLICY EVALUATION
 // ============================================================================
 
-export const evaluate = query({
+export const evaluate = internalQuery({
   args: {
     agentId: v.id("agents"),
     actionType: v.string(), // "TOOL_CALL" | "TRANSITION" | "SPAWN"

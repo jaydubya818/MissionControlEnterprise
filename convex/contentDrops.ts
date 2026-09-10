@@ -3,7 +3,7 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { authedMutation } from "./lib/authedFunctions";
 
 const contentTypeValidator = v.union(
@@ -70,7 +70,7 @@ export const get = query({
   },
 });
 
-export const listByAgent = query({
+export const listByAgent = internalQuery({
   args: {
     agentId: v.id("agents"),
     limit: v.optional(v.number()),

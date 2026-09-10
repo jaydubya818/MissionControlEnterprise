@@ -5,7 +5,7 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query, action, internalMutation } from "./_generated/server";
+import { mutation, query, action, internalMutation, internalQuery } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 import { appendOpEvent, appendChangeRecord } from "./lib/armAudit";
@@ -150,7 +150,7 @@ export const get = query({
 /**
  * Get QC run by runId
  */
-export const getByRunId = query({
+export const getByRunId = internalQuery({
   args: { runId: v.string() },
   handler: async (ctx, args) => {
     return await ctx.db
@@ -163,7 +163,7 @@ export const getByRunId = query({
 /**
  * Get quality score history for sparklines
  */
-export const projectScores = query({
+export const projectScores = internalQuery({
   args: {
     projectId: v.id("projects"),
     limit: v.optional(v.number()),
@@ -296,7 +296,7 @@ export const environmentSummary = query({
 /**
  * Compare two QC runs (diff)
  */
-export const diff = query({
+export const diff = internalQuery({
   args: {
     runId1: v.id("qcRuns"),
     runId2: v.id("qcRuns"),

@@ -6,7 +6,7 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query, action } from "./_generated/server";
+import { mutation, query, action, internalQuery } from "./_generated/server";
 import { Doc, Id } from "./_generated/dataModel";
 import { workflowDefinitionChanged } from "./lib/workflowSnapshot";
 import { FACTORY_PERMISSIONS, assertAuthenticated, requireWorkspacePermission } from "./lib/companyAccess";
@@ -83,7 +83,7 @@ export const get = query({
 /**
  * Get workflow by Convex _id
  */
-export const getById = query({
+export const getById = internalQuery({
   args: { id: v.id("workflows") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.id);
