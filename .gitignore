@@ -67,3 +67,7 @@ backups/
 
 # Durable worker state is local and must never be committed.
 /.mission-control/
+
+# Python bytecode (was previously tracked by mistake)
+__pycache__/
+*.py[cod]
