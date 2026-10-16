@@ -426,9 +426,9 @@ userSessions: {
 
 ## Related Documentation
 
-- [RUNBOOK.md](RUNBOOK.md) - Operational procedures
-- [MULTI_PROJECT_MODEL.md](MULTI_PROJECT_MODEL.md) - Multi-project architecture
-- [packages/telegram-bot/README.md](../packages/telegram-bot/README.md) - Bot setup
+- [RUNBOOK.md](../runbook/RUNBOOK.md) - Operational procedures
+- [MULTI_PROJECT_MODEL.md](../architecture/MULTI_PROJECT_MODEL.md) - Multi-project architecture
+- [packages/telegram-bot/README.md](../../packages/telegram-bot/README.md) - Bot setup
 
 ---
 

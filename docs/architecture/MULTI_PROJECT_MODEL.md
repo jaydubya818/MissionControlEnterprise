@@ -236,4 +236,4 @@ const { projectId, setProjectId } = useProject();
 
 - [RUNBOOK.md](../runbook/RUNBOOK.md) - Operational procedures including Sofie as CAO
 - [GETTING_STARTED.md](../guides/GETTING_STARTED.md) - Project setup and development
-- [STATE_MACHINE.md](../runbook/STATE_MACHINE.md) - Task state transitions (if exists, otherwise see packages/state-machine/)
+- [STATE_MACHINE.md](../openclaw-bootstrap/operating-manual/STATE_MACHINE.md) - Task state transitions (if exists, otherwise see packages/state-machine/)
