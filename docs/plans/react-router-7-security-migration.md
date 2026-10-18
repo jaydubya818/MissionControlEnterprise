@@ -1,6 +1,6 @@
 # React Router 7 security migration
 
-Status: approved follow-up; not part of Release & Dependency Hardening V1
+Status: done (2026-10-18) — react-router-dom upgraded to ^7.18.4; acceptances 1124268, 1124270, 1124272 removed after `pnpm audit --prod` reported them absent
 
 Owner: Mission Control repository owner
 
