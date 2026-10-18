@@ -70,10 +70,15 @@ try {
   process.exit(1);
 }
 
-const baseSha =
-  process.env.AUTHORIZATION_BASE_SHA ??
-  process.env.MC_QUALIFICATION_BASE_SHA ??
-  process.env.RUNTIME_CONTRACT_BASE_SHA;
+// GitHub reports an all-zero `before` SHA when a push has no previous commit
+// to compare against (new branch, first push). There is no base to ratchet
+// against in that case, so fall back to the committed baseline check alone.
+const NULL_SHA = /^0{40}$/;
+const baseSha = [
+  process.env.AUTHORIZATION_BASE_SHA,
+  process.env.MC_QUALIFICATION_BASE_SHA,
+  process.env.RUNTIME_CONTRACT_BASE_SHA,
+].find((candidate) => candidate && !NULL_SHA.test(candidate));
 if (baseSha) {
   if (!/^[0-9a-f]{40}$/i.test(baseSha)) {
     console.error(`Convex authorization ratchet: ERROR\nInvalid authorization base SHA: ${baseSha}`);
