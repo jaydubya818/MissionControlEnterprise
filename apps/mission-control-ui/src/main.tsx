@@ -41,12 +41,8 @@ function ProductApplication() {
   return (
     <RuntimeCompatibilityGate>
       <ToastProvider>
-        <BrowserRouter
-          future={{
-            v7_startTransition: true,
-            v7_relativeSplatPath: true,
-          }}
-        >
+        {/* React Router 7 enables startTransition and relative splat paths by default. */}
+        <BrowserRouter>
           <App />
         </BrowserRouter>
       </ToastProvider>

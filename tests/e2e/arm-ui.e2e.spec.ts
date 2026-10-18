@@ -10,10 +10,10 @@ test("retained operator routes resolve in Mission Control shell", async ({ page 
   await expectShellLoaded(page);
 
   await page.goto("/v2/agents");
-  await expect(page.getByRole("navigation", { name: "Breadcrumb" }).getByText("Agent Registry")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Agent Registry" })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Breadcrumb" }).getByText("Agent Fleet")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Agent Fleet" })).toBeVisible();
 
   await page.goto("/v2/model-routing");
-  await expect(page.getByRole("navigation", { name: "Breadcrumb" }).getByText("Execution Routing")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Execution Routing" })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Breadcrumb" }).getByText("Routing Decisions")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Routing Decisions" })).toBeVisible();
 });
